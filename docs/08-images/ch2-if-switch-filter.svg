@@ -1,0 +1,83 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 880 400" font-family="Segoe UI, Arial, sans-serif">
+  <rect x="0" y="0" width="880" height="400" rx="12" fill="#f6f8fa" stroke="#d0d7de"/>
+  <text x="440" y="34" text-anchor="middle" font-size="18" font-weight="700" fill="#1f2328">IF, Switch ou Filter : trois façons d'aiguiller les items</text>
+
+  <!-- IF -->
+  <rect x="40" y="60" width="250" height="290" rx="10" fill="#ffffff" stroke="#0969da" stroke-width="2"/>
+  <text x="165" y="88" text-anchor="middle" font-size="15" font-weight="700" fill="#0969da">IF</text>
+  <text x="165" y="108" text-anchor="middle" font-size="11" fill="#57606a">2 sorties : true / false</text>
+
+  <rect x="60" y="125" width="210" height="34" rx="6" fill="#ddf4ff" stroke="#54aeff"/>
+  <text x="165" y="147" text-anchor="middle" font-size="11" fill="#1f2328">condition : ville = « Lyon »</text>
+
+  <line x1="165" y1="165" x2="100" y2="215" stroke="#1f883d" stroke-width="2"/>
+  <polygon points="100,215 92,208 102,204" fill="#1f883d"/>
+  <text x="112" y="196" font-size="11" fill="#1f883d" font-weight="700">true</text>
+
+  <line x1="165" y1="165" x2="230" y2="215" stroke="#cf222e" stroke-width="2"/>
+  <polygon points="230,215 222,208 232,204" fill="#cf222e"/>
+  <text x="200" y="196" font-size="11" fill="#cf222e" font-weight="700">false</text>
+
+  <rect x="55" y="220" width="100" height="40" rx="6" fill="#eaf5ea" stroke="#1f883d"/>
+  <text x="105" y="237" text-anchor="middle" font-size="10" fill="#1f2328">items qui</text>
+  <text x="105" y="251" text-anchor="middle" font-size="10" fill="#1f2328">correspondent</text>
+
+  <rect x="185" y="220" width="100" height="40" rx="6" fill="#fdf0ee" stroke="#cf222e"/>
+  <text x="235" y="237" text-anchor="middle" font-size="10" fill="#1f2328">tous les</text>
+  <text x="235" y="251" text-anchor="middle" font-size="10" fill="#1f2328">autres</text>
+
+  <text x="165" y="290" text-anchor="middle" font-size="11" fill="#57606a">Conditions combinables</text>
+  <text x="165" y="307" text-anchor="middle" font-size="11" fill="#57606a">(ET / OU), opérateurs</text>
+  <text x="165" y="324" text-anchor="middle" font-size="11" fill="#57606a">typés (texte, nombre, date…)</text>
+
+  <!-- Switch -->
+  <rect x="315" y="60" width="250" height="290" rx="10" fill="#ffffff" stroke="#f0883e" stroke-width="2"/>
+  <text x="440" y="88" text-anchor="middle" font-size="15" font-weight="700" fill="#bc4c00">Switch</text>
+  <text x="440" y="108" text-anchor="middle" font-size="11" fill="#57606a">N sorties, une par règle</text>
+
+  <rect x="335" y="125" width="210" height="34" rx="6" fill="#fff4e5" stroke="#f0883e"/>
+  <text x="440" y="147" text-anchor="middle" font-size="11" fill="#1f2328">règles : support / ventes / autre</text>
+
+  <line x1="440" y1="165" x2="370" y2="215" stroke="#57606a" stroke-width="2"/>
+  <polygon points="370,215 362,208 372,204" fill="#57606a"/>
+  <line x1="440" y1="165" x2="440" y2="215" stroke="#57606a" stroke-width="2"/>
+  <polygon points="440,215 434,205 446,205" fill="#57606a"/>
+  <line x1="440" y1="165" x2="510" y2="215" stroke="#57606a" stroke-width="2"/>
+  <polygon points="510,215 502,208 512,204" fill="#57606a"/>
+
+  <rect x="330" y="220" width="66" height="34" rx="6" fill="#f6f8fa" stroke="#6e7781"/>
+  <text x="363" y="241" text-anchor="middle" font-size="10" fill="#1f2328">sortie 0</text>
+  <rect x="407" y="220" width="66" height="34" rx="6" fill="#f6f8fa" stroke="#6e7781"/>
+  <text x="440" y="241" text-anchor="middle" font-size="10" fill="#1f2328">sortie 1</text>
+  <rect x="484" y="220" width="66" height="34" rx="6" fill="#f6f8fa" stroke="#6e7781"/>
+  <text x="517" y="241" text-anchor="middle" font-size="10" fill="#1f2328">fallback</text>
+
+  <text x="440" y="290" text-anchor="middle" font-size="11" fill="#57606a">Mode règles ou expression,</text>
+  <text x="440" y="307" text-anchor="middle" font-size="11" fill="#57606a">sortie de secours (fallback),</text>
+  <text x="440" y="324" text-anchor="middle" font-size="11" fill="#57606a">items renommables par règle</text>
+
+  <!-- Filter -->
+  <rect x="590" y="60" width="250" height="290" rx="10" fill="#ffffff" stroke="#1f883d" stroke-width="2"/>
+  <text x="715" y="88" text-anchor="middle" font-size="15" font-weight="700" fill="#1f883d">Filter</text>
+  <text x="715" y="108" text-anchor="middle" font-size="11" fill="#57606a">1 sortie : le tableau réduit</text>
+
+  <rect x="610" y="125" width="210" height="34" rx="6" fill="#eaf5ea" stroke="#1f883d"/>
+  <text x="715" y="147" text-anchor="middle" font-size="11" fill="#1f2328">garder si : montant &gt; 100</text>
+
+  <rect x="610" y="175" width="210" height="30" rx="6" fill="#f6f8fa" stroke="#6e7781"/>
+  <text x="715" y="195" text-anchor="middle" font-size="10" fill="#57606a">10 items en entrée</text>
+
+  <line x1="715" y1="205" x2="715" y2="225" stroke="#1f883d" stroke-width="2"/>
+  <polygon points="715,225 709,215 721,215" fill="#1f883d"/>
+
+  <rect x="610" y="230" width="210" height="30" rx="6" fill="#eaf5ea" stroke="#1f883d"/>
+  <text x="715" y="250" text-anchor="middle" font-size="10" fill="#1f883d">3 items en sortie</text>
+
+  <text x="715" y="290" text-anchor="middle" font-size="11" fill="#57606a">Pas de branche « rejetés » :</text>
+  <text x="715" y="307" text-anchor="middle" font-size="11" fill="#57606a">les items écartés disparaissent</text>
+  <text x="715" y="324" text-anchor="middle" font-size="11" fill="#57606a">du flux (0 item = branche morte)</text>
+
+  <!-- Bandeau bas -->
+  <rect x="40" y="360" width="800" height="30" rx="8" fill="#fff8f2" stroke="#f0883e"/>
+  <text x="440" y="380" text-anchor="middle" font-size="13" fill="#1f2328">IF pour une question binaire, Switch pour un aiguillage multiple, Filter pour réduire le tableau sans branche.</text>
+</svg>

@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 880 360" font-family="Segoe UI, Arial, sans-serif">
+  <rect x="0" y="0" width="880" height="360" rx="12" fill="#f6f8fa" stroke="#d0d7de"/>
+  <text x="440" y="34" text-anchor="middle" font-size="18" font-weight="700" fill="#1f2328">La sécurité d'une instance n8n : quatre couches concentriques</text>
+
+  <!-- Couche 4 : données -->
+  <rect x="340" y="120" width="200" height="120" rx="10" fill="#fdf0ee" stroke="#cf222e" stroke-width="2"/>
+  <text x="440" y="170" text-anchor="middle" font-size="13" font-weight="700" fill="#cf222e">4. Données</text>
+  <text x="440" y="192" text-anchor="middle" font-size="10" fill="#57606a">credentials chiffrés,</text>
+  <text x="440" y="208" text-anchor="middle" font-size="10" fill="#57606a">rétention bornée,</text>
+  <text x="440" y="224" text-anchor="middle" font-size="10" fill="#57606a">masquage des exécutions</text>
+
+  <!-- Couche 3 : secrets/instance -->
+  <rect x="260" y="90" width="360" height="180" rx="12" fill="none" stroke="#f0883e" stroke-width="2"/>
+  <text x="440" y="80" text-anchor="middle" font-size="13" font-weight="700" fill="#bc4c00">3. Instance</text>
+  <text x="440" y="255" text-anchor="middle" font-size="10" fill="#57606a">comptes nominatifs, 2FA, SSO, projets, clé de chiffrement sauvegardée</text>
+
+  <!-- Couche 2 : accès réseau -->
+  <rect x="180" y="65" width="520" height="235" rx="14" fill="none" stroke="#0969da" stroke-width="2"/>
+  <text x="440" y="285" text-anchor="middle" font-size="10" fill="#57606a">reverse proxy HTTPS, port 5678 non exposé, webhooks authentifiés, protection SSRF</text>
+  <text x="440" y="55" text-anchor="middle" font-size="13" font-weight="700" fill="#0969da">2. Accès réseau</text>
+
+  <!-- Couche 1 : organisation -->
+  <rect x="100" y="40" width="680" height="290" rx="16" fill="none" stroke="#1f883d" stroke-width="2" stroke-dasharray="8 4"/>
+  <text x="150" y="318" text-anchor="start" font-size="13" font-weight="700" fill="#1f883d">1. Organisation : rôles, procédures, revues, mises à jour, sauvegardes testées</text>
+
+  <!-- Bandeau bas -->
+  <rect x="100" y="335" width="680" height="1" fill="none"/>
+</svg>

@@ -1,0 +1,2080 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="Support interactif de formation Automatisation No-Code avec n8n — Initiation + Approfondissement : 02 — Connecter des services et structurer les automatisations">
+<title>02 — Connecter des services et structurer les automatisations</title>
+<style>
+:root {
+  --bg: #0d1117; --surface: #161b22; --surface2: #1c2128; --border: #30363d;
+  --primary: #f0883e; --primary2: #ffa657;
+  --success: #3fb950; --warning: #d29922; --danger: #f85149;
+  --text: #e6edf3; --text-muted: #8b949e; --code-bg: #010409; --radius: 10px;
+  --topbar-h: 3.25rem;
+}
+:root[data-theme="light"] {
+  --bg: #ffffff; --surface: #f6f8fa; --surface2: #eaeef2; --border: #d0d7de;
+  --primary: #bc4c00; --primary2: #953800;
+  --success: #1a7f37; --warning: #9a6700; --danger: #cf222e;
+  --text: #1f2328; --text-muted: #656d76; --code-bg: #f6f8fa;
+}
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme="dark"]) {
+    --bg: #ffffff; --surface: #f6f8fa; --surface2: #eaeef2; --border: #d0d7de;
+    --primary: #bc4c00; --primary2: #953800;
+    --success: #1a7f37; --warning: #9a6700; --danger: #cf222e;
+    --text: #1f2328; --text-muted: #656d76; --code-bg: #f6f8fa;
+  }
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body { background: var(--bg); color: var(--text); font-family: system-ui, -apple-system, "Segoe UI", sans-serif; font-size: 15px; line-height: 1.7; transition: background .2s, color .2s; }
+
+/* TOPBAR — fixe, ne bouge jamais au scroll */
+.topbar {
+  position: sticky; top: 0; z-index: 200; height: var(--topbar-h);
+  background: var(--surface); border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; gap: .9rem; padding: 0 1rem;
+}
+.topbar .badge {
+  flex: 0 0 auto; background: var(--primary); color: #0d1117;
+  font-size: 10px; font-weight: 700; letter-spacing: .07em; text-transform: uppercase;
+  padding: 3px 9px; border-radius: 20px; white-space: nowrap;
+}
+.topbar a.chapter-title {
+  flex: 1 1 auto; min-width: 0; display: flex; align-items: baseline; gap: .5rem;
+  text-decoration: none; color: var(--text); font-weight: 700; font-size: .92rem;
+  overflow: hidden;
+}
+.topbar a.chapter-title:hover { color: var(--primary); }
+.topbar a.chapter-title .num { color: var(--primary); flex: 0 0 auto; }
+.topbar a.chapter-title .txt { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.topbar-links { flex: 0 0 auto; display: flex; align-items: center; gap: .5rem; }
+.topbar-link {
+  white-space: nowrap; padding: .4rem .8rem; border: 1px solid var(--border); border-radius: 20px;
+  font-size: .8rem; font-weight: 600; color: var(--text-muted); text-decoration: none; transition: all .2s;
+}
+.topbar-link:hover { color: var(--primary); border-color: var(--primary); }
+.theme-toggle {
+  flex: 0 0 auto; background: var(--surface2); border: 1px solid var(--border); color: var(--text);
+  padding: .4rem .7rem; border-radius: 20px; font-size: .8rem; cursor: pointer;
+  display: inline-flex; align-items: center; gap: .35rem;
+}
+.theme-toggle:hover { border-color: var(--primary); }
+
+/* LAYOUT — sidebar gauche + contenu */
+.layout { display: flex; align-items: flex-start; }
+.sidebar {
+  flex: 0 0 280px; width: 280px;
+  position: sticky; top: var(--topbar-h);
+  height: calc(100vh - var(--topbar-h));
+  overflow-y: auto; border-right: 1px solid var(--border); background: var(--surface);
+  padding: 1.25rem 1rem 2rem;
+}
+.objectifs {
+  background: var(--surface2); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: .8rem 1rem; margin-bottom: 1.25rem;
+}
+.objectifs-label { font-size: .7rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--primary); }
+.objectifs ul { margin: .4rem 0 0 1.1rem; }
+.objectifs li { font-size: .82rem; color: var(--text-muted); margin-bottom: .3rem; line-height: 1.4; }
+.side-nav { display: flex; flex-direction: column; gap: .1rem; }
+.side-nav button {
+  text-align: left; background: none; border: none; border-left: 3px solid transparent;
+  color: var(--text-muted); padding: .55rem .7rem; font-size: .87rem; font-weight: 500;
+  cursor: pointer; border-radius: 0 6px 6px 0; transition: all .15s;
+}
+.side-nav button:hover { color: var(--text); background: var(--surface2); }
+.side-nav button.active { color: var(--primary); border-left-color: var(--primary); background: var(--surface2); font-weight: 600; }
+.side-nav-sep { height: 1px; background: var(--border); margin: .6rem 0; }
+
+.content { flex: 1 1 auto; min-width: 0; }
+.tab-content { display: none; padding: 2rem 2.5rem 4rem; max-width: 1100px; margin: 0 auto; }
+.tab-content.active { display: block; }
+
+/* SECTIONS */
+h2 { font-size: 1.25rem; color: var(--primary2); margin: 1.8rem 0 .8rem; border-left: 3px solid var(--primary); padding-left: .75rem; }
+h3 { font-size: 1.05rem; color: var(--text); margin: 1.4rem 0 .6rem; }
+p { margin-bottom: .9rem; }
+ul, ol { padding-left: 1.4rem; margin-bottom: .9rem; }
+li { margin-bottom: .35rem; }
+
+/* RESSOURCES — liste sous forme de cartes plutôt que de puces */
+#tab-ressources ul { list-style: none; padding-left: 0; display: flex; flex-direction: column; gap: .5rem; }
+#tab-ressources li {
+  background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
+  padding: .75rem 1rem; margin-bottom: 0;
+}
+#tab-ressources li a { color: var(--primary2); font-weight: 600; text-decoration: none; }
+#tab-ressources li a:hover { text-decoration: underline; }
+
+/* AIDE — divulgation progressive pas-à-pas */
+details.aide { margin-top: 1.5rem; border: 1px solid var(--border); border-radius: var(--radius); background: var(--surface); }
+details.aide summary {
+  cursor: pointer; padding: .8rem 1.1rem; font-weight: 600; color: var(--primary);
+  list-style: none; display: flex; align-items: center; gap: .5rem;
+}
+details.aide summary::-webkit-details-marker { display: none; }
+details.aide summary::before { content: "▶"; font-size: .7rem; transition: transform .15s; }
+details.aide[open] summary::before { transform: rotate(90deg); }
+details.aide .aide-body { padding: 0 1.1rem 1.1rem; border-top: 1px solid var(--border); margin-top: .2rem; padding-top: 1rem; }
+img { max-width: 100%; height: auto; display: block; margin: 1rem auto; }
+
+/* EXERCICE — un bloc par atelier, avec son aide pas-à-pas attachée juste en dessous */
+.exercice { padding: 1.3rem 0; border-top: 1px solid var(--border); }
+.exercice:first-of-type { border-top: none; padding-top: 0; }
+.exercice h3 { margin: 0 0 .8rem; color: var(--primary2); }
+
+/* CALLOUTS */
+.callout { border-radius: var(--radius); padding: .9rem 1.1rem; margin: 1.2rem 0; border-left: 4px solid; background: var(--surface2); }
+.callout.note   { border-color: var(--primary); }
+.callout.tip    { border-color: var(--success); }
+.callout.warn   { border-color: var(--warning); }
+.callout.danger { border-color: var(--danger); }
+.callout p:last-child { margin-bottom: 0; }
+.callout-title { font-weight: 700; font-size: .82rem; text-transform: uppercase; letter-spacing: .07em; margin-bottom: .4rem; }
+.callout.note   .callout-title { color: var(--primary); }
+.callout.tip    .callout-title { color: var(--success); }
+.callout.warn   .callout-title { color: var(--warning); }
+.callout.danger .callout-title { color: var(--danger); }
+
+/* TABLES */
+.table-wrap { overflow-x: auto; margin: 1rem 0; }
+table { width: 100%; border-collapse: collapse; font-size: .9rem; }
+th { background: var(--surface2); color: var(--primary2); text-align: left; padding: .6rem .9rem; font-weight: 600; border: 1px solid var(--border); }
+td { padding: .55rem .9rem; border: 1px solid var(--border); vertical-align: top; }
+tr:hover td { background: var(--surface2); }
+
+/* CODE */
+.code-block { position: relative; margin: 1rem 0; }
+pre { background: var(--code-bg); border: 1px solid var(--border); border-radius: var(--radius); padding: 1rem 1rem 1rem 1.2rem; overflow-x: auto; }
+code { font-family: 'Consolas', 'Cascadia Code', monospace; font-size: .88rem; color: var(--primary2); }
+p code, li code, td code { background: var(--code-bg); border: 1px solid var(--border); border-radius: 5px; padding: .05rem .35rem; }
+.copy-btn {
+  position: absolute; top: .5rem; right: .5rem;
+  background: var(--surface2); border: 1px solid var(--border); color: var(--text-muted);
+  padding: .25rem .6rem; font-size: .75rem; border-radius: 5px; cursor: pointer; transition: all .2s;
+}
+.copy-btn:hover { background: var(--primary); color: #0d1117; }
+.copy-btn.copied { background: var(--success); color: #0d1117; }
+
+/* QUIZ */
+.quiz-question { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 1.2rem; margin-bottom: 1.2rem; }
+.quiz-question h4 { color: var(--primary2); margin-bottom: .9rem; font-size: .98rem; }
+.quiz-options { display: flex; flex-direction: column; gap: .5rem; }
+.quiz-option {
+  background: var(--surface2); border: 1px solid var(--border);
+  border-radius: 8px; padding: .6rem .9rem; cursor: pointer;
+  font-size: .9rem; transition: all .2s; text-align: left; color: var(--text);
+}
+.quiz-option:hover:not(:disabled) { border-color: var(--primary); }
+.quiz-option.correct { border-color: var(--success); color: var(--success); }
+.quiz-option.wrong   { border-color: var(--danger);  color: var(--danger);  }
+.quiz-option:disabled { cursor: default; }
+.quiz-feedback { margin-top: .6rem; font-size: .87rem; color: var(--text-muted); font-style: italic; }
+.quiz-score {
+  background: var(--surface2); border: 1px solid var(--primary);
+  border-radius: var(--radius); padding: 1.5rem; text-align: center; margin-top: 1.5rem; display: none;
+}
+.quiz-score .score-num { font-size: 2.5rem; font-weight: 700; color: var(--primary); }
+.quiz-score p { color: var(--text-muted); margin-top: .4rem; }
+.btn-restart { background: var(--primary); color: #0d1117; border: none; padding: .6rem 1.4rem; border-radius: 8px; font-weight: 700; cursor: pointer; margin-top: 1rem; font-size: .9rem; }
+.btn-restart:hover { background: var(--primary2); }
+
+/* RESPONSIVE — sidebar devient une barre horizontale sous 900px */
+@media (max-width: 900px) {
+  .layout { flex-direction: column; }
+  .sidebar {
+    position: static; width: 100%; height: auto; max-height: 40vh;
+    border-right: none; border-bottom: 1px solid var(--border);
+  }
+  .side-nav { flex-direction: row; flex-wrap: nowrap; overflow-x: auto; gap: .3rem; }
+  .side-nav button { border-left: none; border-bottom: 3px solid transparent; white-space: nowrap; border-radius: 6px 6px 0 0; }
+  .side-nav button.active { border-left-color: transparent; border-bottom-color: var(--primary); }
+  .side-nav-sep { display: none; }
+  .tab-content { padding: 1.5rem 1.2rem 3rem; }
+  .topbar a.chapter-title { font-size: .82rem; }
+}
+</style>
+<link rel="stylesheet" href="assets/course-common.css">
+<script src="assets/course-common.js" defer></script>
+</head>
+<body>
+
+<div class="topbar">
+  <span class="badge">Automatisation No-Code avec n8n — Initiation + Approfondissement</span>
+  <a class="chapter-title" href="index.html" title="Retour à l'accueil de la formation">
+    <span class="num">02</span><span class="txt">Connecter des services et structurer les automatisations</span>
+  </a>
+  <div class="topbar-links">
+    <a href="annexes.html" class="topbar-link">Annexes ↗</a>
+    <a class="topbar-link" href="index.html">Sommaire</a>
+    <button class="theme-toggle" id="theme-toggle" onclick="toggleTheme()" aria-label="Basculer entre thème clair et sombre">
+      <span id="theme-icon">🌙</span> <span id="theme-label">Sombre</span>
+    </button>
+  </div>
+</div>
+
+<div class="layout">
+  <aside class="sidebar">
+    <div class="objectifs"><span class="objectifs-label">Objectifs</span><ul><li>Connecter des services et applications via les intégrations natives et le nœud HTTP Request</li><li>Gérer l&#x27;authentification et les clés d&#x27;API avec les credentials n8n</li><li>Structurer un workflow avec des conditions, des branches et des filtres</li><li>Appliquer les bonnes pratiques de lisibilité et de maintenance des workflows</li></ul></div>
+    <nav class="side-nav" id="main-nav">
+      <button class="active" onclick="showTab('les-integrations-natives')">Les intégrations natives</button>
+  <button class="" onclick="showTab('le-nud-http-request')">Le nœud HTTP Request</button>
+  <button class="" onclick="showTab('authentification-et-cles-d-api')">Authentification et clés d&#x27;API</button>
+  <button class="" onclick="showTab('gerer-les-entrees-et-sorties-de-donnees')">Gérer les entrées et sorties de données</button>
+  <button class="" onclick="showTab('conditions-le-nud-if')">Conditions : le nœud IF</button>
+  <button class="" onclick="showTab('aiguillage-multiple-le-nud-switch')">Aiguillage multiple : le nœud Switch</button>
+  <button class="" onclick="showTab('reduire-le-tableau-le-nud-filter')">Réduire le tableau : le nœud Filter</button>
+  <button class="" onclick="showTab('organiser-et-documenter-ses-workflows')">Organiser et documenter ses workflows</button>
+  <button class="" onclick="showTab('bonnes-pratiques-de-lisibilite-et-de-maintenance')">Bonnes pratiques de lisibilité et de maintenance</button>
+  <button class="" onclick="showTab('atelier-3-connecter-un-service-externe-a-un-workflow-n8n')">Atelier 3 — Connecter un service externe à un workflow n8n</button>
+  <button class="" onclick="showTab('atelier-4-automatiser-un-processus-simple-de-bout-en-bout')">Atelier 4 — Automatiser un processus simple de bout en bout</button>
+  <button class="" onclick="showTab('quiz')">Quiz</button>
+    </nav>
+  </aside>
+  <div class="content">
+    <div id="tab-les-integrations-natives" class="tab-content active">
+<h3>Un catalogue de plusieurs centaines de nœuds</h3>
+<p>Le chapitre 1 a présenté le moteur de n8n ; cette journée lui donne des choses à
+connecter. n8n embarque <strong>plus de 400 intégrations natives</strong> : des nœuds dédiés
+à un service précis — Gmail, Slack, Google Sheets, GitHub, PostgreSQL, Notion,
+HubSpot, Jira, Salesforce — qui en masquent la complexité d'API derrière des
+paramètres lisibles.</p>
+<p>Chaque intégration native propose :</p>
+<ul>
+<li>
+<p>des <strong>actions</strong> (créer une ligne, envoyer un message, chercher un contact),
+  choisies dans une liste déroulante — pas de documentation externe à traduire ;</p>
+</li>
+<li>
+<p>parfois un <strong>déclencheur d'application</strong> (nouvel e-mail, nouveau ticket),
+  vu au chapitre 1 ;</p>
+</li>
+<li>
+<p>une <strong>connexion par credential</strong> : les identifiants se configurent une fois,
+  puis se réutilisent dans tous les workflows.</p>
+</li>
+</ul>
+<h3>Explorer le catalogue</h3>
+<p>Le panneau d'ajout de nœuds (bouton <strong>+</strong> du canevas) sert d'explorateur :</p>
+<ul>
+<li>le champ de <strong>recherche</strong> trouve un service par son nom (« sheets », « mail ») ;</li>
+<li>
+<p>l'onglet <strong>Actions</strong> liste les nœuds qui agissent, l'onglet <strong>Triggers</strong> ceux
+  qui déclenchent ;</p>
+</li>
+<li>
+<p>la saisie d'un verbe (« send », « create », « get ») fait remonter les nœuds
+  capables de cette action, tous services confondus.</p>
+</li>
+</ul>
+<p>Chaque intégration dispose d'une page de documentation officielle décrivant ses
+opérations et ses options d'authentification ; le fichier Ressources en annexe
+pointe vers le catalogue complet.</p>
+<h3>Lire la documentation d'une intégration</h3>
+<p>Face à un service inconnu, la lecture de sa page de documentation officielle n8n
+répond à quatre questions, dans cet ordre :</p>
+<ol>
+<li><strong>quelles opérations</strong> le nœud couvre-t-il, pour quelles ressources ?</li>
+<li>
+<p><strong>quel mode d'authentification</strong> le credential exige-t-il — clé d'API,
+   OAuth2, compte de service — et où l'obtenir côté service ?</p>
+</li>
+<li>
+<p>quelles sont les <strong>limites connues</strong> (opérations absentes, pagination gérée
+   ou non, formats particuliers) ?</p>
+</li>
+<li>
+<p>existe-t-il un <strong>déclencheur</strong> associé, et dans quel mode (polling, webhook) ?</p>
+</li>
+</ol>
+<p>Ces quatre réponses suffisent pour décider de la stratégie : nœud natif si
+l'opération existe, HTTP Request avec credential prédéfini si elle manque, et
+elles évitent la découverte en plein atelier d'une impasse documentée depuis
+longtemps.</p>
+<h3>Anatomie d'une intégration native</h3>
+<p>Toutes les intégrations natives partagent la même ergonomie, qu'on retrouve dans
+le panneau de paramètres :</p>
+<ul>
+<li>
+<p>la <strong>ressource</strong> (Resource) : l'objet métier manipulé — <em>Message</em>, <em>Contact</em>,
+  <em>Row</em>, <em>File</em>… ;</p>
+</li>
+<li>
+<p>l'<strong>opération</strong> (Operation) : l'action sur cette ressource — <em>Create</em>, <em>Get</em>,
+  <em>Get Many</em>, <em>Update</em>, <em>Delete</em>… ;</p>
+</li>
+<li>
+<p>les <strong>paramètres</strong> : les champs de l'opération, obligatoires ou optionnels,
+  souvent pré-remplis avec les listes réelles du service (feuilles d'un tableur,
+  canaux d'une messagerie) une fois le credential renseigné ;</p>
+</li>
+<li>
+<p>le <strong>credential</strong> : le compte utilisé, partagé entre tous les nœuds du même
+  service.</p>
+</li>
+</ul>
+<p>Cette uniformité est un accélérateur : savoir configurer le nœud Google Sheets,
+c'est savoir configurer l'essentiel des intégrations — seuls changent la liste
+des ressources et le vocabulaire du service.</p>
+<h3>Exemple de lecture avec un nœud natif</h3>
+<p>La lecture de données avec un nœud natif suit toujours la même séquence :</p>
+<ol>
+<li>
+<p>poser le nœud (par exemple <strong>Google Sheets</strong>) et sélectionner le credential
+   du compte ;</p>
+</li>
+<li>
+<p>choisir la ressource (<em>Sheet Within Document</em>) puis l'opération
+   (<em>Get Row(s)</em>) ;</p>
+</li>
+<li>
+<p>désigner le document et la feuille — les listes déroulantes interrogent le
+   service et proposent les valeurs réelles ;</p>
+</li>
+<li>
+<p>exécuter « Test step » : chaque ligne du tableur devient <strong>un item</strong>, les
+   en-têtes de colonnes deviennent les champs du <code>json</code> ;</p>
+</li>
+<li>
+<p>épingler la sortie si les appels suivants doivent être économisés.</p>
+</li>
+</ol>
+<p>Ce fonctionnement — <em>une ligne lue = un item</em> — est général : lignes de tableur,
+messages d'une boîte, enregistrements d'une base, tickets d'un support. Le
+modèle d'items du chapitre 1 rend toutes ces sources immédiatement
+compatibles entre elles.</p>
+<h3>Les nœuds « cœur » (core nodes)</h3>
+<p>Aux côtés des intégrations, une famille de nœuds génériques fournit la logique
+du flux, indépendante de tout service :</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Famille</th>
+<th>Nœuds représentatifs</th>
+<th>Rôle</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Entrées/sorties</td>
+<td>HTTP Request, Webhook, Respond to Webhook</td>
+<td>Parler à n'importe quelle API</td>
+</tr>
+<tr>
+<td>Logique</td>
+<td>IF, Switch, Filter, Merge, Wait</td>
+<td>Aiguiller, réduire, fusionner, temporiser</td>
+</tr>
+<tr>
+<td>Données</td>
+<td>Edit Fields, Split Out, Aggregate, Sort, Limit</td>
+<td>Transformer les items</td>
+</tr>
+<tr>
+<td>Code</td>
+<td>Code, expressions</td>
+<td>Traitements libres (chapitre 3)</td>
+</tr>
+<tr>
+<td>Utilitaires</td>
+<td>Date &amp; Time, Crypto, Compression, FTP, RSS</td>
+<td>Formats et protocoles courants</td>
+</tr>
+</tbody>
+</table></div>
+<div class="callout note"><div class="callout-title">Analogie : le magasin de pièces détachées</div><p>Les intégrations natives sont les pièces d'origine constructeur : calées pour
+un modèle précis, elles se montent sans réglage. Les nœuds cœur sont les
+pièces universelles : vis, câbles, connecteurs standards. Un mécanicien
+compétent sait surtout se servir des pièces universelles — elles réparent ce
+que le constructeur n'a pas prévu. Le nœud HTTP Request est la pièce
+universelle par excellence.</p></div>
+<h3>Configurer un déclencheur d'application natif</h3>
+<p>Les déclencheurs d'applications vus au chapitre 1 se configurent, eux aussi, sur
+le modèle ressource/opération. La séquence type, illustrée avec le nœud Gmail
+Trigger :</p>
+<ol>
+<li>
+<p>poser le déclencheur et sélectionner le credential du compte (OAuth2 le plus
+   souvent — n8n ouvre la page de consentement du service) ;</p>
+</li>
+<li>
+<p>choisir l'<strong>événement</strong> écouté (<em>Message Received</em>, <em>Message Sent</em>…) ;</p>
+</li>
+<li>
+<p>régler les <strong>filtres</strong> côté service quand ils existent (libellé Gmail, expédi-
+   teur, dossier) — filtrer à la source économise des exécutions ;</p>
+</li>
+<li>
+<p>choisir le mode de détection : <strong>polling</strong> à intervalle réglable, ou
+   <strong>webhook</strong> quand le service le propose ;</p>
+</li>
+<li>
+<p>exécuter « Test step » pour capturer un événement réel et épingler sa
+   structure — champs <code>subject</code>, <code>from</code>, <code>snippet</code>, <code>id</code>… — qui servira à
+   écrire les conditions en aval.</p>
+</li>
+</ol>
+<div class="callout warn"><div class="callout-title">Un credential par compte, pas par nœud</div><p>Poser trois nœuds Gmail dans trois workflows ne demande qu'<strong>un</strong> credential
+Gmail, créé une fois et sélectionné partout. Multiplier les credentials pour
+le même compte transforme chaque rotation de mot de passe ou révocation en
+chasse aux trésors — et l'événement test capturé reste attaché au compte,
+donc identique quel que soit le nœud.</p></div>
+<h3>Et quand le service n'a pas de nœud dédié ?</h3>
+<p>Trois solutions, dans l'ordre de préférence :</p>
+<ol>
+<li>
+<p>vérifier si le service expose un <strong>credential prédéfini</strong> utilisable par le
+   nœud HTTP Request — beaucoup d'intégrations natives autorisent ainsi d'autres
+   opérations de la même API ;</p>
+</li>
+<li>
+<p>utiliser le <strong>nœud HTTP Request</strong> avec un credential générique (clé d'API,
+   OAuth2…) — c'est le sujet des deux sections suivantes ;</p>
+</li>
+<li>
+<p>installer un <strong>nœud communautaire</strong> (community node) publié par la
+   communauté — possible en auto-hébergé, après validation de sa qualité et de
+   sa maintenance ; à réserver aux cas sans alternative, la prudence s'impose
+   avec du code tiers.</p>
+</li>
+</ol>
+<h3>Les limites à connaître des intégrations natives</h3>
+<p>Les nœuds natifs simplifient l'essentiel, mais trois limites reviennent en
+projet réel :</p>
+<ul>
+<li>
+<p><strong>l'opération manquante</strong> : le nœud couvre les opérations courantes de l'API,
+  pas forcément les 5 % exotiques — la parade est le nœud HTTP Request avec le
+  credential prédéfini du même service ;</p>
+</li>
+<li>
+<p><strong>le retard de version</strong> : le service fait évoluer son API plus vite que le
+  nœud n'est mis à jour — un paramètre récent peut manquer quelques semaines ;</p>
+</li>
+<li>
+<p><strong>le comportement opaque</strong> : certains nœuds gèrent en interne pagination ou
+  découpage, d'autres non — la documentation de chaque intégration précise ces
+  choix, et l'historique d'exécution permet de vérifier ce qui est réellement
+  parti sur le réseau.</p>
+</li>
+</ul>
+<p>Ces limites ne remettent pas en cause l'usage des nœuds natifs — ils restent la
+voie la plus rapide et la plus lisible — mais elles expliquent pourquoi la
+maîtrise du nœud HTTP Request, objet des sections suivantes, reste la compétence
+pivot de cette journée.</p>
+</div>
+
+<div id="tab-le-nud-http-request" class="tab-content">
+<h3>Le traducteur universel</h3>
+<p>Tout service moderne expose une <strong>API HTTP</strong> (application programming interface) :
+des URL auxquelles on adresse des requêtes pour lire ou modifier des données. Le
+nœud HTTP Request est le nœud générique qui parle ce langage : s'il n'existe pas
+de nœud dédié à un service, ce nœud-ci suffit presque toujours.</p>
+<p><img alt="Anatomie d'un échange HTTP : méthode, URL, query string, en-têtes, corps — et la réponse" src="../08-images/ch2-anatomie-requete-http.svg" /></p>
+<p>Le schéma ci-dessus fait le lien entre la structure d'une requête HTTP et les
+paramètres du nœud : chaque zone de la requête correspond à un champ de
+configuration. Comprendre cette anatomie une fois, c'est savoir configurer le
+nœud pour n'importe quelle API documentée.</p>
+<h3>Les paramètres essentiels</h3>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Paramètre</th>
+<th>Contenu</th>
+<th>Exemple</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Method</td>
+<td>Le verbe HTTP</td>
+<td><code>GET</code>, <code>POST</code>, <code>PUT</code>, <code>PATCH</code>, <code>DELETE</code>, <code>HEAD</code>, <code>OPTIONS</code></td>
+</tr>
+<tr>
+<td>URL</td>
+<td>L'adresse de la ressource</td>
+<td><code>https://api.github.com/repos/n8n-io/n8n/releases</code></td>
+</tr>
+<tr>
+<td>Send Query Parameters</td>
+<td>Les paramètres d'URL (<code>?page=2&amp;limit=50</code>)</td>
+<td>paires clé/valeur ou JSON</td>
+</tr>
+<tr>
+<td>Send Headers</td>
+<td>Les en-têtes</td>
+<td><code>Accept: application/json</code></td>
+</tr>
+<tr>
+<td>Send Body</td>
+<td>Le corps de la requête</td>
+<td>JSON, formulaire, texte brut, fichier binaire</td>
+</tr>
+<tr>
+<td>Authentication</td>
+<td>Le mode d'identification</td>
+<td>section suivante</td>
+</tr>
+</tbody>
+</table></div>
+<p>Le choix de la méthode suit la convention REST : <code>GET</code> lit, <code>POST</code> crée,
+<code>PUT</code>/<code>PATCH</code> modifient, <code>DELETE</code> supprime. La documentation de chaque API
+indique, pour chaque opération, la méthode, l'URL et le corps attendus.</p>
+<h3>Le corps des requêtes : JSON, formulaire, fichier</h3>
+<p>Trois formats de corps dominent, sélectionnés dans le paramètre <em>Body Content
+Type</em> :</p>
+<ul>
+<li>
+<p><strong>JSON</strong> (<code>application/json</code>) : le standard des API modernes ; le corps se
+  décrit champ par champ ou en JSON libre, avec des expressions pour injecter
+  les données du flux — <code>{{ $json.nom }}</code>, <code>{{ $json.email }}</code> ;</p>
+</li>
+<li>
+<p><strong>formulaire</strong> (<code>application/x-www-form-urlencoded</code> ou <code>multipart/form-data</code>) :
+  des paires clé/valeur, exigé par certaines API historiques et par les envois
+  de fichiers couplés à des champs ;</p>
+</li>
+<li>
+<p><strong>fichier binaire</strong> : le contenu d'un item <code>binary</code> (un PDF reçu, une image
+  générée) envoyé tel quel — par exemple vers un espace de stockage.</p>
+</li>
+</ul>
+<p>Le corps JSON se compose fréquemment d'objets imbriqués ; le mode d'édition
+libre du nœud accepte directement :</p>
+<div class="code-block"><pre><code class="language-json">{
+  &quot;contact&quot;: {
+    &quot;nom&quot;: &quot;{{ $json.nom }}&quot;,
+    &quot;email&quot;: &quot;{{ $json.email }}&quot;
+  },
+  &quot;source&quot;: &quot;workflow-n8n&quot;,
+  &quot;relance_prevue&quot;: &quot;{{ $now.plus({days: 7}).toISODate() }}&quot;
+}
+</code></pre><button class="copy-btn" onclick="copyCode(this)">Copier</button></div>
+<p>Chaque valeur entre accolades est évaluée par item : dix items en entrée, dix
+corps JSON distincts émis.</p>
+<h3>Les codes de statut de la réponse</h3>
+<p>La réponse d'une API commence par un <strong>code de statut</strong> à trois chiffres, dont la
+lecture oriente le diagnostic :</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Famille</th>
+<th>Signification</th>
+<th>Exemples</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>2xx</td>
+<td>Succès</td>
+<td><code>200 OK</code>, <code>201 Created</code>, <code>204 No Content</code></td>
+</tr>
+<tr>
+<td>3xx</td>
+<td>Redirection</td>
+<td><code>301</code>, <code>302</code> — suivies automatiquement ou non selon l'option Redirects</td>
+</tr>
+<tr>
+<td>4xx</td>
+<td>Erreur côté appelant</td>
+<td><code>400</code> requête malformée, <code>401</code> non authentifié, <code>403</code> interdit, <code>404</code> introuvable, <code>429</code> quota dépassé</td>
+</tr>
+<tr>
+<td>5xx</td>
+<td>Erreur côté service</td>
+<td><code>500</code>, <code>502</code>, <code>503</code> — le service est fautif ou indisponible</td>
+</tr>
+</tbody>
+</table></div>
+<p>Par défaut, un code 4xx ou 5xx met le nœud en erreur — rouge sur le canevas,
+exécution marquée en échec. C'est le comportement souhaité pendant la
+construction ; le chapitre 3 montrera comment intercepter ces erreurs proprement
+(Continue On Fail, branches d'erreur) au lieu de laisser le flux s'arrêter.</p>
+<h3>Deux façons de configurer : paramètres ou import cURL</h3>
+<p>Le nœud offre un <strong>import de commande cURL</strong> : on colle une commande <code>curl</code>
+complète — souvent recopiée de la documentation de l'API — et n8n la décompose en
+paramètres (méthode, URL, en-têtes, corps). C'est un gain de temps considérable
+quand la documentation du service fournit ses exemples en cURL, ce qui est le cas
+de la quasi-totalité des API.</p>
+<h3>Lire la réponse</h3>
+<p>Par défaut, le nœud analyse la réponse et produit le tableau d'items :</p>
+<ul>
+<li>un <strong>tableau JSON au premier niveau</strong> devient un item par élément ;</li>
+<li>un <strong>objet JSON</strong> devient un item unique ;</li>
+<li>les autres formats (texte, HTML, fichier) se gèrent via l'option
+  <strong>Response Format</strong> (<code>File</code> pour récupérer un binaire, <code>Text</code> pour du brut).</li>
+</ul>
+<h3>Récupérer des fichiers : la sortie binaire</h3>
+<p>Quand l'API retourne un fichier — une facture PDF, une image, une archive —
+l'option <em>Response Format: File</em> place le contenu dans la clé <code>binary</code> de
+l'item, avec son type MIME et un nom de fichier. Ces fichiers s'enchaînent alors
+avec les nœuds qui en consomment : pièce jointe d'un e-mail, envoi vers un
+stockage (S3, FTP, Nextcloud), ou extraction de contenu.</p>
+<p>Le réflexe de vérification est le même que pour le JSON : après le premier
+appel, l'onglet <strong>Binary</strong> de la sortie confirme la présence du fichier, sa
+taille et son type — un fichier de 0 octet ou un type <code>text/html</code> inattendu
+trahissent immédiatement une URL ou une authentification incorrecte.</p>
+<p>Les options du nœud couvrent aussi les cas concrets d'exploitation :</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Option</th>
+<th>Usage</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Pagination</td>
+<td>Suivre automatiquement les pages de résultats (paramètres ou lien « next »), avec nombre de pages maximum</td>
+</tr>
+<tr>
+<td>Batching</td>
+<td>Découper les appels en lots (taille + intervalle en ms) pour respecter les quotas de l'API</td>
+</tr>
+<tr>
+<td>Timeout</td>
+<td>Abandonner une requête trop longue au lieu d'attendre indéfiniment</td>
+</tr>
+<tr>
+<td>Ignore SSL Issues</td>
+<td>Accepter un certificat auto-signé (recettes internes uniquement)</td>
+</tr>
+<tr>
+<td>Redirects</td>
+<td>Suivre ou non les redirections HTTP</td>
+</tr>
+</tbody>
+</table></div>
+<div class="callout warn"><div class="callout-title">Les quotas d'API (rate limiting)</div><p>Toute API sérieuse limite le nombre de requêtes par minute ou par jour ; au-delà,
+elle répond <code>429 Too Many Requests</code>, parfois avec un en-tête <code>Retry-After</code>.
+Deux réflexes en formation comme en production : activer <strong>Retry On Fail</strong> dans
+l'onglet Settings du nœud, et configurer <strong>Batching</strong> quand une boucle
+d'appels est inévitable — le chapitre 3 détaillera ces traitements répétitifs.</p></div>
+<div class="callout tip"><div class="callout-title">Vérifier d'abord avec un client HTTP simple</div><p>Avant de configurer le nœud, un premier appel avec <code>curl</code> ou depuis le
+navigateur (pour les GET publics) confirme l'URL, la méthode et la structure
+de la réponse. On construit ensuite le nœud sur des données déjà observées —
+c'est exactement la démarche des ateliers de ce chapitre.</p></div>
+<h3>Vérifier ses requêtes sortantes avec un service d'écho</h3>
+<p>Construire une requête POST complexe sans voir ce qui part réellement est une
+source d'erreurs silencieuses. Les services d'<strong>écho HTTP</strong> — httpbin.org est le
+plus connu — acceptent toute requête et la renvoient telle quelle dans leur
+réponse : méthode, en-têtes, paramètres, corps.</p>
+<p>Le réflexe de construction :</p>
+<ol>
+<li>
+<p>pointer le nœud HTTP Request vers <code>https://httpbin.org/post</code> pendant la mise
+   au point ;</p>
+</li>
+<li>
+<p>vérifier dans la réponse-écho que le corps, les en-têtes et l'authentifica-
+   tion partent exactement comme prévu ;</p>
+</li>
+<li>
+<p>basculer l'URL vers le vrai service une fois la requête validée.</p>
+</li>
+</ol>
+<div class="callout warn"><div class="callout-title">Jamais de vraies données vers un service d'écho</div><p>Un service d'écho est un tiers : on n'y envoie ni données personnelles, ni
+clés d'API réelles, ni secrets. Pendant les essais, on utilise des données
+factices et un jeton de test — la bascule vers les vraies valeurs se fait au
+moment de pointer l'URL de production.</p></div>
+</div>
+
+<div id="tab-authentification-et-cles-d-api" class="tab-content">
+<h3>Pourquoi les API exigent une identification</h3>
+<p>Une API ouverte à tous serait pillée : quotas ingérables, données exposées, abus
+impossibles à tracer. L'<strong>authentification</strong> répond à trois questions : qui
+appelle (identité), a-t-il le droit (autorisation), combien a-t-il déjà consommé
+(quota). Trois familles de mécanismes dominent :</p>
+<ul>
+<li>
+<p>la <strong>clé d'API</strong> (API key) : une longue chaîne secrète générée par le service,
+  envoyée dans un en-tête (<code>Authorization: Bearer …</code>, <code>X-API-Key: …</code>) ou en
+  paramètre d'URL — simple, révocable, mais à protéger comme un mot de passe ;</p>
+</li>
+<li>
+<p>le <strong>Basic Auth</strong> : identifiant et mot de passe encodés dans l'en-tête
+  <code>Authorization</code> — répandu en interne, à n'utiliser qu'en HTTPS ;</p>
+</li>
+<li>
+<p><strong>OAuth2</strong> : une délégation d'accès — l'utilisateur autorise l'application à
+  agir en son nom, le service émet un <strong>jeton</strong> (token) à durée limitée — le
+  standard des grands services (Google, Microsoft, Slack, GitHub…).</p>
+</li>
+</ul>
+<h3>Le flux OAuth2 « Authorization Code »</h3>
+<p>OAuth2 mérite un schéma : c'est le mécanisme que les credentials n8n automatisent
+entièrement une fois configurés.</p>
+<p><img alt="Le flux OAuth2 Authorization Code en quatre étapes entre l'utilisateur, n8n et le service" src="../08-images/ch2-oauth2-authorization-code.svg" /></p>
+<p>La lecture du schéma tient en quatre temps : n8n redirige l'utilisateur vers la
+page de consentement du service ; l'utilisateur s'y authentifie et accorde les
+permissions demandées (les <strong>scopes</strong>) ; le service rappelle n8n avec un code
+provisoire ; n8n échange ce code — accompagné du <code>client_secret</code> — contre un
+<strong>jeton d'accès</strong>, qu'il stocke chiffré et <strong>renouvelle tout seul</strong> grâce au
+jeton de rafraîchissement. Le mot de passe du service ne transite jamais par
+n8n, et le jeton se révoque depuis le service à tout moment.</p>
+<h3>Les credentials dans n8n</h3>
+<p>Un <strong>credential</strong> (identifiant) est un jeu d'accès stocké de façon <strong>chiffrée</strong>
+dans la base de n8n — avec la clé de chiffrement vue au chapitre 1. Propriétés
+essentielles :</p>
+<ul>
+<li>
+<p>il se crée <strong>depuis un nœud</strong> (liste déroulante « Credential » → <em>Create new</em>)
+  ou depuis la page <strong>Credentials</strong> de la barre latérale ;</p>
+</li>
+<li>
+<p>il est <strong>réutilisable</strong> dans tous les workflows : on ne saisit la clé qu'une
+  fois ;</p>
+</li>
+<li>
+<p>il ne s'affiche <strong>jamais en clair après enregistrement</strong> — on peut le remplacer,
+  pas le relire ;</p>
+</li>
+<li>
+<p>selon l'édition, il se <strong>partage</strong> avec d'autres utilisateurs de l'instance,
+  sans révéler son contenu.</p>
+</li>
+</ul>
+<div class="callout danger"><div class="callout-title">Une clé d'API est un secret, pas un paramètre</div><p>Coller une clé directement dans un champ d'URL ou un en-tête d'un nœud l'inscrit
+en clair dans la définition du workflow — export, historique des versions et
+captures d'écran compris. La clé vit dans un credential, jamais dans les
+paramètres. Cette règle, déjà critique en formation, devient absolue en
+production ; le chapitre 4 y consacre une section complète.</p></div>
+<h3>Credentials prédéfinis ou génériques</h3>
+<p>Pour le nœud HTTP Request, n8n distingue deux familles de credentials :</p>
+<ul>
+<li>
+<p>les <strong>credentials prédéfinis</strong> (predefined) : ils réutilisent le credential
+  d'une intégration native — par exemple le credential « GitHub » créé pour le
+  nœud GitHub — pour appeler d'autres opérations de la même API ; c'est la voie
+  recommandée quand elle existe, car n8n gère les subtilités (format d'en-tête,
+  rafraîchissement OAuth2) ;</p>
+</li>
+<li>
+<p>les <strong>credentials génériques</strong> : Basic Auth, Digest Auth, Header Auth (une
+  paire nom/valeur d'en-tête), Query Auth (un paramètre d'URL), OAuth1, OAuth2,
+  et Custom — la boîte à outils universelle.</p>
+</li>
+</ul>
+<p>Le credential générique <strong>OAuth2</strong> demande de choisir le <strong>type de flux</strong>
+(grant type) : <em>Authorization Code</em> (avec Authorization URL, Access Token URL,
+Client ID, Client Secret, scopes — le flux du schéma ci-dessus), <em>Client
+Credentials</em> (machine à machine : Access Token URL, Client ID, Client Secret),
+ou <em>PKCE</em> (variante renforcée d'Authorization Code). La documentation du service
+cible indique toujours lequel utiliser.</p>
+<h3>Le consentement OAuth2 en pratique</h3>
+<p>Côté n8n, le flux Authorization Code se concrétise par un bouton : dans la
+fenêtre du credential, <strong>Connect my account</strong> (ou <em>Reconnect</em>) ouvre la page du
+service, l'utilisateur s'y authentifie, accepte les scopes, et la fenêtre se
+referme sur un credential opérationnel. Deux détails d'exploitation :</p>
+<ul>
+<li>
+<p>l'<strong>URL de rappel</strong> (callback URL) affichée par n8n doit être déclarée dans la
+  configuration de l'application côté service — sur une instance auto-hébergée,
+  c'est l'URL publique de l'instance, ce qui suppose qu'elle soit joignable
+  depuis le navigateur de l'utilisateur ;</p>
+</li>
+<li>
+<p>un credential OAuth2 créé par un compte <strong>personnel</strong> lie les workflows à cet
+  utilisateur : à son départ, tout casse. En production, on crée un <strong>compte de
+  service</strong> dédié, dont les credentials survivent aux mouvements d'équipe.</p>
+</li>
+</ul>
+<h3>Obtenir une clé d'API auprès d'un service</h3>
+<p>La démarche est stable d'un service à l'autre :</p>
+<ol>
+<li>se connecter au service avec un compte ayant les droits suffisants ;</li>
+<li>ouvrir la section « développeurs », « API » ou « intégrations » des réglages ;</li>
+<li>
+<p>générer une clé ou un <strong>jeton d'accès personnel</strong> (personal access token), en
+   limitant les <strong>permissions</strong> (scopes) au strict nécessaire du workflow ;</p>
+</li>
+<li>
+<p>la stocker immédiatement dans un credential n8n, puis supprimer toute copie
+   locale (notes, presse-papiers, terminal).</p>
+</li>
+</ol>
+<h3>Choisir le bon mécanisme</h3>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Situation</th>
+<th>Mécanisme</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>L'API accepte une clé simple</td>
+<td>Clé d'API dans un credential Header Auth ou Query Auth</td>
+</tr>
+<tr>
+<td>Compte de service interne, identifiant + mot de passe</td>
+<td>Basic Auth (HTTPS uniquement)</td>
+</tr>
+<tr>
+<td>Agir au nom d'un utilisateur (sa boîte mail, son agenda)</td>
+<td>OAuth2 Authorization Code</td>
+</tr>
+<tr>
+<td>Machine à machine, sans utilisateur (cron de synchronisation)</td>
+<td>OAuth2 Client Credentials</td>
+</tr>
+<tr>
+<td>Une intégration native existe déjà pour ce service</td>
+<td>Credential prédéfini, réutilisé par le nœud HTTP Request si besoin d'une opération non couverte</td>
+</tr>
+</tbody>
+</table></div>
+<h3>Durée de vie des jetons : ce que n8n gère pour vous</h3>
+<p>Les jetons OAuth2 expirent — souvent au bout d'une heure. Le <strong>jeton de
+rafraîchissement</strong> (refresh token), obtenu en même temps, permet d'en demander
+un nouveau sans réintervention de l'utilisateur. n8n effectue ce
+rafraîchissement automatiquement à chaque appel : le credential OAuth2 est, une
+fois consenti, pérenne — jusqu'à révocation côté service ou expiration du jeton
+de rafraîchissement.</p>
+<p>Les clés d'API, elles, n'expirent généralement pas : leur rotation est une
+décision d'hygiène de l'organisation, et leur révocation est l'unique parade en
+cas de fuite. D'où l'importance du nommage des credentials (<code>Service — compte</code>)
+pour savoir exactement quoi régénérer le jour où c'est nécessaire.</p>
+<div class="callout tip"><div class="callout-title">Principe du moindre privilège</div><p>Une clé qui ne sert qu'à lire des commandes ne doit pas avoir le droit de les
+supprimer. À la création de chaque jeton, on ne coche que les permissions
+strictement nécessaires au flux prévu : en cas de fuite, les dégâts restent
+proportionnés à l'usage.</p></div>
+</div>
+
+<div id="tab-gerer-les-entrees-et-sorties-de-donnees" class="tab-content">
+<h3>Le problème : deux services, deux schémas</h3>
+<p>Connecter deux applications, ce n'est pas seulement faire parvenir une requête :
+c'est faire coïncider deux <strong>schémas de données</strong> qui ne se ressemblent pas. La
+boutique parle de <code>customer_name</code>, le CRM attend <code>nom</code> ; l'une envoie des dates
+<code>12/03/2026</code>, l'autre exige <code>2026-03-12T00:00:00.000Z</code> ; l'une retourne
+<code>mail</code> en casse libre, l'autre rejette les majuscules.</p>
+<p><img alt="Normaliser les données entre deux schémas hétérogènes : renommer, normaliser, convertir" src="../08-images/ch2-normalisation-schemas.svg" /></p>
+<p>Le schéma ci-dessus montre le rôle de <strong>traducteur de schémas</strong> que joue le
+workflow : entre la lecture de la source et l'écriture dans la cible, une étape
+de transformation associe à chaque champ attendu une expression qui lit, renomme,
+convertit ou formate la donnée source. C'est le nœud Edit Fields du chapitre 1,
+cette fois appliqué à une vraie contrainte d'interopérabilité.</p>
+<h3>La méthode en quatre questions</h3>
+<p>Face à une intégration à construire, quatre questions structurent le travail :</p>
+<ol>
+<li>
+<p><strong>que reçoit-on ?</strong> — exécuter la lecture amont et observer la sortie réelle
+  (vue JSON), pas celle imaginée d'après la documentation ;</p>
+</li>
+<li>
+<p><strong>qu'attend la cible ?</strong> — relever dans la documentation de l'API cible les
+   champs obligatoires, leurs noms exacts et leurs types ;</p>
+</li>
+<li>
+<p><strong>que faut-il transformer ?</strong> — pour chaque champ cible : renommage,
+   conversion de type, formatage, valeur par défaut si absent ;</p>
+</li>
+<li>
+<p><strong>que faire des absents ?</strong> — un champ obligatoire manquant doit être détecté
+   (filtre, branche d'erreur) plutôt qu'envoyé <code>undefined</code> à la cible.</p>
+</li>
+</ol>
+<h3>Exemple de mapping complet, pas à pas</h3>
+<p>La boutique envoie, par webhook, chaque nouvelle commande sous cette forme :</p>
+<div class="code-block"><pre><code class="language-json">{
+  &quot;order_id&quot;: &quot;CMD-2026-0481&quot;,
+  &quot;customer&quot;: { &quot;full_name&quot;: &quot;  Marie DUPONT &quot;, &quot;mail&quot;: &quot;MARIE.DUPONT@EXEMPLE.FR&quot; },
+  &quot;total_ttc&quot;: &quot;129.90&quot;,
+  &quot;ordered_at&quot;: &quot;12/03/2026 14:05&quot;
+}
+</code></pre><button class="copy-btn" onclick="copyCode(this)">Copier</button></div>
+<p>Le CRM attend :</p>
+<div class="code-block"><pre><code class="language-json">{
+  &quot;reference&quot;: &quot;CMD-2026-0481&quot;,
+  &quot;nom&quot;: &quot;Marie Dupont&quot;,
+  &quot;email&quot;: &quot;marie.dupont@exemple.fr&quot;,
+  &quot;montant&quot;: 129.9,
+  &quot;date_commande&quot;: &quot;2026-03-12&quot;
+}
+</code></pre><button class="copy-btn" onclick="copyCode(this)">Copier</button></div>
+<p>Le nœud Edit Fields de traduction contient une ligne par champ cible :</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Champ cible</th>
+<th>Expression</th>
+<th>Transformation réalisée</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>reference</code></td>
+<td><code>{{ $json.body.order_id }}</code></td>
+<td>simple renommage</td>
+</tr>
+<tr>
+<td><code>nom</code></td>
+<td><code>{{ $json.body.customer.full_name.trim().toLowerCase().replace(/(^|\s)\S/g, c =&gt; c.toUpperCase()) }}</code></td>
+<td>nettoyage des espaces, casse correcte</td>
+</tr>
+<tr>
+<td><code>email</code></td>
+<td><code>{{ $json.body.customer.mail.toLowerCase() }}</code></td>
+<td>normalisation</td>
+</tr>
+<tr>
+<td><code>montant</code></td>
+<td><code>{{ Number($json.body.total_ttc) }}</code></td>
+<td>chaîne → nombre</td>
+</tr>
+<tr>
+<td><code>date_commande</code></td>
+<td>calculée via le nœud Date &amp; Time</td>
+<td><code>12/03/2026</code> → ISO</td>
+</tr>
+</tbody>
+</table></div>
+<p>Deux enseignements à retenir : la valeur monétaire arrivait en <strong>chaîne</strong>
+(<code>"129.90"</code>) — sans conversion, une comparaison ou une somme en aval se trompe ;
+et le nom nécessitait un nettoyage (espaces, casse) qui n'est jamais optionnel
+quand la donnée vient d'une saisie humaine.</p>
+<div class="callout warn"><div class="callout-title">La documentation n'est pas la réalité</div><p>Une documentation d'API décrit le contrat ; la réponse réelle contient parfois
+des champs supplémentaires, des champs nuls, un tableau imbriqué là où un objet
+était attendu. On construit toujours la transformation sur une <strong>réponse réelle
+épinglée</strong> (chapitre 1), jamais sur le seul exemple de la documentation.</p></div>
+<h3>Données manquantes : la valeur par défaut comme filet de sécurité</h3>
+<p>Les API réelles omettent les champs vides au lieu de les envoyer à <code>null</code> : une
+commande sans commentaire n'a tout simplement pas de clé <code>commentaire</code>. Trois
+techniques coexistent pour absorber ces absences :</p>
+<ul>
+<li>
+<p>le <strong>chaînage optionnel</strong> dans les expressions :
+  <code>{{ $json.body.commande?.commentaire ?? "sans commentaire" }}</code> — l'opérateur
+  <code>??</code> fournit la valeur de repli quand la gauche est <code>undefined</code> ou <code>null</code> ;</p>
+</li>
+<li>
+<p>un <strong>Edit Fields</strong> en amont qui matérialise systématiquement les champs
+  attendus, quitte à les initialiser vides — les nœuds suivants trouvent alors
+  une structure stable ;</p>
+</li>
+<li>
+<p>une <strong>condition IF</strong> qui détecte l'absence (opérateur <em>does not exist</em>) et
+  aiguille vers une branche de traitement spécifique quand l'absence est un
+  cas métier, pas une simple commodité.</p>
+</li>
+</ul>
+<p>Le choix dépend du sens de l'absence : un commentaire vide appelle un repli
+silencieux ; un montant manquant appelle une alerte — c'est un symptôme, pas un
+détail.</p>
+<h3>Pagination : quand la réponse tient en plusieurs pages</h3>
+<p>Les API limitent la taille de leurs réponses : une liste de 2 000 contacts arrive
+par <strong>pages</strong> de 50 ou 100, avec trois conventions dominantes :</p>
+<ul>
+<li><strong>page/taille</strong> : <code>?page=1&amp;limit=50</code>, à incrémenter jusqu'à une page vide ;</li>
+<li><strong>décalage</strong> (offset) : <code>?offset=100&amp;limit=50</code> ;</li>
+<li><strong>curseur</strong> : la réponse contient un jeton <code>next</code> ou une URL de page suivante,
+  à rejouer tel quel.</li>
+</ul>
+<p>Le nœud HTTP Request sait suivre ces mécanismes automatiquement via son option
+<strong>Pagination</strong> (mise à jour des paramètres de la requête, ou répétition tant que
+la réponse contient une URL suivante), avec un nombre de pages maximum en garde-
+fou. Pour les cas exotiques, le chapitre 3 construira la boucle à la main.</p>
+<h3>Volumes et rythme : penser le flux en masse</h3>
+<p>Connecter des services, c'est aussi respecter leurs limites de charge :</p>
+<ul>
+<li>
+<p>un workflow déclenché par webhook s'exécute <strong>une fois par requête</strong> — à fort
+  débit, les appels sortants s'empilent ;</p>
+</li>
+<li>
+<p>un traitement planifié traite <strong>un tableau</strong> en une exécution — plus sobre à
+  journaliser, mais chaque item peut déclencher un appel d'API : mille items,
+  mille appels ;</p>
+</li>
+<li>
+<p>le <strong>Batching</strong> du nœud HTTP Request (lots + intervalle) et l'option <strong>Retry
+  On Fail</strong> des Settings amortissent les à-coups ; le nœud <strong>Wait</strong> et le
+  découpage en lots du chapitre 3 complètent la panoplie.</p>
+</li>
+</ul>
+<h3>Temporiser avec le nœud Wait</h3>
+<p>Le nœud <strong>Wait</strong> suspend le flux pour une durée donnée, jusqu'à une heure
+précise, ou jusqu'à un événement (réception d'un webhook de rappel, réponse à un
+formulaire). Deux usages dominants dans les intégrations :</p>
+<ul>
+<li>
+<p><strong>respecter un rythme imposé</strong> : insérer une pause de quelques secondes entre
+  des appels vers une API chatouilleuse ;</p>
+</li>
+<li>
+<p><strong>attendre un événement humain</strong> : envoyer une demande de validation, puis
+  mettre le flux en sommeil jusqu'à la réponse — le workflow reprend là où il
+  s'était arrêté, avec ses données intactes.</p>
+</li>
+</ul>
+<p>Sur les longues attentes, l'exécution est marquée <em>Waiting</em> dans l'historique et
+ne consomme aucune ressource de calcul ; le moteur la réveillera à l'échéance.</p>
+</div>
+
+<div id="tab-conditions-le-nud-if" class="tab-content">
+<p>Les sections précédentes ont connecté le flux aux services extérieurs ; celles-ci
+lui donnent un jugement. Jusqu'ici, tous les items suivaient le même chemin.
+Les trois prochains nœuds — IF, Switch, Filter — permettent de les trier, de les
+aiguiller et de les écarter : c'est ce qui transforme un tuyau de données en un
+véritable processus automatisé, capable de traiter chaque dossier selon sa
+nature. Leur usage raisonné fait l'objet des trois sections suivantes, avant la
+mise en pratique complète de l'atelier 4 — où chaque stagiaire devra justifier,
+à chaque étape, pourquoi tel nœud d'aiguillage plutôt qu'un autre. Cette
+habitude de justification est ce qui distingue un flux maintenable d'un flux
+qui fonctionne par hasard — et elle sera évaluée dans les ateliers.</p>
+<h3>Une question binaire, deux branches</h3>
+<p>Le nœud <strong>IF</strong> pose une question sur chaque item et l'aiguille vers la sortie
+<strong>true</strong> ou la sortie <strong>false</strong>. C'est le nœud le plus fréquent des flux réels :
+validation d'une entrée, seuil métier, présence ou absence d'une donnée. La question se construit en <strong>conditions</strong> :
+chacune compare une valeur de gauche (souvent une expression, ex.
+<code>{{ $json.montant }}</code>) à une valeur de droite, avec un <strong>opérateur typé</strong>.</p>
+<p>Le choix du <strong>type de données</strong> dans la liste déroulante de la condition
+détermine les opérateurs disponibles :</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Type</th>
+<th>Opérateurs représentatifs</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Chaîne (String)</td>
+<td>égal à, différent de, contient, commence par, finit par, correspond à l'expression régulière (regex), est vide, existe</td>
+</tr>
+<tr>
+<td>Nombre (Number)</td>
+<td>égal à, supérieur à, inférieur à, supérieur ou égal, inférieur ou égal</td>
+</tr>
+<tr>
+<td>Date &amp; Time</td>
+<td>est après, est avant, est après ou égal à, est avant ou égal à</td>
+</tr>
+<tr>
+<td>Booléen (Boolean)</td>
+<td>est vrai, est faux</td>
+</tr>
+<tr>
+<td>Tableau (Array)</td>
+<td>contient, ne contient pas, longueur égale/supérieure/inférieure à</td>
+</tr>
+<tr>
+<td>Objet (Object)</td>
+<td>existe, est vide</td>
+</tr>
+</tbody>
+</table></div>
+<p>Plusieurs conditions se combinent avec le sélecteur <strong>AND</strong> (toutes vraies) ou
+<strong>OR</strong> (au moins une vraie). Un item qui satisfait la combinaison part sur la
+sortie <code>true</code>, les autres sur <code>false</code>.</p>
+<h3>Exemples de conditions courantes</h3>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Besoin métier</th>
+<th>Configuration de la condition</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Ignorer les lignes sans e-mail</td>
+<td>Chaîne : <code>{{ $json.email }}</code> — <em>is not empty</em></td>
+</tr>
+<tr>
+<td>Ne traiter que les commandes &gt; 100 €</td>
+<td>Nombre : <code>{{ $json.montant }}</code> — <em>is greater than</em> — <code>100</code></td>
+</tr>
+<tr>
+<td>Détecter les tickets urgents</td>
+<td>Chaîne : <code>{{ $json.priorite }}</code> — <em>is equal</em> — <code>urgente</code></td>
+</tr>
+<tr>
+<td>Écarter les brouillons</td>
+<td>Booléen : <code>{{ $json.publie }}</code> — <em>is true</em></td>
+</tr>
+<tr>
+<td>Traiter les factures échues</td>
+<td>Date : <code>{{ $json.echeance }}</code> — <em>is before</em> — <code>{{ $now }}</code></td>
+</tr>
+<tr>
+<td>Repérer les pièces jointes</td>
+<td>Tableau : <code>{{ $json.pieces }}</code> — <em>length greater than</em> — <code>0</code></td>
+</tr>
+<tr>
+<td>Support ET client français</td>
+<td>Deux conditions combinées avec <strong>AND</strong></td>
+</tr>
+<tr>
+<td>VIP <strong>ou</strong> commande &gt; 500 €</td>
+<td>Deux conditions combinées avec <strong>OR</strong></td>
+</tr>
+</tbody>
+</table></div>
+<h3>Bien poser la condition</h3>
+<p>Trois réflexes professionnels :</p>
+<ul>
+<li>
+<p>comparer des valeurs <strong>normalisées</strong> en amont (minuscules, dates ISO) plutôt
+  que d'empiler les rustines dans la condition ;</p>
+</li>
+<li>
+<p>nommer le nœud IF par la <strong>question posée</strong> — « Montant supérieur au
+  seuil ? » — pour que l'exécution se lise comme un raisonnement ;</p>
+</li>
+<li>
+<p>vérifier les <strong>deux branches</strong> en test : un IF dont la sortie false n'a jamais
+  été exercée est un IF à moitié testé.</p>
+</li>
+</ul>
+<div class="callout warn"><div class="callout-title">La casse et les types trompeurs</div><p>Deux pièges reviennent en atelier : comparer <code>"Lyon"</code> à <code>"lyon"</code> (la comparaison
+de chaînes est sensible à la casse par défaut — l'option <em>case sensitive</em> se
+décoche) et comparer le nombre <code>100</code> à la chaîne <code>"100"</code> (la <strong>validation de
+type</strong>, stricte par défaut, les juge différents ; l'option <em>loose</em> les rapproche).
+Quand un IF « ne voit pas » une évidence, on vérifie d'abord la casse, ensuite
+le type affiché dans la vue Schema.</p></div>
+<h3>Chaîner les IF : savoir s'arrêter</h3>
+<p>Rien n'interdit de brancher la sortie <code>false</code> d'un IF sur un second IF, puis un
+troisième — une cascade qui simule un aiguillage multiple. Au-delà de deux
+niveaux, la lecture devient pénible : le flux s'étire vers la droite, les
+branches se croisent, et ajouter un cas oblige à déplacer la moitié du canevas.</p>
+<p>La règle pratique :</p>
+<ul>
+<li><strong>deux cas</strong> (oui/non) → un IF ;</li>
+<li><strong>trois cas et plus</strong> → un Switch ;</li>
+<li><strong>conditions imbriquées</strong> (d'abord l'urgence, puis la catégorie) → deux nœuds
+  successifs, IF puis Switch, chacun nommé par sa question.</li>
+</ul>
+<p>La logique reste ainsi lisible dans l'historique d'exécution : on voit à quel
+nœud-question l'item a bifurqué, sans déplier mentalement un arbre.</p>
+</div>
+
+<div id="tab-aiguillage-multiple-le-nud-switch" class="tab-content">
+<h3>Au-delà du vrai/faux</h3>
+<p>Dès que la répartition dépasse deux cas — type de demande : support, ventes,
+autre — le nœud <strong>Switch</strong> remplace la cascade de IF illisible. Il évalue une
+liste de <strong>règles</strong> et aiguille chaque item vers la sortie correspondante.</p>
+<p>Deux modes de fonctionnement :</p>
+<ul>
+<li>
+<p><strong>Rules</strong> (règles) : chaque sortie déclare sa condition, avec le même éditeur
+  typé que le nœud IF ; la première règle qui correspond l'emporte — sauf si
+  l'option <em>Send data to all matching outputs</em> est activée ;</p>
+</li>
+<li>
+<p><strong>Expression</strong> : une expression calcule directement le <strong>numéro de sortie</strong>
+  (<code>0</code>, <code>1</code>, <code>2</code>…) — puissant pour les cas calculés, à commenter soigneusement.</p>
+</li>
+</ul>
+<p>Trois réglages font la robustesse d'un Switch :</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Réglage</th>
+<th>Rôle</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Fallback Output</td>
+<td>Destination des items qui ne correspondent à <strong>aucune</strong> règle : ignorer, sortie supplémentaire dédiée, ou sortie 0</td>
+</tr>
+<tr>
+<td>Rename Output</td>
+<td>Nommer les sorties (<code>support</code>, <code>ventes</code>…) au lieu de numéros anonymes</td>
+</tr>
+<tr>
+<td>Send data to all matching outputs</td>
+<td>Un item peut partir vers plusieurs sorties à la fois</td>
+</tr>
+</tbody>
+</table></div>
+<div class="callout tip"><div class="callout-title">Toujours configurer la sortie de secours</div><p>Le <em>Fallback Output</em> est le garde-fou du Switch : le jour où le service amont
+envoie une valeur inattendue (<code>"SAV"</code> au lieu de <code>"support"</code>), l'item tombe
+dans la sortie de secours — visible, comptable — au lieu de disparaître
+silencieusement du flux. On y branche au minimum une notification ou un
+archivage.</p></div>
+<h3>Exemple complet : le routage des tickets d'un support</h3>
+<p>Un flux reçoit des tickets et doit les router selon deux critères : leur
+catégorie (<code>technique</code>, <code>facturation</code>, <code>commercial</code>) et leur urgence. Le Switch
+se configure ainsi :</p>
+<ol>
+<li>
+<p><strong>règle 1</strong> (sortie renommée <code>urgent</code>) : <code>priorite</code> <em>is equal</em> <code>haute</code> —
+   placée en premier, car la première règle qui correspond l'emporte ;</p>
+</li>
+<li>
+<p><strong>règle 2</strong> (sortie <code>technique</code>) : <code>categorie</code> <em>is equal</em> <code>technique</code> ;</p>
+</li>
+<li><strong>règle 3</strong> (sortie <code>facturation</code>) : <code>categorie</code> <em>is equal</em> <code>facturation</code> ;</li>
+<li><strong>règle 4</strong> (sortie <code>commercial</code>) : <code>categorie</code> <em>is equal</em> <code>commercial</code> ;</li>
+<li><strong>Fallback</strong> : <em>Extra Output</em>, renommée <code>a-qualifier</code>, qui alimente une
+   notification vers l'équipe support.</li>
+</ol>
+<p>L'ordre des règles est une décision métier, pas un détail technique : ici, un
+ticket urgent de facturation part chez les techniciens d'astreinte, parce que la
+règle 1 passe avant. Inverser deux règles change le comportement du flux — le
+test de chaque sortie avec un jeu de données représentatif est la seule preuve
+que l'ordre est bon.</p>
+<p><img alt="IF, Switch ou Filter : trois façons d'aiguiller les items" src="../08-images/ch2-if-switch-filter.svg" /></p>
+<p>Le schéma ci-dessus résume le choix entre les trois nœuds de logique : <strong>IF</strong>
+pour une question binaire et ses deux branches, <strong>Switch</strong> pour un aiguillage
+nommé vers N destinations avec secours, <strong>Filter</strong> pour réduire le tableau sans
+créer de branche.</p>
+</div>
+
+<div id="tab-reduire-le-tableau-le-nud-filter" class="tab-content">
+<h3>Garder ou écarter, sans créer de branche</h3>
+<p>Le nœud <strong>Filter</strong> évalue des conditions (même éditeur que IF) et ne conserve
+que les items conformes — ou l'inverse, selon le réglage. Il n'a <strong>qu'une
+sortie</strong> : les items écartés quittent le flux.</p>
+<p>Quand choisir Filter plutôt que IF ?</p>
+<ul>
+<li>
+<p><strong>Filter</strong> quand les items écartés n'ont <strong>aucun</strong> traitement : nettoyer un
+  tableau avant un envoi en masse, écarter les lignes incomplètes ;</p>
+</li>
+<li>
+<p><strong>IF</strong> quand les deux populations ont un destin différent : les VIP reçoivent
+  un e-mail, les autres une notification Slack.</p>
+</li>
+</ul>
+<p>Rappel du chapitre 1 : un Filter qui écarte tout laisse un <strong>tableau vide</strong>, et
+les nœuds en aval ne s'exécutent pas. Si la suite doit tout de même s'exécuter —
+par exemple pour envoyer « aucun dossier à traiter » — l'option <em>Always Output
+Data</em> ou une branche dédiée s'impose.</p>
+<h3>Exemple : nettoyer un fichier d'import</h3>
+<p>Un service RH importe chaque semaine un fichier de 300 candidatures. Avant toute
+écriture dans l'outil de suivi, un Filter écarte :</p>
+<ul>
+<li>les lignes sans e-mail (chaîne <em>is not empty</em>) ;</li>
+<li>
+<p><strong>et</strong> (AND) les lignes dont la colonne <code>statut</code> vaut <code>doublon</code> (chaîne,
+  <em>is not equal</em>) ;</p>
+</li>
+<li>
+<p><strong>et</strong> (AND) les lignes dont la date de candidature dépasse six mois (Date &amp;
+  Time, <em>is after</em> — <code>{{ $now.minus({months: 6}) }}</code>).</p>
+</li>
+</ul>
+<p>Les 300 lignes entrent, 240 sortent : les 60 écartées n'ont aucun traitement, le
+flux reste à une seule voie. Si le métier demande un jour de compter les
+candidatures écartées, le Filter sera remplacé par un IF à deux branches — la
+règle de choix du tableau précédent s'applique alors à l'envers.</p>
+<h3>Les autres outils de filtrage</h3>
+<p>Filter n'est pas le seul moyen de réduire des données ; le choix dépend du
+besoin :</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Besoin</th>
+<th>Outil</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Écarter des items entiers</td>
+<td>Filter</td>
+</tr>
+<tr>
+<td>Supprimer des champs dans les items</td>
+<td>Edit Fields (champs d'entrée exclus)</td>
+</tr>
+<tr>
+<td>Filtrer un tableau <strong>imbriqué</strong> dans un champ</td>
+<td><code>.filter()</code> dans une expression ou le nœud Code</td>
+</tr>
+<tr>
+<td>Écarter ce qui a déjà été traité lors d'exécutions précédentes</td>
+<td>Remove Duplicates (mémoire inter-exécutions)</td>
+</tr>
+<tr>
+<td>Ne garder que les n premiers</td>
+<td>Limit</td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>Remove Duplicates</strong> mérite une mention particulière : il compare les items à
+l'historique des exécutions passées — c'est l'outil des synchronisations
+incrémentales (« ne traiter que les nouveaux prospects »), qui reviendra dans
+les ateliers des chapitres 3 et 4.</p>
+<h3>Filtrer un tableau imbriqué avec une expression</h3>
+<p>Le nœud Filter agit sur les <strong>items</strong> du flux ; il ne descend pas dans un tableau
+imbriqué dans un champ. Pour ce cas — par exemple ne garder, dans le champ
+<code>lignes</code> d'une commande, que les articles en stock — l'expression <code>.filter()</code>
+de JavaScript fait le travail à l'intérieur d'un Edit Fields :</p>
+<div class="code-block"><pre><code class="language-text">{{ $json.lignes.filter(l =&gt; l.stock &gt; 0) }}
+</code></pre><button class="copy-btn" onclick="copyCode(this)">Copier</button></div>
+<p>Le résultat est un tableau réduit, qui pourra ensuite être éclaté en items avec
+<strong>Split Out</strong> si la suite du flux doit traiter chaque article séparément. Cette
+combinaison — filtrer dans le champ, puis éclater — est l'un des motifs les
+plus utiles de la boîte à outils de transformation.</p>
+</div>
+
+<div id="tab-organiser-et-documenter-ses-workflows" class="tab-content">
+<h3>Un workflow = un processus</h3>
+<p>La tentation est grande de faire grandir un workflow jusqu'à ce qu'il fasse tout.
+Le résultat est un canevas illisible que personne n'ose modifier. La règle de
+découpage qui vieillit bien :</p>
+<ul>
+<li>
+<p><strong>un workflow traite un processus</strong> identifié par un nom de domaine (« RH —
+  Onboarding », « FIN — Relances ») ;</p>
+</li>
+<li>
+<p>dès qu'une sous-partie devient réutilisable ou dépasse une dizaine de nœuds,
+  on l'extrait dans un <strong>sous-workflow</strong>, appelé par le nœud <strong>Execute Workflow</strong>
+  (étudié en détail au chapitre 3) ;</p>
+</li>
+<li>
+<p>les déclencheurs restent visibles en tête de flux, à gauche du canevas.</p>
+</li>
+</ul>
+<h3>Découper sans casser : l'appel de sous-workflows</h3>
+<p>Le nœud <strong>Execute Workflow</strong> appelle un autre workflow comme une fonction :
+il lui transmet ses items, attend sa réponse, puis continue. Le sous-workflow
+appelé commence par son propre déclencheur spécial (<strong>Execute Workflow Trigger</strong>)
+et retourne son tableau final à l'appelant.</p>
+<p>Ce mécanisme sert trois objectifs qui dépassent la simple lisibilité :</p>
+<ul>
+<li>
+<p>la <strong>réutilisation</strong> : un sous-flux « Envoyer une notification formatée »
+  sert à dix workflows parents sans duplication ;</p>
+</li>
+<li>
+<p>le <strong>test isolé</strong> : chaque sous-flux se teste avec ses propres données
+  épinglées, indépendamment du reste ;</p>
+</li>
+<li>
+<p>le <strong>travail à plusieurs</strong> : chacun construit son sous-flux sans toucher à
+  celui du voisin.</p>
+</li>
+</ul>
+<p>Le chapitre 3 détaillera la mécanique (passage de paramètres, gestion d'erreurs
+entre parent et enfant) ; dès ce chapitre, le réflexe à prendre est simple :
+quand une zone du canevas mérite un titre à elle seule, elle mérite probablement
+son propre workflow.</p>
+<h3>La documentation embarquée</h3>
+<p>n8n offre trois niveaux de documentation, du plus court au plus long :</p>
+<ul>
+<li>
+<p>le <strong>nom du workflow</strong> et le <strong>nom de chaque nœud</strong> (verbes d'action) — le
+  premier niveau de lecture ;</p>
+</li>
+<li>
+<p>les <strong>notes des nœuds</strong> (onglet Settings → Notes) : pourquoi ce paramètre,
+  d'où vient cette valeur seuil ;</p>
+</li>
+<li>
+<p>les <strong>sticky notes</strong> sur le canevas : un pavé libre pour le contexte métier,
+  les contacts du service concerné, les contraintes connues (quota d'API,
+  fenêtre de maintenance).</p>
+</li>
+</ul>
+<div class="callout tip"><div class="callout-title">Écrire pour celui qui dépannera à 3 h du matin</div><p>La documentation d'un workflow s'adresse à quelqu'un qui le découvre dans
+l'urgence : ce que fait le flux, quelles données il touche, qui appeler si le
+service connecté est en panne, et ce qui est dangereux de modifier. Trois
+phrases dans une sticky note valent mieux qu'un schéma parfait ailleurs.</p></div>
+<h3>Cycle de vie d'une modification</h3>
+<p>Sur une instance partagée, modifier un workflow actif suit une discipline simple :</p>
+<ol>
+<li>
+<p>désactiver le workflow si la modification touche le déclencheur ou les
+   écritures ;</p>
+</li>
+<li>
+<p>modifier et tester avec des données épinglées ;</p>
+</li>
+<li>sauvegarder — l'historique des versions permet le retour arrière ;</li>
+<li>réactiver et surveiller la <strong>première exécution réelle</strong> dans Executions ;</li>
+<li>consigner les changements importants dans la sticky note du flux.</li>
+</ol>
+<div class="callout note"><div class="callout-title">En formation : la revue croisée</div><p>Pendant les ateliers de cette journée, les stagiaires travaillent en binôme
+par rotation : l'un construit, l'autre relit en appliquant la liste de
+contrôle d'activation. Ce rituel, importé des revues de code, est la façon la
+plus rapide d'intégrer les conventions — et c'est exactement le fonctionnement
+recommandé ensuite en équipe sur une instance partagée.</p></div>
+</div>
+
+<div id="tab-bonnes-pratiques-de-lisibilite-et-de-maintenance" class="tab-content">
+<h3>Les conventions qui font gagner du temps</h3>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Domaine</th>
+<th>Convention recommandée</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Nom de workflow</td>
+<td><code>DOMAINE - Processus — version courte</code>, ex. <code>FIN - Relances factures</code></td>
+</tr>
+<tr>
+<td>Nom de nœud</td>
+<td>Verbe d'action + objet, ex. <code>Récupérer les factures échues</code></td>
+</tr>
+<tr>
+<td>Credentials</td>
+<td><code>Service — compte</code>, ex. <code>GitHub — compte technique</code></td>
+</tr>
+<tr>
+<td>Champs produits</td>
+<td>minuscules, sans espaces ni accents (<code>nom_complet</code>, <code>date_relance</code>)</td>
+</tr>
+<tr>
+<td>Expressions</td>
+<td>courtes ; dès qu'elles dépassent une ligne, passer au nœud Code (chapitre 3)</td>
+</tr>
+</tbody>
+</table></div>
+<h3>Les erreurs d'organisation les plus coûteuses</h3>
+<p>Trois défauts structurels reviennent dans les instances auditées :</p>
+<ul>
+<li>
+<p>le <strong>workflow fourre-tout</strong> : cinq processus dans un flux, des dizaines de
+  nœuds — à découper en sous-workflows ;</p>
+</li>
+<li>
+<p>les <strong>credentials dispersés</strong> : la même clé saisie dans cinq credentials
+  différents — à unifier pour qu'une rotation de clé ne casse pas la moitié de
+  l'instance ;</p>
+</li>
+<li>
+<p>le <strong>flux sans propriétaire</strong> : personne ne sait qui l'a construit ni pourquoi
+  — la sticky note d'en-tête porte le nom du service demandeur et le contexte.</p>
+</li>
+</ul>
+<h3>Versionner ses workflows</h3>
+<p>Un workflow n8n s'<strong>exporte</strong> en JSON depuis le menu de l'éditeur (<em>Download</em>) et
+se réimporte à l'identique. Cette propriété ouvre la voie à une gestion de
+version sérieuse :</p>
+<ul>
+<li>
+<p>les exports JSON sont déposés dans un <strong>dépôt Git</strong> de l'équipe — chaque
+  modification y est datée, commentée, réversible ;</p>
+</li>
+<li>
+<p>les credentials n'y figurent <strong>pas</strong> (ils sont référencés par nom, jamais
+  exportés avec leurs secrets), ce qui rend le partage sans risque ;</p>
+</li>
+<li>
+<p>avant une refonte importante, on exporte une copie de secours en plus de
+  l'historique interne.</p>
+</li>
+</ul>
+<p>L'interface propose aussi, selon l'édition, une intégration Git native (source
+control) qui automatise ces allers-retours ; le chapitre 4 la présentera dans le
+cadre des environnements de recette et de production.</p>
+<h3>Préparer la relève</h3>
+<p>La maintenabilité se mesure à un test simple : un collègue compétent doit pouvoir
+ouvrir le workflow, comprendre son rôle en deux minutes, et identifier le nœud à
+modifier pour changer un seuil. Le nommage, les notes et le découpage en
+sous-workflows servent exactement cet objectif — les chapitres 3 et 4 ajouteront
+la gestion des erreurs, les environnements et la supervision qui complètent une
+exploitation sereine.</p>
+<h3>La liste de contrôle avant activation</h3>
+<p>Avant de passer un workflow en production, la revue suivante prend cinq minutes
+et évite la plupart des incidents de jeunesse :</p>
+<ol>
+<li><strong>aucune épingle</strong> ne subsiste sur les nœuds (données figées du chapitre 1) ;</li>
+<li>tous les nœuds sont <strong>nommés</strong> par un verbe d'action ;</li>
+<li>
+<p>les <strong>credentials</strong> utilisés sont ceux du compte de service, pas d'un compte
+   personnel ;</p>
+</li>
+<li>
+<p>chaque <strong>branche</strong> (IF, Switch) a été exercée au moins une fois en test ;</p>
+</li>
+<li>
+<p>le <strong>fallback</strong> du Switch et le comportement en cas de tableau vide sont
+   décidés explicitement ;</p>
+</li>
+<li>
+<p>les clés et URL sont en credentials ou variables — <strong>rien en clair</strong> dans
+   les paramètres ;</p>
+</li>
+<li>
+<p>une <strong>sticky note</strong> décrit le processus, le demandeur et les contraintes ;</p>
+</li>
+<li>le workflow est <strong>sauvegardé</strong>, puis la première exécution réelle est
+   contrôlée dans Executions.</li>
+</ol>
+<p>Cette liste sera complétée au chapitre 3 (gestion des erreurs) et au chapitre 4
+(environnements, secrets) jusqu'à devenir le rituel de mise en production de
+l'équipe.</p>
+</div>
+
+<div id="tab-atelier-3-connecter-un-service-externe-a-un-workflow-n8n" class="tab-content">
+<div class="callout note"><div class="callout-title">Objectif de l'atelier</div><p>Connecter l'API GitHub à un workflow n8n : créer un jeton d'accès personnel,
+le stocker dans un credential, interroger une API paginée, puis émettre un
+résumé vers un service d'écho pour vérifier le corps des requêtes sortantes.
+Durée indicative : 2 h. Le formateur distribue ou fait créer les comptes
+GitHub ; un jeu de données de repli est prévu pour les postes sans accès
+Internet.</p></div>
+<h3>Étape 1 — Créer le jeton d'accès GitHub</h3>
+<ol>
+<li>
+<p>Sur github.com, ouvrir <em>Settings → Developer settings → Personal access
+   tokens</em>.</p>
+</li>
+<li>
+<p>Générer un jeton <strong>classique</strong> sans aucune permission (les données publiques
+   des dépôts n'en exigent pas), avec une expiration courte.</p>
+</li>
+<li>
+<p>Copier le jeton — il ne sera plus affiché ensuite.</p>
+</li>
+</ol>
+<div class="callout danger"><div class="callout-title">Permissions vides pour l'atelier</div><p>L'atelier ne lit que des données <strong>publiques</strong> : le jeton ne porte aucun scope.
+C'est l'application directe du moindre privilège — et cela rend le jeton
+inoffensif s'il était malencontreusement divulgué pendant la session.</p></div>
+<h3>Étape 2 — Stocker le credential dans n8n</h3>
+<ol>
+<li>Créer un workflow <code>Veille des versions n8n</code>.</li>
+<li>
+<p>Ajouter un nœud <strong>HTTP Request</strong> ; dans sa section Authentication, choisir
+   <em>Generic Credential Type</em> → <em><em>Credential Type ** → </em>Github API</em>.</p>
+</li>
+<li>
+<p>dans <em>GitHub Account</em> Renseigner : User, et Token.</p>
+</li>
+<li>Nommer le credential <code>GitHub — compte atelier</code> et sauvegarder.</li>
+<li>Vérifier, après sauvegarde, que la valeur n'est plus lisible dans le
+   credential.</li>
+</ol>
+<h3>Étape 3 — Interroger l'API des versions</h3>
+<ol>
+<li>
+<p>Configurer le nœud : méthode <code>GET</code>, URL
+   <code>https://api.github.com/repos/n8n-io/n8n/releases</code>.</p>
+</li>
+<li>
+<p>Ajouter un paramètre de requête : <code>per_page</code> = <code>5</code>.</p>
+</li>
+<li>Ajouter un en-tête <code>Accept: application/vnd.github+json</code>.</li>
+<li>
+<p>Exécuter (« Test step ») : la réponse, un tableau de premier niveau, produit
+   cinq items — une version publiée par item.</p>
+</li>
+<li>
+<p>Épingler la sortie pour la suite de l'atelier.</p>
+</li>
+</ol>
+<h3>Étape 4 — Formater la veille</h3>
+<ol>
+<li>
+<p>Ajouter un nœud <strong>Edit Fields</strong> nommé <code>Formater la veille</code>, qui ne conserve
+   que quatre champs :</p>
+</li>
+<li>
+<p><code>version</code> : <code>{{ $json.tag_name }}</code> ;</p>
+</li>
+<li><code>publie_le</code> : <code>{{ $json.published_at }}</code> ;</li>
+<li><code>lien</code> : <code>{{ $json.html_url }}</code> ;</li>
+<li><code>resume</code> : <code>{{ "Version " + $json.tag_name + " publiée le " + $json.published_at }}</code>.</li>
+<li>Vérifier en vue Table : cinq lignes, quatre colonnes propres.</li>
+</ol>
+<h3>Étape 5 — Émettre vers un service d'écho</h3>
+<ol>
+<li>
+<p>Ajouter un nœud <strong>HTTP Request</strong> nommé <code>Envoyer le résumé</code> : méthode <code>POST</code>,
+   URL <code>https://httpbin.org/post</code>, corps JSON construit sur les champs formatés
+   (<code>resume</code>).</p>
+</li>
+<li>
+<p>Exécuter et inspecter la réponse : httpbin renvoie en écho le corps, les
+   en-têtes et l'URL reçus — la preuve que la requête sortante est exactement
+   celle voulue.</p>
+</li>
+<li>
+<p>Constater que <strong>cinq requêtes</strong> ont été émises (une par item) — l'exécution
+   par item du chapitre 1, appliquée aux écritures.</p>
+</li>
+</ol>
+<h3>Étape 6 — Observer la pagination</h3>
+<ol>
+<li>Modifier le paramètre de requête : <code>per_page</code> = <code>2</code>.</li>
+<li>
+<p>Activer l'option <strong>Pagination</strong> du nœud : mode par paramètres de requête,
+   page incrémentée, maximum 3 pages.</p>
+</li>
+<li>
+<p>Exécuter : le nœud enchaîne trois appels (<code>page=1</code>, <code>page=2</code>, <code>page=3</code>) et
+   produit six items au total — 2 par page.</p>
+</li>
+<li>
+<p>Ouvrir l'exécution et retrouver les trois appels dans le détail du nœud.</p>
+</li>
+</ol>
+<h3>Étape 7 — Consolider</h3>
+<ol>
+<li>Nommer chaque nœud par un verbe d'action.</li>
+<li>
+<p>Ajouter une sticky note d'en-tête : objectif du flux, source des données,
+   compte utilisé, quota GitHub à surveiller.</p>
+</li>
+<li>
+<p>Sauvegarder et partager le résultat avec le formateur pour revue.</p>
+</li>
+</ol>
+<div class="callout tip"><div class="callout-title">Résultat attendu</div><p>Le flux enchaîne lecture authentifiée, formatage et émission POST. L'écho
+d'httpbin montre pour chaque item le corps JSON exact envoyé. Chaque stagiaire
+sait créer un credential Header Auth, paramétrer une requête (méthode, query,
+en-têtes, corps) et vérifier une requête sortante.</p></div>
+<h3>Dépannage de l'atelier 3</h3>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Symptôme</th>
+<th>Cause probable</th>
+<th>Remède</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>401 Unauthorized</code></td>
+<td>Jeton absent, expiré ou mal préfixé</td>
+<td>Le credential doit valoir <code>Bearer &lt;jeton&gt;</code>, pas le jeton seul</td>
+</tr>
+<tr>
+<td><code>403</code> avec en-tête <code>x-ratelimit-remaining: 0</code></td>
+<td>Quota GitHub atteint</td>
+<td>Attendre la remise à zéro ou utiliser le jeu de données de repli</td>
+</tr>
+<tr>
+<td>Un seul item au lieu de cinq</td>
+<td>Réponse lue comme objet, ou <code>per_page</code> ignoré</td>
+<td>Vérifier la vue JSON de la sortie et le paramètre de requête</td>
+</tr>
+<tr>
+<td>L'écho httpbin ne montre pas le corps</td>
+<td>Corps non marqué JSON</td>
+<td>Activer <em>Send Body</em> en mode JSON avec <code>Content-Type: application/json</code></td>
+</tr>
+<tr>
+<td>Le credential reste vide au test</td>
+<td>Credential non associé au nœud</td>
+<td>Le sélectionner dans la liste après création</td>
+</tr>
+</tbody>
+</table></div>
+<h3>Points de validation de l'atelier 3</h3>
+<ul>
+<li>
+<p>Le credential est stocké chiffré, nommé <code>GitHub — compte atelier</code>, et sa
+  valeur n'est plus relisable après sauvegarde.</p>
+</li>
+<li>
+<p>La requête porte la méthode, les paramètres (<code>per_page</code>) et l'en-tête
+  <code>Accept</code> demandés par la documentation de l'API.</p>
+</li>
+<li>
+<p>L'option Pagination enchaîne bien trois pages et agrège six items.</p>
+</li>
+<li>Le stagiaire sait expliquer la différence entre credential prédéfini et
+  générique, et pourquoi le jeton n'apparaît nulle part dans les paramètres.</li>
+</ul>
+</div>
+
+<div id="tab-atelier-4-automatiser-un-processus-simple-de-bout-en-bout" class="tab-content">
+<div class="callout note"><div class="callout-title">Objectif de l'atelier</div><p>Automatiser intégralement la réception et le routage des demandes entrantes
+d'une petite structure : réception par webhook, validation, aiguillage par
+type, formatage, envoi simulé, réponse personnalisée à l'appelant. Durée
+indicative : 2 h 30. Ce flux est le squelette du fil rouge qui sera fiabilisé
+au chapitre 3 et déployé au chapitre 4 — chaque journée suivante repartira de
+ce que ce flux aura révélé comme faiblesses.</p></div>
+<h3>Le scénario</h3>
+<p>Une association reçoit des demandes sur son site (support technique, question
+commerciale, autre). Le flux attendu :</p>
+<ol>
+<li>un <strong>webhook</strong> reçoit la demande en JSON (<code>nom</code>, <code>email</code>, <code>type</code>, <code>message</code>) ;</li>
+<li>un <strong>filtre</strong> écarte les demandes sans e-mail valide ;</li>
+<li>
+<p>un <strong>Switch</strong> aiguille vers trois files : <code>support</code>, <code>commercial</code>, <code>autre</code>
+   (avec secours) ;</p>
+</li>
+<li>
+<p>chaque branche <strong>formate</strong> un message de prise en charge adapté ;</p>
+</li>
+<li>un <strong>POST</strong> simule l'envoi au bon service (httpbin en écho) ;</li>
+<li>le webhook <strong>répond</strong> à l'appelant avec un numéro de ticket.</li>
+</ol>
+<h3>Étape 1 — Poser l'entrée</h3>
+<ol>
+<li>Créer le workflow <code>Routage des demandes entrantes</code>.</li>
+<li>
+<p>Ajouter un nœud <strong>Webhook</strong> : méthode <code>POST</code>, chemin <code>demande-contact</code>,
+   réponse « Using Respond to Webhook Node ».</p>
+</li>
+<li>
+<p>Ajouter un nœud <strong>Respond to Webhook</strong></p>
+</li>
+<li>Cliquer « Listen for test event », puis envoyer depuis un terminal :</li>
+</ol>
+<div class="code-block"><pre><code class="language-bash">curl -X POST http://localhost:5678/webhook-test/demande-contact \
+  -H &quot;Content-Type: application/json&quot; \
+  -d '{&quot;nom&quot;:&quot;Dupont&quot;,&quot;email&quot;:&quot;A.DUPONT@exemple.fr&quot;,&quot;type&quot;:&quot;support&quot;,&quot;message&quot;:&quot;Panne&quot;}'
+</code></pre><button class="copy-btn" onclick="copyCode(this)">Copier</button></div>
+<ol>
+<li>Constater la structure reçue (<code>body.nom</code>, <code>body.email</code>…) et épingler la
+   sortie du webhook.</li>
+</ol>
+<h3>Étape 2 — Valider les entrées</h3>
+<ol>
+<li>
+<p>Ajouter un nœud <strong>Filter</strong> « Écarter les demandes sans e-mail » : condition
+   chaîne <code>{{ $json.body.email }}</code>, opérateur <em>is not empty</em>, combinée (AND) avec
+   <em>contains</em> <code>@</code>.</p>
+</li>
+<li>
+<p>Exécuter : la demande de test passe. Envoyer une demande sans e-mail et
+   constater qu'elle n'atteint pas la suite.</p>
+</li>
+<li>
+<p>Ajouter un nœud <strong>Edit Fields</strong> « Normaliser la demande » qui produit :
+   <code>nom</code>, <code>email</code> en minuscules, <code>type</code> en minuscules, <code>message</code>, et
+   <code>recu_le</code> avec <code>{{ $now.toISO() }}</code>.</p>
+</li>
+</ol>
+<h3>Étape 3 — Aiguiller avec Switch</h3>
+<ol>
+<li>Ajouter un nœud <strong>Switch</strong> « Aiguiller par type de demande », en mode Rules :</li>
+<li>sortie <code>support</code> : <code>type</code> égal à <code>support</code> ;</li>
+<li>sortie <code>commercial</code> : <code>type</code> égal à <code>commercial</code> ;</li>
+<li>sortie <code>autre</code> : Fallback Output en mode <em>Extra Output</em>.</li>
+<li>Renommer les sorties pour que les branches portent un nom lisible.</li>
+<li>Jouer trois demandes de test (une par type) et vérifier l'aiguillage.</li>
+</ol>
+<h3>Étape 4 — Formater et émettre par branche</h3>
+<ol>
+<li>Sur chaque branche, un nœud <strong>Edit Fields</strong> construit le message de prise en
+   charge avec un gabarit :</li>
+</ol>
+<div class="code-block"><pre><code class="language-text">{{ `Demande ${$json.type} de ${$json.nom} — prise en charge par l'équipe ${$json.type === 'support' ? 'technique' : 'commerciale'}.` }}
+</code></pre><button class="copy-btn" onclick="copyCode(this)">Copier</button></div>
+<ol>
+<li>
+<p>Chaque branche se termine par un <strong>HTTP Request</strong> POST vers
+   <code>https://httpbin.org/post</code>, corps JSON = message formaté.</p>
+</li>
+<li>
+<p>Constater dans Executions que chaque demande ne parcourt <strong>qu'une</strong> branche.</p>
+</li>
+</ol>
+<h3>Étape 5 — Répondre à l'appelant</h3>
+<ol>
+<li>
+<p>Ajouter, en convergence des branches, un nœud <strong>Respond to Webhook</strong> :
+   code <code>200</code>, corps JSON <code>{"statut":"reçu","ticket": "{{ $json.recu_le }}"}</code>.</p>
+</li>
+<li>
+<p>Relancer le curl de test : le terminal reçoit désormais la réponse JSON une
+   fois le flux terminé.</p>
+</li>
+<li>
+<p>Sauvegarder, activer, rejouer un appel sur l'URL de <strong>production</strong>
+   (<code>/webhook/demande-contact</code>), puis repasser le workflow en inactif.</p>
+</li>
+</ol>
+<div class="callout warn"><div class="callout-title">Un seul nœud Respond to Webhook par exécution</div><p>Le nœud de réponse doit être atteint <strong>exactement une fois</strong> par exécution :
+s'il est placé sur une branche conditionnelle, les demandes aiguillées ailleurs
+laissent l'appelant sans réponse. Ici, il est positionné après la convergence
+des trois branches ; au chapitre 3, le nœud Merge rendra cette convergence
+explicite.</p></div>
+<div class="callout tip"><div class="callout-title">Résultat attendu</div><p>Le processus complet tient en huit nœuds lisibles : réception, validation,
+normalisation, aiguillage nommé, trois formatages, émission, réponse. Chaque
+stagiaire sait expliquer le parcours d'une demande de chaque type et justifier
+le choix Filter / Switch / IF.</p></div>
+<h3>Dépannage de l'atelier 4</h3>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Symptôme</th>
+<th>Cause probable</th>
+<th>Remède</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Le webhook de test ne capture rien</td>
+<td>« Listen for test event » non relancé</td>
+<td>Réécouter avant chaque envoi de test</td>
+</tr>
+<tr>
+<td><code>curl</code> reçoit une erreur 404 en production</td>
+<td>Workflow non activé ou mauvais chemin</td>
+<td>Activer le flux ; vérifier <code>/webhook/</code> vs <code>/webhook-test/</code></td>
+</tr>
+<tr>
+<td>Toutes les demandes partent sur « autre »</td>
+<td>Comparaison sensible à la casse (<code>Support</code> ≠ <code>support</code>)</td>
+<td>Normaliser <code>type</code> en minuscules en amont</td>
+</tr>
+<tr>
+<td>L'appelant ne reçoit jamais de réponse</td>
+<td>Respond to Webhook sur une branche non atteinte</td>
+<td>Le placer après convergence, vérifier le mode de réponse du webhook</td>
+</tr>
+<tr>
+<td>La demande sans e-mail continue quand même</td>
+<td>Condition du Filter mal combinée</td>
+<td>Vérifier le combinateur AND et l'opérateur <em>is not empty</em></td>
+</tr>
+</tbody>
+</table></div>
+<h3>Extensions proposées par le formateur</h3>
+<ul>
+<li>Ajouter un champ <code>urgence</code> et une quatrième règle Switch.</li>
+<li>
+<p>Remplacer l'écho httpbin par un second workflow de l'instance appelé via
+  <strong>Execute Workflow</strong> — première approche des sous-workflows.</p>
+</li>
+<li>
+<p>Consigner chaque demande reçue dans un fichier local via le nœud
+  <strong>Write Binary File</strong> (auto-hébergé) ou un appel à une API de stockage.</p>
+</li>
+<li>
+<p>Ajouter un nœud <strong>Remove Duplicates</strong> sur le champ <code>email</code> : une même personne
+  qui envoie deux demandes ne doit créer qu'un ticket.</p>
+</li>
+</ul>
+<h3>Points de validation de l'atelier 4</h3>
+<ul>
+<li>Le webhook de test capture la demande et expose <code>body.nom</code>, <code>body.email</code>.</li>
+<li>Le Filter écarte bien les demandes sans e-mail valide, sans erreur.</li>
+<li>
+<p>Le Switch aiguille les trois types de demandes vers trois branches nommées,
+  et les types inconnus vers la sortie de secours.</p>
+</li>
+<li>
+<p>L'appelant reçoit une réponse JSON structurée une fois le flux terminé.</p>
+</li>
+<li>Le stagiaire justifie le choix Filter vs IF vs Switch à chaque étape.</li>
+</ul>
+<h3>Ce que cet atelier prépare</h3>
+<p>Ce flux fonctionne, mais il est fragile : si httpbin est en panne, l'exécution
+échoue en silence ; si deux demandes identiques arrivent, rien ne les dédouble ;
+si le webhook reçoit un JSON malformé, le flux s'arrête sans prévenir. Le
+chapitre 3 reprend exactement ce squelette pour le rendre robuste : gestion
+d'erreurs, boucles maîtrisées, sous-workflows et expressions avancées.</p>
+</div>
+
+<div id="tab-quiz" class="tab-content">
+<div id="quiz-container">
+<div class="quiz-question" id="q1">
+  <h4>Question 1 — Quelle est la méthode recommandée pour appeler une opération d'API non couverte par le nœud natif d'un service ?</h4>
+  <div class="quiz-options">
+    <button class="quiz-option" onclick="answer(1,'a')">A) Installer systématiquement un nœud communautaire</button>
+    <button class="quiz-option" onclick="answer(1,'b')">B) Utiliser le nœud HTTP Request avec le credential prédéfini du service, ou un credential générique si aucun n'existe</button>
+    <button class="quiz-option" onclick="answer(1,'c')">C) Écrire un script Python hors de n8n et l'appeler en ligne de commande</button>
+    <button class="quiz-option" onclick="answer(1,'d')">D) Contacter le support n8n pour faire développer le nœud</button>
+  </div>
+  <div class="quiz-feedback" id="fb1"></div>
+</div>
+<div class="quiz-question" id="q2">
+  <h4>Question 2 — Dans le nœud HTTP Request, où stocke-t-on une clé d'API ?</h4>
+  <div class="quiz-options">
+    <button class="quiz-option" onclick="answer(2,'a')">A) Dans le paramètre URL du nœud, suffixée à l'adresse</button>
+    <button class="quiz-option" onclick="answer(2,'b')">B) Dans un en-tête écrit en clair dans les paramètres du nœud</button>
+    <button class="quiz-option" onclick="answer(2,'c')">C) Dans un credential (Header Auth, Query Auth, OAuth2…), chiffré et réutilisable, jamais dans les paramètres du nœud</button>
+    <button class="quiz-option" onclick="answer(2,'d')">D) Dans une sticky note du canevas pour la retrouver facilement</button>
+  </div>
+  <div class="quiz-feedback" id="fb2"></div>
+</div>
+<div class="quiz-question" id="q3">
+  <h4>Question 3 — Quel grant type OAuth2 convient à une synchronisation machine à machine, sans utilisateur connecté ?</h4>
+  <div class="quiz-options">
+    <button class="quiz-option" onclick="answer(3,'a')">A) Authorization Code</button>
+    <button class="quiz-option" onclick="answer(3,'b')">B) PKCE</button>
+    <button class="quiz-option" onclick="answer(3,'c')">C) Client Credentials</button>
+    <button class="quiz-option" onclick="answer(3,'d')">D) Implicit</button>
+  </div>
+  <div class="quiz-feedback" id="fb3"></div>
+</div>
+<div class="quiz-question" id="q4">
+  <h4>Question 4 — Un nœud HTTP Request reçoit la réponse <code>{ "count": 120, "results": [ … ] }</code>. Comment traiter chaque élément de <code>results</code> comme un item ?</h4>
+  <div class="quiz-options">
+    <button class="quiz-option" onclick="answer(4,'a')">A) Le nœud le fait automatiquement pour tout tableau, où qu'il soit</button>
+    <button class="quiz-option" onclick="answer(4,'b')">B) Utiliser un nœud Split Out sur le champ <code>results</code></button>
+    <button class="quiz-option" onclick="answer(4,'c')">C) Ajouter l'option Response Format: File</button>
+    <button class="quiz-option" onclick="answer(4,'d')">D) Créer un credential dédié</button>
+  </div>
+  <div class="quiz-feedback" id="fb4"></div>
+</div>
+<div class="quiz-question" id="q5">
+  <h4>Question 5 — Quelle est la différence fondamentale entre les nœuds IF et Filter ?</h4>
+  <div class="quiz-options">
+    <button class="quiz-option" onclick="answer(5,'a')">A) IF est payant, Filter est gratuit</button>
+    <button class="quiz-option" onclick="answer(5,'b')">B) IF aiguille chaque item vers une sortie true ou false (les deux branches existent) ; Filter réduit le tableau à une seule sortie et les items écartés quittent le flux</button>
+    <button class="quiz-option" onclick="answer(5,'c')">C) Filter ne fonctionne qu'avec des nombres, IF avec des chaînes</button>
+    <button class="quiz-option" onclick="answer(5,'d')">D) IF s'exécute une fois par workflow, Filter une fois par item</button>
+  </div>
+  <div class="quiz-feedback" id="fb5"></div>
+</div>
+<div class="quiz-question" id="q6">
+  <h4>Question 6 — Sur un nœud Switch en mode Rules, que se passe-t-il par défaut pour un item qui ne correspond à aucune règle ?</h4>
+  <div class="quiz-options">
+    <button class="quiz-option" onclick="answer(6,'a')">A) Il provoque une erreur qui arrête le workflow</button>
+    <button class="quiz-option" onclick="answer(6,'b')">B) Il part sur la première sortie</button>
+    <button class="quiz-option" onclick="answer(6,'c')">C) Il est ignoré (Fallback Output: None) — sauf si on configure une sortie supplémentaire de secours</button>
+    <button class="quiz-option" onclick="answer(6,'d')">D) Il est dupliqué sur toutes les sorties</button>
+  </div>
+  <div class="quiz-feedback" id="fb6"></div>
+</div>
+<div class="quiz-question" id="q7">
+  <h4>Question 7 — Une condition IF compare le nombre <code>100</code> à la chaîne <code>"100"</code> et retourne false de façon inattendue. Pourquoi ?</h4>
+  <div class="quiz-options">
+    <button class="quiz-option" onclick="answer(7,'a')">A) Le nœud IF ne sait pas comparer des nombres</button>
+    <button class="quiz-option" onclick="answer(7,'b')">B) La validation de type stricte (par défaut) juge le nombre et la chaîne différents ; la validation <em>loose</em> les rapproche</button>
+    <button class="quiz-option" onclick="answer(7,'c')">C) L'expression <code>{{ $json.montant }}</code> est toujours une chaîne vide</button>
+    <button class="quiz-option" onclick="answer(7,'d')">D) Il faut obligatoirement passer par un nœud Code pour comparer</button>
+  </div>
+  <div class="quiz-feedback" id="fb7"></div>
+</div>
+<div class="quiz-question" id="q8">
+  <h4>Question 8 — Quel est l'effet de l'option Batching du nœud HTTP Request ?</h4>
+  <div class="quiz-options">
+    <button class="quiz-option" onclick="answer(8,'a')">A) Elle compresse les requêtes pour aller plus vite</button>
+    <button class="quiz-option" onclick="answer(8,'b')">B) Elle découpe les appels en lots (taille + intervalle en millisecondes) pour respecter les quotas de l'API appelée</button>
+    <button class="quiz-option" onclick="answer(8,'c')">C) Elle regroupe toutes les réponses en un seul item</button>
+    <button class="quiz-option" onclick="answer(8,'d')">D) Elle désactive la pagination</button>
+  </div>
+  <div class="quiz-feedback" id="fb8"></div>
+</div>
+<div class="quiz-question" id="q9">
+  <h4>Question 9 — Pourquoi créer un credential OAuth2 avec un compte de service plutôt qu'un compte personnel ?</h4>
+  <div class="quiz-options">
+    <button class="quiz-option" onclick="answer(9,'a')">A) Le compte de service est gratuit, le compte personnel est payant</button>
+    <button class="quiz-option" onclick="answer(9,'b')">B) Le compte de service offre plus de mémoire à l'instance n8n</button>
+    <button class="quiz-option" onclick="answer(9,'c')">C) Les workflows survivent au départ du collaborateur : le credential ne dépend pas d'un individu</button>
+    <button class="quiz-option" onclick="answer(9,'d')">D) C'est une exigence légale du RGPD, sans rapport avec l'exploitation</button>
+  </div>
+  <div class="quiz-feedback" id="fb9"></div>
+</div>
+<div class="quiz-question" id="q10">
+  <h4>Question 10 — Quelle convention de nommage est recommandée pour les champs produits dans un workflow ?</h4>
+  <div class="quiz-options">
+    <button class="quiz-option" onclick="answer(10,'a')">A) CamelCase avec préfixe du service, ex. <code>crmNomClient</code></button>
+    <button class="quiz-option" onclick="answer(10,'b')">B) MAJUSCULES avec espaces, ex. <code>NOM COMPLET</code></button>
+    <button class="quiz-option" onclick="answer(10,'c')">C) minuscules, sans espaces ni accents, ex. <code>nom_complet</code></button>
+    <button class="quiz-option" onclick="answer(10,'d')">D) Peu importe, n8n renomme automatiquement les champs</button>
+  </div>
+  <div class="quiz-feedback" id="fb10"></div>
+</div>
+</div>
+<div class="quiz-score" id="quiz-score">
+  <div class="score-num" id="score-display">0 / 10</div>
+  <p id="score-msg"></p>
+  <button class="btn-restart" onclick="restartQuiz()">Recommencer</button>
+</div>
+</div>
+  </div>
+</div>
+
+<script>
+// ─── THEME ──────────────────────────────────────────────────────────────────
+(function () {
+  const root = document.documentElement;
+  const stored = localStorage.getItem('dawan-theme');
+  if (stored) root.setAttribute('data-theme', stored);
+  updateToggleLabel();
+})();
+
+function updateToggleLabel() {
+  const current = document.documentElement.getAttribute('data-theme') ||
+    (window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark');
+  document.getElementById('theme-icon').textContent = current === 'dark' ? '🌙' : '☀️';
+  document.getElementById('theme-label').textContent = current === 'dark' ? 'Sombre' : 'Clair';
+}
+
+function toggleTheme() {
+  const root = document.documentElement;
+  const current = root.getAttribute('data-theme') ||
+    (window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark');
+  const next = current === 'dark' ? 'light' : 'dark';
+  root.setAttribute('data-theme', next);
+  localStorage.setItem('dawan-theme', next);
+  updateToggleLabel();
+}
+
+// ─── TABS ───────────────────────────────────────────────────────────────────
+function showTab(id) {
+  document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+  document.querySelectorAll('.side-nav button').forEach(el => el.classList.remove('active'));
+  document.getElementById('tab-' + id).classList.add('active');
+  event.target.classList.add('active');
+  document.querySelector('.content').scrollTo({ top: 0, behavior: 'instant' });
+}
+
+// ─── COPY CODE ──────────────────────────────────────────────────────────────
+function copyCode(btn) {
+  const pre = btn.previousElementSibling;
+  navigator.clipboard.writeText(pre.textContent).then(() => {
+    btn.textContent = 'Copié !'; btn.classList.add('copied');
+    setTimeout(() => { btn.textContent = 'Copier'; btn.classList.remove('copied'); }, 2000);
+  });
+}
+
+// ─── QUIZ ────────────────────────────────────────────────────────────────────
+const answers = { 1:'b', 2:'c', 3:'c', 4:'b', 5:'b', 6:'c', 7:'b', 8:'b', 9:'c', 10:'c' };
+const feedbacks = {
+  1: { b: "Exact ! Les credentials prédéfinis sont réutilisables par le nœud HTTP Request pour appeler d'autres opérations de la même API : c'est la voie recommandée. Le nœud communautaire n'intervient qu'en dernier recours, après validation de sa maintenance.", wrong: "Non. La bonne réponse est B) Utiliser le nœud HTTP Request avec le credential prédéfini du service, ou un credential générique si aucun n'existe — Les credentials prédéfinis sont réutilisables par le nœud HTTP Request pour appeler d'autres opérations de la même API : c'est la voie recommandée. Le nœud communautaire n'intervient qu'en dernier recours, après validation de sa maintenance." },
+  2: { c: "Exact ! Une clé écrite dans un paramètre est stockée en clair dans la définition du workflow (exports et historique compris). Le credential la chiffre, la masque après enregistrement et la mutualise entre workflows.", wrong: "Non. La bonne réponse est C) Dans un credential (Header Auth, Query Auth, OAuth2…), chiffré et réutilisable, jamais dans les paramètres du nœud — Une clé écrite dans un paramètre est stockée en clair dans la définition du workflow (exports et historique compris). Le credential la chiffre, la masque après enregistrement et la mutualise entre workflows." },
+  3: { c: "Exact ! Ce grant type n'implique aucun utilisateur : l'application s'authentifie directement auprès du service avec son Client ID et son Client Secret contre l'Access Token URL. Authorization Code et PKCE supposent un consentement utilisateur interactif.", wrong: "Non. La bonne réponse est C) Client Credentials — Ce grant type n'implique aucun utilisateur : l'application s'authentifie directement auprès du service avec son Client ID et son Client Secret contre l'Access Token URL. Authorization Code et PKCE supposent un consentement utilisateur interactif." },
+  4: { b: "Exact ! La conversion automatique en items ne s'applique qu'aux tableaux JSON de premier niveau ; un tableau imbriqué dans un objet est éclaté en items par le nœud Split Out.", wrong: "Non. La bonne réponse est B) Utiliser un nœud Split Out sur le champ <code>results</code> — La conversion automatique en items ne s'applique qu'aux tableaux JSON de premier niveau ; un tableau imbriqué dans un objet est éclaté en items par le nœud Split Out." },
+  5: { b: "Exact ! C'est la règle de choix : Filter quand les écartés n'ont aucun traitement, IF quand les deux populations ont un destin différent.", wrong: "Non. La bonne réponse est B) IF aiguille chaque item vers une sortie true ou false (les deux branches existent) ; Filter réduit le tableau à une seule sortie et les items écartés quittent le flux — C'est la règle de choix : Filter quand les écartés n'ont aucun traitement, IF quand les deux populations ont un destin différent." },
+  6: { c: "Exact ! Le comportement par défaut ignore les items sans correspondance ; le réglage Fallback Output (Extra Output renommé) permet de les capter pour les notifier ou les archiver au lieu de les perdre silencieusement.", wrong: "Non. La bonne réponse est C) Il est ignoré (Fallback Output: None) — sauf si on configure une sortie supplémentaire de secours — Le comportement par défaut ignore les items sans correspondance ; le réglage Fallback Output (Extra Output renommé) permet de les capter pour les notifier ou les archiver au lieu de les perdre silencieusement." },
+  7: { b: "Exact ! Avec la validation stricte, <code>100</code> (number) et <code>\"100\"</code> (string) sont des types distincts et la condition échoue. La vue Schema de la sortie amont affiche le type réel et l'option <em>loose</em> autorise la comparaison inter-types.", wrong: "Non. La bonne réponse est B) La validation de type stricte (par défaut) juge le nombre et la chaîne différents ; la validation <em>loose</em> les rapproche — Avec la validation stricte, <code>100</code> (number) et <code>\"100\"</code> (string) sont des types distincts et la condition échoue. La vue Schema de la sortie amont affiche le type réel et l'option <em>loose</em> autorise la comparaison inter-types." },
+  8: { b: "Exact ! Batching espace les requêtes d'un même lot d'items, ce qui évite les réponses <code>429 Too Many Requests</code> des API limitant le débit.", wrong: "Non. La bonne réponse est B) Elle découpe les appels en lots (taille + intervalle en millisecondes) pour respecter les quotas de l'API appelée — Batching espace les requêtes d'un même lot d'items, ce qui évite les réponses <code>429 Too Many Requests</code> des API limitant le débit." },
+  9: { c: "Exact ! Un credential OAuth2 lié à un compte personnel devient inopérant si ce compte est désactivé (départ, changement de poste) ; le compte de service dédié appartient à l'organisation, pas à une personne.", wrong: "Non. La bonne réponse est C) Les workflows survivent au départ du collaborateur : le credential ne dépend pas d'un individu — Un credential OAuth2 lié à un compte personnel devient inopérant si ce compte est désactivé (départ, changement de poste) ; le compte de service dédié appartient à l'organisation, pas à une personne." },
+  10: { c: "Exact ! Cette convention évite les erreurs de frappe dans les expressions (<code>$json.nom_complet</code> se tape sans risque) et les incompatibilités avec les systèmes cibles qui rejettent espaces et accents dans les noms de champs.", wrong: "Non. La bonne réponse est C) minuscules, sans espaces ni accents, ex. <code>nom_complet</code> — Cette convention évite les erreurs de frappe dans les expressions (<code>$json.nom_complet</code> se tape sans risque) et les incompatibilités avec les systèmes cibles qui rejettent espaces et accents dans les noms de champs." }
+};
+const QUIZ_TOTAL = 10;
+let score = 0;
+let answered = {};
+
+function answer(qNum, choice) {
+  if (answered[qNum]) return;
+  answered[qNum] = true;
+  score += (choice === answers[qNum]) ? 1 : 0;
+  const qEl = document.getElementById('q' + qNum);
+  qEl.querySelectorAll('.quiz-option').forEach(btn => {
+    btn.disabled = true;
+    const ltr = btn.textContent.trim()[0].toLowerCase();
+    if (ltr === answers[qNum]) btn.classList.add('correct');
+    else if (ltr === choice) btn.classList.add('wrong');
+  });
+  const fb = feedbacks[qNum];
+  document.getElementById('fb' + qNum).textContent = (choice === answers[qNum]) ? fb[answers[qNum]] : fb.wrong;
+  if (Object.keys(answered).length === QUIZ_TOTAL) showScore();
+}
+
+function showScore() {
+  const el = document.getElementById('quiz-score');
+  el.style.display = 'block';
+  document.getElementById('score-display').textContent = score + ' / ' + QUIZ_TOTAL;
+  const ratio = score / QUIZ_TOTAL;
+  let msg;
+  if (ratio === 1) msg = 'Parfait ! Toutes les réponses sont correctes.';
+  else if (ratio >= .8) msg = 'Très bien ! Vous maîtrisez l\'essentiel.';
+  else if (ratio >= .6) msg = 'Pas mal ! Relisez les points manqués.';
+  else if (ratio >= .4) msg = 'Quelques notions à revoir.';
+  else msg = 'Revoyez le cours avant de continuer.';
+  document.getElementById('score-msg').textContent = msg;
+}
+
+function restartQuiz() {
+  score = 0; answered = {};
+  document.getElementById('quiz-score').style.display = 'none';
+  document.querySelectorAll('.quiz-option').forEach(btn => {
+    btn.disabled = false;
+    btn.classList.remove('correct','wrong');
+  });
+  document.querySelectorAll('.quiz-feedback').forEach(fb => fb.textContent = '');
+}
+</script>
+</body>
+</html>

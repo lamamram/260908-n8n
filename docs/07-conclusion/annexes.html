@@ -1,0 +1,981 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="Support interactif de formation Automatisation No-Code avec n8n — Initiation + Approfondissement : 📎 — Annexes">
+<title>📎 — Annexes</title>
+<style>
+:root {
+  --bg: #0d1117; --surface: #161b22; --surface2: #1c2128; --border: #30363d;
+  --primary: #f0883e; --primary2: #ffa657;
+  --success: #3fb950; --warning: #d29922; --danger: #f85149;
+  --text: #e6edf3; --text-muted: #8b949e; --code-bg: #010409; --radius: 10px;
+  --topbar-h: 3.25rem;
+}
+:root[data-theme="light"] {
+  --bg: #ffffff; --surface: #f6f8fa; --surface2: #eaeef2; --border: #d0d7de;
+  --primary: #bc4c00; --primary2: #953800;
+  --success: #1a7f37; --warning: #9a6700; --danger: #cf222e;
+  --text: #1f2328; --text-muted: #656d76; --code-bg: #f6f8fa;
+}
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme="dark"]) {
+    --bg: #ffffff; --surface: #f6f8fa; --surface2: #eaeef2; --border: #d0d7de;
+    --primary: #bc4c00; --primary2: #953800;
+    --success: #1a7f37; --warning: #9a6700; --danger: #cf222e;
+    --text: #1f2328; --text-muted: #656d76; --code-bg: #f6f8fa;
+  }
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body { background: var(--bg); color: var(--text); font-family: system-ui, -apple-system, "Segoe UI", sans-serif; font-size: 15px; line-height: 1.7; transition: background .2s, color .2s; }
+
+/* TOPBAR — fixe, ne bouge jamais au scroll */
+.topbar {
+  position: sticky; top: 0; z-index: 200; height: var(--topbar-h);
+  background: var(--surface); border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; gap: .9rem; padding: 0 1rem;
+}
+.topbar .badge {
+  flex: 0 0 auto; background: var(--primary); color: #0d1117;
+  font-size: 10px; font-weight: 700; letter-spacing: .07em; text-transform: uppercase;
+  padding: 3px 9px; border-radius: 20px; white-space: nowrap;
+}
+.topbar a.chapter-title {
+  flex: 1 1 auto; min-width: 0; display: flex; align-items: baseline; gap: .5rem;
+  text-decoration: none; color: var(--text); font-weight: 700; font-size: .92rem;
+  overflow: hidden;
+}
+.topbar a.chapter-title:hover { color: var(--primary); }
+.topbar a.chapter-title .num { color: var(--primary); flex: 0 0 auto; }
+.topbar a.chapter-title .txt { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.topbar-links { flex: 0 0 auto; display: flex; align-items: center; gap: .5rem; }
+.topbar-link {
+  white-space: nowrap; padding: .4rem .8rem; border: 1px solid var(--border); border-radius: 20px;
+  font-size: .8rem; font-weight: 600; color: var(--text-muted); text-decoration: none; transition: all .2s;
+}
+.topbar-link:hover { color: var(--primary); border-color: var(--primary); }
+.theme-toggle {
+  flex: 0 0 auto; background: var(--surface2); border: 1px solid var(--border); color: var(--text);
+  padding: .4rem .7rem; border-radius: 20px; font-size: .8rem; cursor: pointer;
+  display: inline-flex; align-items: center; gap: .35rem;
+}
+.theme-toggle:hover { border-color: var(--primary); }
+
+/* LAYOUT — sidebar gauche + contenu */
+.layout { display: flex; align-items: flex-start; }
+.sidebar {
+  flex: 0 0 280px; width: 280px;
+  position: sticky; top: var(--topbar-h);
+  height: calc(100vh - var(--topbar-h));
+  overflow-y: auto; border-right: 1px solid var(--border); background: var(--surface);
+  padding: 1.25rem 1rem 2rem;
+}
+.objectifs {
+  background: var(--surface2); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: .8rem 1rem; margin-bottom: 1.25rem;
+}
+.objectifs-label { font-size: .7rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--primary); }
+.objectifs ul { margin: .4rem 0 0 1.1rem; }
+.objectifs li { font-size: .82rem; color: var(--text-muted); margin-bottom: .3rem; line-height: 1.4; }
+.side-nav { display: flex; flex-direction: column; gap: .1rem; }
+.side-nav button {
+  text-align: left; background: none; border: none; border-left: 3px solid transparent;
+  color: var(--text-muted); padding: .55rem .7rem; font-size: .87rem; font-weight: 500;
+  cursor: pointer; border-radius: 0 6px 6px 0; transition: all .15s;
+}
+.side-nav button:hover { color: var(--text); background: var(--surface2); }
+.side-nav button.active { color: var(--primary); border-left-color: var(--primary); background: var(--surface2); font-weight: 600; }
+.side-nav-sep { height: 1px; background: var(--border); margin: .6rem 0; }
+
+.content { flex: 1 1 auto; min-width: 0; }
+.tab-content { display: none; padding: 2rem 2.5rem 4rem; max-width: 1100px; margin: 0 auto; }
+.tab-content.active { display: block; }
+
+/* SECTIONS */
+h2 { font-size: 1.25rem; color: var(--primary2); margin: 1.8rem 0 .8rem; border-left: 3px solid var(--primary); padding-left: .75rem; }
+h3 { font-size: 1.05rem; color: var(--text); margin: 1.4rem 0 .6rem; }
+p { margin-bottom: .9rem; }
+ul, ol { padding-left: 1.4rem; margin-bottom: .9rem; }
+li { margin-bottom: .35rem; }
+
+/* RESSOURCES — liste sous forme de cartes plutôt que de puces */
+#tab-ressources ul { list-style: none; padding-left: 0; display: flex; flex-direction: column; gap: .5rem; }
+#tab-ressources li {
+  background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
+  padding: .75rem 1rem; margin-bottom: 0;
+}
+#tab-ressources li a { color: var(--primary2); font-weight: 600; text-decoration: none; }
+#tab-ressources li a:hover { text-decoration: underline; }
+
+/* AIDE — divulgation progressive pas-à-pas */
+details.aide { margin-top: 1.5rem; border: 1px solid var(--border); border-radius: var(--radius); background: var(--surface); }
+details.aide summary {
+  cursor: pointer; padding: .8rem 1.1rem; font-weight: 600; color: var(--primary);
+  list-style: none; display: flex; align-items: center; gap: .5rem;
+}
+details.aide summary::-webkit-details-marker { display: none; }
+details.aide summary::before { content: "▶"; font-size: .7rem; transition: transform .15s; }
+details.aide[open] summary::before { transform: rotate(90deg); }
+details.aide .aide-body { padding: 0 1.1rem 1.1rem; border-top: 1px solid var(--border); margin-top: .2rem; padding-top: 1rem; }
+img { max-width: 100%; height: auto; display: block; margin: 1rem auto; }
+
+/* EXERCICE — un bloc par atelier, avec son aide pas-à-pas attachée juste en dessous */
+.exercice { padding: 1.3rem 0; border-top: 1px solid var(--border); }
+.exercice:first-of-type { border-top: none; padding-top: 0; }
+.exercice h3 { margin: 0 0 .8rem; color: var(--primary2); }
+
+/* CALLOUTS */
+.callout { border-radius: var(--radius); padding: .9rem 1.1rem; margin: 1.2rem 0; border-left: 4px solid; background: var(--surface2); }
+.callout.note   { border-color: var(--primary); }
+.callout.tip    { border-color: var(--success); }
+.callout.warn   { border-color: var(--warning); }
+.callout.danger { border-color: var(--danger); }
+.callout p:last-child { margin-bottom: 0; }
+.callout-title { font-weight: 700; font-size: .82rem; text-transform: uppercase; letter-spacing: .07em; margin-bottom: .4rem; }
+.callout.note   .callout-title { color: var(--primary); }
+.callout.tip    .callout-title { color: var(--success); }
+.callout.warn   .callout-title { color: var(--warning); }
+.callout.danger .callout-title { color: var(--danger); }
+
+/* TABLES */
+.table-wrap { overflow-x: auto; margin: 1rem 0; }
+table { width: 100%; border-collapse: collapse; font-size: .9rem; }
+th { background: var(--surface2); color: var(--primary2); text-align: left; padding: .6rem .9rem; font-weight: 600; border: 1px solid var(--border); }
+td { padding: .55rem .9rem; border: 1px solid var(--border); vertical-align: top; }
+tr:hover td { background: var(--surface2); }
+
+/* CODE */
+.code-block { position: relative; margin: 1rem 0; }
+pre { background: var(--code-bg); border: 1px solid var(--border); border-radius: var(--radius); padding: 1rem 1rem 1rem 1.2rem; overflow-x: auto; }
+code { font-family: 'Consolas', 'Cascadia Code', monospace; font-size: .88rem; color: var(--primary2); }
+p code, li code, td code { background: var(--code-bg); border: 1px solid var(--border); border-radius: 5px; padding: .05rem .35rem; }
+.copy-btn {
+  position: absolute; top: .5rem; right: .5rem;
+  background: var(--surface2); border: 1px solid var(--border); color: var(--text-muted);
+  padding: .25rem .6rem; font-size: .75rem; border-radius: 5px; cursor: pointer; transition: all .2s;
+}
+.copy-btn:hover { background: var(--primary); color: #0d1117; }
+.copy-btn.copied { background: var(--success); color: #0d1117; }
+
+/* QUIZ */
+.quiz-question { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 1.2rem; margin-bottom: 1.2rem; }
+.quiz-question h4 { color: var(--primary2); margin-bottom: .9rem; font-size: .98rem; }
+.quiz-options { display: flex; flex-direction: column; gap: .5rem; }
+.quiz-option {
+  background: var(--surface2); border: 1px solid var(--border);
+  border-radius: 8px; padding: .6rem .9rem; cursor: pointer;
+  font-size: .9rem; transition: all .2s; text-align: left; color: var(--text);
+}
+.quiz-option:hover:not(:disabled) { border-color: var(--primary); }
+.quiz-option.correct { border-color: var(--success); color: var(--success); }
+.quiz-option.wrong   { border-color: var(--danger);  color: var(--danger);  }
+.quiz-option:disabled { cursor: default; }
+.quiz-feedback { margin-top: .6rem; font-size: .87rem; color: var(--text-muted); font-style: italic; }
+.quiz-score {
+  background: var(--surface2); border: 1px solid var(--primary);
+  border-radius: var(--radius); padding: 1.5rem; text-align: center; margin-top: 1.5rem; display: none;
+}
+.quiz-score .score-num { font-size: 2.5rem; font-weight: 700; color: var(--primary); }
+.quiz-score p { color: var(--text-muted); margin-top: .4rem; }
+.btn-restart { background: var(--primary); color: #0d1117; border: none; padding: .6rem 1.4rem; border-radius: 8px; font-weight: 700; cursor: pointer; margin-top: 1rem; font-size: .9rem; }
+.btn-restart:hover { background: var(--primary2); }
+
+/* RESPONSIVE — sidebar devient une barre horizontale sous 900px */
+@media (max-width: 900px) {
+  .layout { flex-direction: column; }
+  .sidebar {
+    position: static; width: 100%; height: auto; max-height: 40vh;
+    border-right: none; border-bottom: 1px solid var(--border);
+  }
+  .side-nav { flex-direction: row; flex-wrap: nowrap; overflow-x: auto; gap: .3rem; }
+  .side-nav button { border-left: none; border-bottom: 3px solid transparent; white-space: nowrap; border-radius: 6px 6px 0 0; }
+  .side-nav button.active { border-left-color: transparent; border-bottom-color: var(--primary); }
+  .side-nav-sep { display: none; }
+  .tab-content { padding: 1.5rem 1.2rem 3rem; }
+  .topbar a.chapter-title { font-size: .82rem; }
+}
+</style>
+<link rel="stylesheet" href="assets/course-common.css">
+<script src="assets/course-common.js" defer></script>
+</head>
+<body>
+
+<div class="topbar">
+  <span class="badge">Automatisation No-Code avec n8n — Initiation + Approfondissement</span>
+  <a class="chapter-title" href="index.html" title="Retour à l'accueil de la formation">
+    <span class="num">📎</span><span class="txt">Annexes</span>
+  </a>
+  <div class="topbar-links">
+    
+    <a class="topbar-link" href="index.html">Sommaire</a>
+    <button class="theme-toggle" id="theme-toggle" onclick="toggleTheme()" aria-label="Basculer entre thème clair et sombre">
+      <span id="theme-icon">🌙</span> <span id="theme-label">Sombre</span>
+    </button>
+  </div>
+</div>
+
+<div class="layout">
+  <aside class="sidebar">
+    
+    <nav class="side-nav" id="main-nav">
+      <button class="active" onclick="showTab('cheat-sheet-n8n')">Cheat-sheet — n8n</button>
+  <button class="" onclick="showTab('glossaire-n8n-et-automatisation')">Glossaire — n8n et automatisation</button>
+  <button class="" onclick="showTab('ressources-n8n')">Ressources — n8n</button>
+    </nav>
+  </aside>
+  <div class="content">
+    <div id="tab-cheat-sheet-n8n" class="tab-content active">
+<p>Les gestes et syntaxes du quotidien, en une référence rapide. À garder ouvert
+pendant les ateliers.</p>
+<h2>Démarrer une instance locale</h2>
+<div class="code-block"><pre><code class="language-bash"># Docker (recommandé en formation)
+docker volume create n8n_data
+docker run -it --rm --name n8n -p 5678:5678 \
+  -e GENERIC_TIMEZONE=&quot;Europe/Paris&quot; -e TZ=&quot;Europe/Paris&quot; \
+  -v n8n_data:/home/node/.n8n \
+  docker.n8n.io/n8nio/n8n
+
+# npm (poste de développement)
+npm install n8n -g
+n8n start
+
+# Tunnel de test pour webhooks (développement uniquement !)
+n8n start --tunnel
+</code></pre><button class="copy-btn" onclick="copyCode(this)">Copier</button></div>
+<p>Éditeur : <code>http://localhost:5678</code>.</p>
+<h2>Raccourcis de l'éditeur</h2>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Action</th>
+<th>Windows/Linux</th>
+<th>macOS</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Sauvegarder</td>
+<td><code>Ctrl + S</code></td>
+<td><code>Cmd + S</code></td>
+</tr>
+<tr>
+<td>Exécuter</td>
+<td><code>Ctrl + Entrée</code></td>
+<td><code>Cmd + Entrée</code></td>
+</tr>
+<tr>
+<td>Ouvrir un workflow</td>
+<td><code>Ctrl + O</code></td>
+<td><code>Cmd + O</code></td>
+</tr>
+<tr>
+<td>Annuler / Rétablir</td>
+<td><code>Ctrl + Z</code> / <code>Ctrl + Maj + Z</code></td>
+<td><code>Cmd + Z</code> / <code>Cmd + Maj + Z</code></td>
+</tr>
+</tbody>
+</table></div>
+<h2>Le modèle de données en 30 secondes</h2>
+<ul>
+<li>Les données circulent en <strong>tableau d'items</strong> : <code>[{ "json": {...} }, ...]</code>.</li>
+<li>Un nœud s'exécute <strong>une fois par item</strong> (sauf réglage <em>Execute Once</em>).</li>
+<li>Un nœud qui retourne <strong>zéro item</strong> arrête la branche.</li>
+<li><code>binary</code> porte les fichiers ; vérifier l'onglet Binary de la sortie.</li>
+</ul>
+<h2>Expressions : les 12 formes qui couvrent 90 % des besoins</h2>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Besoin</th>
+<th>Expression</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Champ de l'item courant</td>
+<td><code>{{ $json.champ }}</code></td>
+</tr>
+<tr>
+<td>Champ imbriqué</td>
+<td><code>{{ $json.adresse.ville }}</code></td>
+</tr>
+<tr>
+<td>Accès protégé</td>
+<td><code>{{ $json.adresse?.ville ?? "inconnue" }}</code></td>
+</tr>
+<tr>
+<td>Champ d'un nœud amont</td>
+<td><code>{{ $('Nom du nœud').item.json.champ }}</code></td>
+</tr>
+<tr>
+<td>Tous les items d'un nœud amont</td>
+<td><code>{{ $('Nom du nœud').all() }}</code></td>
+</tr>
+<tr>
+<td>Minuscules / majuscules</td>
+<td><code>{{ $json.email.toLowerCase() }}</code></td>
+</tr>
+<tr>
+<td>Concaténer</td>
+<td><code>{{ "Bonjour " + $json.prenom }}</code></td>
+</tr>
+<tr>
+<td>Gabarit</td>
+<td><code>{{</code>Commande ${$json.id}<code>}}</code></td>
+</tr>
+<tr>
+<td>Ternaire</td>
+<td><code>{{ $json.montant &gt; 100 ? "grand" : "petit" }}</code></td>
+</tr>
+<tr>
+<td>Maintenant / aujourd'hui</td>
+<td><code>{{ $now }}</code> / <code>{{ $today }}</code></td>
+</tr>
+<tr>
+<td>Date formatée</td>
+<td><code>{{ $now.toFormat('dd/MM/yyyy') }}</code></td>
+</tr>
+<tr>
+<td>Date + 7 jours</td>
+<td><code>{{ $now.plus({ days: 7 }) }}</code></td>
+</tr>
+</tbody>
+</table></div>
+<h2>Les nœuds de la boîte à outils</h2>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Besoin</th>
+<th>Nœud</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Appeler n'importe quelle API</td>
+<td>HTTP Request</td>
+</tr>
+<tr>
+<td>Recevoir un appel externe</td>
+<td>Webhook (+ Respond to Webhook)</td>
+</tr>
+<tr>
+<td>Planifier</td>
+<td>Schedule Trigger</td>
+</tr>
+<tr>
+<td>Question binaire</td>
+<td>IF</td>
+</tr>
+<tr>
+<td>Aiguillage nommé à N sorties</td>
+<td>Switch (toujours configurer le fallback)</td>
+</tr>
+<tr>
+<td>Réduire le tableau sans branche</td>
+<td>Filter</td>
+</tr>
+<tr>
+<td>Transformer les champs</td>
+<td>Edit Fields (Set)</td>
+</tr>
+<tr>
+<td>Éclater un tableau imbriqué</td>
+<td>Split Out</td>
+</tr>
+<tr>
+<td>Joindre deux flux</td>
+<td>Merge (Matching Fields = jointure)</td>
+</tr>
+<tr>
+<td>Comparer deux états</td>
+<td>Compare Datasets</td>
+</tr>
+<tr>
+<td>Traiter par lots</td>
+<td>Loop Over Items (+ Wait)</td>
+</tr>
+<tr>
+<td>Regrouper / statistiques</td>
+<td>Aggregate / Summarize</td>
+</tr>
+<tr>
+<td>Code libre</td>
+<td>Code (retourner <code>[{ json: ... }]</code>)</td>
+</tr>
+<tr>
+<td>Temporiser</td>
+<td>Wait</td>
+</tr>
+<tr>
+<td>Échec volontaire</td>
+<td>Stop and Error</td>
+</tr>
+<tr>
+<td>Appeler un sous-workflow</td>
+<td>Execute Workflow</td>
+</tr>
+</tbody>
+</table></div>
+<h2>Fiabilité : la hiérarchie des défenses</h2>
+<ol>
+<li><strong>Retry On Fail</strong> (Settings du nœud) — pannes transitoires (429, 503).</li>
+<li><strong>Continue On Fail</strong> + branche d'exception — items fautifs isolés.</li>
+<li>
+<p><strong>Workflow d'erreur</strong> (Error Trigger + notification) rattaché dans les
+   Settings du workflow — tout échec définitif signalé.</p>
+</li>
+<li>
+<p><strong>Stop and Error</strong> — incohérences métier remontées avec un message clair.</p>
+</li>
+</ol>
+<p>Contexte reçu par l'Error Trigger :</p>
+<div class="code-block"><pre><code class="language-json">{
+  &quot;execution&quot;: { &quot;id&quot;: &quot;...&quot;, &quot;url&quot;: &quot;...&quot;, &quot;error&quot;: { &quot;message&quot;: &quot;...&quot; },
+                 &quot;lastNodeExecuted&quot;: &quot;...&quot;, &quot;mode&quot;: &quot;...&quot; },
+  &quot;workflow&quot;: { &quot;id&quot;: &quot;...&quot;, &quot;name&quot;: &quot;...&quot; }
+}
+</code></pre><button class="copy-btn" onclick="copyCode(this)">Copier</button></div>
+<p>(erreur de déclencheur : objet <code>trigger</code> à la place d'<code>execution</code>).</p>
+<h2>Les pièges qui reviennent</h2>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Piège</th>
+<th>Réflexe</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Champ inexistant → <code>undefined</code> silencieux</td>
+<td>Chaînage optionnel <code>?.</code>, vue Schema</td>
+</tr>
+<tr>
+<td><code>"100"</code> (chaîne) ≠ <code>100</code> (nombre)</td>
+<td>Vérifier le type ; <code>Number(...)</code> ; validation <em>loose</em></td>
+</tr>
+<tr>
+<td>Casse différente dans les comparaisons</td>
+<td>Normaliser en minuscules en amont</td>
+</tr>
+<tr>
+<td>Workflow actif = dernière version <strong>sauvegardée</strong></td>
+<td><code>Ctrl + S</code> avant d'activer</td>
+</tr>
+<tr>
+<td>Épingle oubliée avant activation</td>
+<td>Checklist : aucune épingle en production</td>
+</tr>
+<tr>
+<td>Webhook de test n'écoute qu'une fois</td>
+<td>Relancer « Listen for test event »</td>
+</tr>
+<tr>
+<td>Merge qui n'émet rien</td>
+<td>Une entrée n'a produit aucun item → <em>Always Output Data</em></td>
+</tr>
+<tr>
+<td>Boucle sans fin</td>
+<td>Compteur borné (<code>tours &lt; 100</code>) en ET avec la condition</td>
+</tr>
+</tbody>
+</table></div>
+<h2>Production : les variables d'environnement utiles</h2>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Variable</th>
+<th>Rôle</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>GENERIC_TIMEZONE</code> / <code>TZ</code></td>
+<td>Fuseau des planifications (<code>Europe/Paris</code>)</td>
+</tr>
+<tr>
+<td><code>N8N_ENCRYPTION_KEY</code></td>
+<td>Clé de chiffrement des credentials — sauvegarder à part</td>
+</tr>
+<tr>
+<td><code>WEBHOOK_URL</code></td>
+<td>URL publique affichée par les webhooks</td>
+</tr>
+<tr>
+<td><code>DB_TYPE</code> + <code>DB_POSTGRESDB_*</code></td>
+<td>Passage à PostgreSQL</td>
+</tr>
+<tr>
+<td><code>EXECUTIONS_MODE=queue</code></td>
+<td>Mode file d'attente (avec Redis + PostgreSQL)</td>
+</tr>
+<tr>
+<td><code>EXECUTIONS_DATA_PRUNE</code> / <code>EXECUTIONS_DATA_MAX_AGE</code></td>
+<td>Purge de l'historique</td>
+</tr>
+<tr>
+<td><code>EXECUTIONS_DATA_SAVE_ON_SUCCESS=none</code></td>
+<td>Ne pas enregistrer les succès (flux bavards)</td>
+</tr>
+<tr>
+<td><code>N8N_DEFAULT_BINARY_DATA_MODE</code></td>
+<td>Stockage des fichiers (<code>filesystem</code>, <code>s3</code>…)</td>
+</tr>
+<tr>
+<td><code>N8N_RESTRICT_FILE_ACCESS_TO</code></td>
+<td>Borner les accès fichiers (<code>/files</code>)</td>
+</tr>
+</tbody>
+</table></div>
+<h2>CLI : exporter et importer</h2>
+<div class="code-block"><pre><code class="language-bash">n8n export:workflow --all --output=./backup/workflows/
+n8n import:workflow --input=./backup/workflows/
+n8n export:credentials --all --output=./backup/credentials/   # chiffrés
+</code></pre><button class="copy-btn" onclick="copyCode(this)">Copier</button></div>
+<h2>Checklist avant activation d'un workflow</h2>
+<ol>
+<li>Aucune épingle sur les nœuds.</li>
+<li>Nœuds nommés par des verbes d'action.</li>
+<li>Credentials de service (pas personnels), permissions minimales.</li>
+<li>Chaque branche testée ; fallback du Switch utilisé.</li>
+<li>Retry / exception / workflow d'erreur décidés par nœud à risque.</li>
+<li>Aucun secret dans les paramètres ni dans les items.</li>
+<li>Sticky note : processus, propriétaire, contraintes.</li>
+<li>Sauvegarder, activer, surveiller la première exécution réelle.</li>
+</ol>
+</div>
+
+<div id="tab-glossaire-n8n-et-automatisation" class="tab-content">
+<p>Ce glossaire rassemble les termes rencontrés pendant la formation. Le terme
+français est donné en premier, l'anglais d'usage entre parenthèses.</p>
+<h2>A</h2>
+<ul>
+<li>
+<p><strong>API (interface de programmation applicative)</strong> : ensemble d'opérations qu'un
+  service expose pour être interrogé ou modifié par un logiciel, via HTTP.</p>
+</li>
+<li>
+<p><strong>Atelier</strong> : mise en pratique guidée pendant la formation (voir aussi TP).</p>
+</li>
+<li>
+<p><strong>Auto-hébergement (self-hosting)</strong> : faire tourner n8n sur sa propre machine
+  ou son propre serveur plutôt que sur n8n Cloud.</p>
+</li>
+<li>
+<p><strong>Authentification</strong> : mécanisme par lequel un système vérifie l'identité de
+  l'appelant (clé d'API, Basic Auth, OAuth2…).</p>
+</li>
+</ul>
+<h2>B</h2>
+<ul>
+<li>
+<p><strong>Batching (traitement par lots)</strong> : découpage des appels en paquets espacés
+  pour respecter les quotas d'une API. Voir <em>Loop Over Items</em>.</p>
+</li>
+<li>
+<p><strong>Branche</strong> : chemin parallèle d'un workflow, créé par plusieurs connexions
+  sortantes ou par un nœud de logique (IF, Switch).</p>
+</li>
+<li>
+<p><strong>Branche d'exception</strong> : chemin qui reçoit les items en échec quand un nœud
+  est en <em>Continue On Fail</em>.</p>
+</li>
+</ul>
+<h2>C</h2>
+<ul>
+<li>
+<p><strong>Canvas (canevas)</strong> : la surface de l'éditeur n8n sur laquelle on pose et
+  relie les nœuds.</p>
+</li>
+<li>
+<p><strong>Clé d'API (API key)</strong> : chaîne secrète générée par un service pour
+  identifier un appelant ; à stocker dans un credential, jamais en clair.</p>
+</li>
+<li>
+<p><strong>Code (nœud)</strong> : nœud qui exécute du JavaScript ou du Python comme étape du
+  flux ; deux modes : une fois pour tous les items, ou une fois par item.</p>
+</li>
+<li>
+<p><strong>Credential (identifiant)</strong> : jeu d'accès (clé, compte, jeton) stocké chiffré
+  dans n8n et réutilisable par tous les workflows.</p>
+</li>
+<li>
+<p><strong>Cron (expression)</strong> : syntaxe de planification (<code>0 8 * * 1</code> = chaque lundi
+  à 8 h) utilisée par le déclencheur planifié en mode personnalisé.</p>
+</li>
+</ul>
+<h2>D</h2>
+<ul>
+<li>
+<p><strong>Déclencheur (trigger)</strong> : nœud qui met le workflow en marche — manuel,
+  planifié, webhook ou événement d'application.</p>
+</li>
+<li>
+<p><strong>Déclencheur d'application (app trigger)</strong> : déclencheur lié à un service
+  précis (Gmail, Slack…), en mode polling ou webhook.</p>
+</li>
+</ul>
+<h2>E</h2>
+<ul>
+<li>
+<p><strong>Épinglage (pin)</strong> : figeage de la sortie d'un nœud pour réutiliser ces
+  données aux exécutions de test suivantes, sans rappeler le service amont.</p>
+</li>
+<li>
+<p><strong>Error Trigger</strong> : déclencheur spécial qui ouvre un workflow d'erreur et
+  reçoit le contexte de l'échec (workflow, exécution, dernier nœud, message).</p>
+</li>
+<li>
+<p><strong>Exécution</strong> : un passage complet d'un workflow, daté, avec les données
+  d'entrée et de sortie de chaque nœud.</p>
+</li>
+<li>
+<p><strong>Expression</strong> : formule JavaScript entre doubles accolades <code>{{ }}</code> évaluée
+  pour chaque item dans les paramètres des nœuds.</p>
+</li>
+</ul>
+<h2>F</h2>
+<ul>
+<li>
+<p><strong>Fair-code</strong> : modèle de licence de n8n (Sustainable Use License) : code
+  source disponible, usage interne libre, revente comme service restreinte.</p>
+</li>
+<li>
+<p><strong>Fallback Output</strong> : sortie de secours d'un nœud Switch pour les items qui
+  ne correspondent à aucune règle.</p>
+</li>
+<li>
+<p><strong>Fil rouge</strong> : le workflow construit progressivement tout au long de la
+  formation (routage des demandes).</p>
+</li>
+</ul>
+<h2>I</h2>
+<ul>
+<li>
+<p><strong>Instance</strong> : une installation de n8n en fonctionnement (éditeur + moteur +
+  base de données).</p>
+</li>
+<li>
+<p><strong>Intégration native</strong> : nœud dédié à un service (Gmail, GitHub…), avec
+  opérations et credential prédéfinis.</p>
+</li>
+<li>
+<p><strong>Item</strong> : élément du tableau de données qui circule entre les nœuds ; porte
+  une clé <code>json</code> (données) et éventuellement <code>binary</code> (fichiers).</p>
+</li>
+</ul>
+<h2>J</h2>
+<ul>
+<li>
+<p><strong>JMESPath</strong> : langage de requête pour JSON, disponible dans les expressions
+  via <code>$jmespath()</code>, pour extraire des données de structures imbriquées.</p>
+</li>
+<li>
+<p><strong>JSON (JavaScript Object Notation)</strong> : format texte de données structurées
+  (objets, tableaux) utilisé par les API et par le modèle d'items de n8n.</p>
+</li>
+</ul>
+<h2>L</h2>
+<ul>
+<li>
+<p><strong>Loop Over Items</strong> : nœud de boucle par lots (ancien nom : Split In Batches) ;
+  émet chaque lot par « loop » et signale la fin par « done ».</p>
+</li>
+<li>
+<p><strong>Low-code</strong> : construction visuelle d'applications avec possibilité
+  d'injecter du code ponctuellement (position de n8n).</p>
+</li>
+<li>
+<p><strong>Luxon</strong> : bibliothèque de dates utilisée par n8n (<code>$now</code>, <code>$today</code>).</p>
+</li>
+</ul>
+<h2>M</h2>
+<ul>
+<li>
+<p><strong>Merge</strong> : nœud de fusion de deux flux (Append, jointures par champs
+  correspondants, par position, produit cartésien, SQL).</p>
+</li>
+<li>
+<p><strong>Moindre privilège</strong> : principe de n'accorder à une clé ou un compte que les
+  permissions strictement nécessaires au flux prévu.</p>
+</li>
+</ul>
+<h2>N</h2>
+<ul>
+<li><strong>n8n Cloud</strong> : l'offre hébergée et managée par l'éditeur de n8n.</li>
+<li><strong>No-code</strong> : construction entièrement visuelle, sans écriture de code.</li>
+<li><strong>Nœud (node)</strong> : brique d'un workflow — déclencheur, action, logique ou
+  transformation.</li>
+</ul>
+<h2>O</h2>
+<ul>
+<li>
+<p><strong>OAuth2</strong> : protocole de délégation d'accès ; l'utilisateur autorise
+  l'application, le service émet un jeton renouvelable. Flux principaux :
+  Authorization Code, Client Credentials, PKCE.</p>
+</li>
+<li>
+<p><strong>Orchestration</strong> : coordination automatisée d'étapes réparties entre
+  plusieurs applications, avec journalisation et gestion d'erreurs.</p>
+</li>
+</ul>
+<h2>P</h2>
+<ul>
+<li>
+<p><strong>Pagination</strong> : découpage des réponses volumineuses d'une API en pages ;
+  gérée par l'option du nœud HTTP Request ou par une boucle.</p>
+</li>
+<li>
+<p><strong>Paired item</strong> : lien de traçabilité entre un item de sortie et l'item
+  d'entrée dont il descend ; alimente la navigation dans les exécutions.</p>
+</li>
+<li>
+<p><strong>Polling (interrogation)</strong> : détection d'événements par appels réguliers au
+  service (« y a-t-il du nouveau ? »), par opposition au webhook (push).</p>
+</li>
+<li>
+<p><strong>Projet (project)</strong> : espace de regroupement de workflows et credentials
+  avec gestion des droits (selon édition).</p>
+</li>
+</ul>
+<h2>Q</h2>
+<ul>
+<li><strong>Queue mode (mode file d'attente)</strong> : architecture de montée en charge :
+  instance principale + Redis (file) + workers d'exécution + PostgreSQL.</li>
+</ul>
+<h2>R</h2>
+<ul>
+<li>
+<p><strong>Rate limiting (quota d'API)</strong> : limitation du nombre de requêtes par un
+  service ; réponse typique <code>429 Too Many Requests</code>.</p>
+</li>
+<li>
+<p><strong>Respond to Webhook</strong> : nœud qui compose la réponse HTTP renvoyée à
+  l'appelant d'un webhook.</p>
+</li>
+<li>
+<p><strong>Reverse proxy</strong> : serveur frontal (Traefik, nginx) qui termine TLS et
+  redirige vers n8n sans exposer son port.</p>
+</li>
+<li>
+<p><strong>Retry On Fail</strong> : réglage de nœud qui réessaie automatiquement après un
+  échec (nombre de tentatives et intervalle).</p>
+</li>
+</ul>
+<h2>S</h2>
+<ul>
+<li><strong>Scope</strong> : permission précise accordée à un jeton OAuth2 ou une clé d'API.</li>
+<li>
+<p><strong>SSRF</strong> : attaque qui détourne un serveur pour appeler des ressources
+  internes ; n8n propose une protection dédiée à activer.</p>
+</li>
+<li>
+<p><strong>Sticky note</strong> : note autocollante libre posée sur le canevas pour documenter
+  le flux.</p>
+</li>
+<li>
+<p><strong>Stop and Error</strong> : nœud qui fait échouer volontairement l'exécution avec un
+  message explicite, remonté au workflow d'erreur.</p>
+</li>
+<li>
+<p><strong>Sous-workflow</strong> : workflow appelé par un autre via le nœud Execute Workflow,
+  pour réutiliser ou découper la logique.</p>
+</li>
+</ul>
+<h2>T</h2>
+<ul>
+<li><strong>TP (Travaux Pratiques)</strong> : voir <em>Atelier</em>.</li>
+<li><strong>Tunnel</strong> : URL publique temporaire fournie par <code>n8n start --tunnel</code> pour
+  tester les webhooks en développement — jamais en production.</li>
+</ul>
+<h2>V</h2>
+<ul>
+<li>
+<p><strong>Variable d'environnement</strong> : réglage de l'instance lu au démarrage
+  (fuseau horaire, base de données, clé de chiffrement…), défini dans le
+  fichier <code>.env</code> ou le compose.</p>
+</li>
+<li>
+<p><strong>Volume (Docker)</strong> : espace de stockage persistant monté dans le conteneur ;
+  <code>n8n_data</code> conserve workflows, credentials et base entre les redémarrages.</p>
+</li>
+</ul>
+<h2>W</h2>
+<ul>
+<li>
+<p><strong>Webhook</strong> : URL HTTP exposée par n8n qu'un service externe appelle pour
+  déclencher un flux ; existe en version de test et de production.</p>
+</li>
+<li>
+<p><strong>Workflow</strong> : le flux d'automatisation dessiné sur le canevas — déclencheur,
+  nœuds, connexions ; actif ou inactif.</p>
+</li>
+<li>
+<p><strong>Workflow d'erreur</strong> : workflow dédié (commençant par Error Trigger) exécuté
+  à chaque échec d'un workflow auquel il est rattaché.</p>
+</li>
+<li>
+<p><strong>Worker</strong> : processus n8n qui exécute les workflows en queue mode, en
+  parallèle de l'instance principale.</p>
+</li>
+</ul>
+</div>
+
+<div id="tab-ressources-n8n" class="tab-content">
+<p>Documentation officielle consultée et vérifiée pendant la production de cette
+formation. Seule la documentation officielle est référencée ici ; les chapitres
+renvoient vers ce fichier au lieu d'embarquer leurs propres liens.</p>
+<h2>Documentation officielle n8n</h2>
+<h3>Démarrage et concepts</h3>
+<ul>
+<li>📖 Accueil de la documentation — https://docs.n8n.io/</li>
+<li>📖 Index complet de la documentation (plan du site) — https://docs.n8n.io/sitemap.md</li>
+<li>📖 Construire son premier workflow — https://docs.n8n.io/build-your-first-workflow</li>
+<li>📖 Glossaire des concepts clés — https://docs.n8n.io/key-concept-glossary</li>
+<li>📖 Bibliothèque de modèles de workflows — https://n8n.io/workflows</li>
+</ul>
+<h3>Logique des flux (chapitres 1 à 3)</h3>
+<ul>
+<li>📖 Logique de flux : conditions, boucles, fusions — https://docs.n8n.io/build/flow-logic</li>
+<li>📖 Boucles — https://docs.n8n.io/build/flow-logic/loop</li>
+<li>📖 Fusionner des données (Merge, Compare Datasets) — https://docs.n8n.io/build/flow-logic/merge-data</li>
+<li>📖 Gérer les erreurs (workflows d'erreur, Error Trigger, Stop and Error) — https://docs.n8n.io/build/flow-logic/handle-errors-gracefully</li>
+<li>📖 Ordre d'exécution des branches — https://docs.n8n.io/build/flow-logic/understand-execution-order</li>
+<li>📖 Découper en sous-workflows — https://docs.n8n.io/build/flow-logic/break-workflows-into-smaller-parts</li>
+</ul>
+<h3>Données, expressions et code (chapitres 1 à 3)</h3>
+<ul>
+<li>📖 Structure des données n8n — https://docs.n8n.io/build/work-with-data/understand-n8ns-data-structure</li>
+<li>📖 Référencer les données des nœuds amont — https://docs.n8n.io/build/work-with-data/reference-data</li>
+<li>📖 Liaison des items (paired items) — https://docs.n8n.io/build/work-with-data/reference-data/link-data-items</li>
+<li>📖 Expressions pour la transformation — https://docs.n8n.io/build/work-with-data/transform-data/expressions-for-data-transformation</li>
+<li>📖 Dates et heures (Luxon) — https://docs.n8n.io/build/work-with-data/handle-special-data-types/work-with-dates-and-times</li>
+<li>📖 Requêtes JMESPath sur JSON — https://docs.n8n.io/build/work-with-data/handle-special-data-types/query-json-data</li>
+<li>📖 Le nœud Code — https://docs.n8n.io/build/code-in-n8n/using-the-code-node</li>
+<li>📖 Méthodes et variables intégrées — https://docs.n8n.io/build/code-in-n8n/use-built-in-shortcuts</li>
+</ul>
+<h3>Nœuds et credentials (chapitre 2)</h3>
+<ul>
+<li>📖 Catalogue des intégrations natives — https://docs.n8n.io/integrations/</li>
+<li>📖 Nœud HTTP Request — https://docs.n8n.io/integrations/builtin/core-nodes/n8n-nodes-base.httprequest</li>
+<li>📖 Credentials du nœud HTTP Request (predefined, génériques, OAuth2) — https://docs.n8n.io/integrations/builtin/credentials/httprequest</li>
+<li>📖 Nœud IF — https://docs.n8n.io/integrations/builtin/core-nodes/n8n-nodes-base.if</li>
+<li>📖 Nœud Switch — https://docs.n8n.io/integrations/builtin/core-nodes/n8n-nodes-base.switch</li>
+<li>📖 Nœud Merge — https://docs.n8n.io/integrations/builtin/core-nodes/n8n-nodes-base.merge</li>
+<li>📖 Nœud Loop Over Items — https://docs.n8n.io/integrations/builtin/core-nodes/n8n-nodes-base.splitinbatches</li>
+<li>📖 Error Trigger — https://docs.n8n.io/integrations/builtin/core-nodes/n8n-nodes-base.errortrigger</li>
+</ul>
+<h3>Déploiement et exploitation (chapitre 4)</h3>
+<ul>
+<li>📖 Installation avec Docker — https://docs.n8n.io/deploy/host-n8n/install-options/install-with-docker</li>
+<li>📖 Déploiement de référence avec Docker Compose (reverse proxy Traefik, TLS) — https://docs.n8n.io/deploy/host-n8n/install-options/use-a-cloud-provider/use-docker-compose</li>
+<li>📖 Choisir la base de données (SQLite / PostgreSQL) — https://docs.n8n.io/deploy/host-n8n/configure-n8n/choose-n8ns-database</li>
+<li>📖 Vue d'ensemble de la sécurisation d'une instance — https://docs.n8n.io/deploy/host-n8n/configure-n8n/security</li>
+<li>📖 Gérer les données d'exécution (rétention, purge) — https://docs.n8n.io/deploy/host-n8n/configure-n8n/scaling/manage-execution-data</li>
+<li>📖 Activer le queue mode (Redis, workers) — https://docs.n8n.io/deploy/host-n8n/configure-n8n/scaling/enable-queue-mode</li>
+<li>📖 Mettre à jour une instance auto-hébergée — https://docs.n8n.io/deploy/host-n8n/keep-n8n-running/update-n8n</li>
+<li>📖 Exemples de configurations d'hébergement (dépôt n8n-hosting) — https://github.com/n8n-io/n8n-hosting</li>
+<li>📖 Code source de n8n (dépôt GitHub) — https://github.com/n8n-io/n8n</li>
+<li>📖 Forum de la communauté officielle — https://community.n8n.io</li>
+</ul>
+<h2>Ressources de la formation</h2>
+<ul>
+<li>📖 Page officielle de la formation Dawan — https://www.dawan.fr/formations/no-code-low-code/n8n/automatisation-no-code-avec-n8n-initiation-approfondissement</li>
+<li>Services de test utilisés en atelier : JSONPlaceholder — https://jsonplaceholder.typicode.com ; httpbin (écho HTTP) — https://httpbin.org</li>
+</ul>
+</div>
+  </div>
+</div>
+
+<script>
+// ─── THEME ──────────────────────────────────────────────────────────────────
+(function () {
+  const root = document.documentElement;
+  const stored = localStorage.getItem('dawan-theme');
+  if (stored) root.setAttribute('data-theme', stored);
+  updateToggleLabel();
+})();
+
+function updateToggleLabel() {
+  const current = document.documentElement.getAttribute('data-theme') ||
+    (window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark');
+  document.getElementById('theme-icon').textContent = current === 'dark' ? '🌙' : '☀️';
+  document.getElementById('theme-label').textContent = current === 'dark' ? 'Sombre' : 'Clair';
+}
+
+function toggleTheme() {
+  const root = document.documentElement;
+  const current = root.getAttribute('data-theme') ||
+    (window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark');
+  const next = current === 'dark' ? 'light' : 'dark';
+  root.setAttribute('data-theme', next);
+  localStorage.setItem('dawan-theme', next);
+  updateToggleLabel();
+}
+
+// ─── TABS ───────────────────────────────────────────────────────────────────
+function showTab(id) {
+  document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+  document.querySelectorAll('.side-nav button').forEach(el => el.classList.remove('active'));
+  document.getElementById('tab-' + id).classList.add('active');
+  event.target.classList.add('active');
+  document.querySelector('.content').scrollTo({ top: 0, behavior: 'instant' });
+}
+
+// ─── COPY CODE ──────────────────────────────────────────────────────────────
+function copyCode(btn) {
+  const pre = btn.previousElementSibling;
+  navigator.clipboard.writeText(pre.textContent).then(() => {
+    btn.textContent = 'Copié !'; btn.classList.add('copied');
+    setTimeout(() => { btn.textContent = 'Copier'; btn.classList.remove('copied'); }, 2000);
+  });
+}
+
+// ─── QUIZ ────────────────────────────────────────────────────────────────────
+
+let score = 0;
+let answered = {};
+
+function answer(qNum, choice) {
+  if (answered[qNum]) return;
+  answered[qNum] = true;
+  score += (choice === answers[qNum]) ? 1 : 0;
+  const qEl = document.getElementById('q' + qNum);
+  qEl.querySelectorAll('.quiz-option').forEach(btn => {
+    btn.disabled = true;
+    const ltr = btn.textContent.trim()[0].toLowerCase();
+    if (ltr === answers[qNum]) btn.classList.add('correct');
+    else if (ltr === choice) btn.classList.add('wrong');
+  });
+  const fb = feedbacks[qNum];
+  document.getElementById('fb' + qNum).textContent = (choice === answers[qNum]) ? fb[answers[qNum]] : fb.wrong;
+  if (Object.keys(answered).length === QUIZ_TOTAL) showScore();
+}
+
+function showScore() {
+  const el = document.getElementById('quiz-score');
+  el.style.display = 'block';
+  document.getElementById('score-display').textContent = score + ' / ' + QUIZ_TOTAL;
+  const ratio = score / QUIZ_TOTAL;
+  let msg;
+  if (ratio === 1) msg = 'Parfait ! Toutes les réponses sont correctes.';
+  else if (ratio >= .8) msg = 'Très bien ! Vous maîtrisez l\'essentiel.';
+  else if (ratio >= .6) msg = 'Pas mal ! Relisez les points manqués.';
+  else if (ratio >= .4) msg = 'Quelques notions à revoir.';
+  else msg = 'Revoyez le cours avant de continuer.';
+  document.getElementById('score-msg').textContent = msg;
+}
+
+function restartQuiz() {
+  score = 0; answered = {};
+  document.getElementById('quiz-score').style.display = 'none';
+  document.querySelectorAll('.quiz-option').forEach(btn => {
+    btn.disabled = false;
+    btn.classList.remove('correct','wrong');
+  });
+  document.querySelectorAll('.quiz-feedback').forEach(fb => fb.textContent = '');
+}
+</script>
+</body>
+</html>

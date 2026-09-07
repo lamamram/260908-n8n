@@ -1,0 +1,48 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 880 340" font-family="Segoe UI, Arial, sans-serif">
+  <rect x="0" y="0" width="880" height="340" rx="12" fill="#f6f8fa" stroke="#d0d7de"/>
+  <text x="440" y="34" text-anchor="middle" font-size="18" font-weight="700" fill="#1f2328">Le nœud Code : deux modes d'exécution</text>
+
+  <!-- Mode 1 -->
+  <rect x="40" y="60" width="390" height="230" rx="10" fill="#ffffff" stroke="#0969da" stroke-width="2"/>
+  <text x="235" y="88" text-anchor="middle" font-size="14" font-weight="700" fill="#0969da">Run Once for All Items</text>
+  <text x="235" y="106" text-anchor="middle" font-size="11" fill="#57606a">(mode par défaut)</text>
+
+  <rect x="58" y="120" width="160" height="60" rx="6" fill="#ddf4ff" stroke="#54aeff"/>
+  <text x="138" y="144" text-anchor="middle" font-size="11" fill="#1f2328">10 items</text>
+  <text x="138" y="162" text-anchor="middle" font-size="10" fill="#57606a">en entrée</text>
+
+  <line x1="222" y1="150" x2="258" y2="150" stroke="#57606a" stroke-width="2"/>
+  <polygon points="258,150 248,144 248,156" fill="#57606a"/>
+
+  <rect x="262" y="120" width="150" height="60" rx="6" fill="#fff4e5" stroke="#f0883e"/>
+  <text x="337" y="144" text-anchor="middle" font-size="11" font-weight="700" fill="#bc4c00">le code s'exécute</text>
+  <text x="337" y="162" text-anchor="middle" font-size="11" font-weight="700" fill="#bc4c00">1 fois</text>
+
+  <text x="235" y="215" text-anchor="middle" font-size="11" fill="#1f2328">Accès : <tspan font-family="Consolas, monospace">$input.all()</tspan> → tableau complet</text>
+  <text x="235" y="238" text-anchor="middle" font-size="11" fill="#57606a">Idéal pour : agréger, trier, dédupliquer,</text>
+  <text x="235" y="256" text-anchor="middle" font-size="11" fill="#57606a">restructurer le tableau entier</text>
+
+  <!-- Mode 2 -->
+  <rect x="460" y="60" width="390" height="230" rx="10" fill="#ffffff" stroke="#1f883d" stroke-width="2"/>
+  <text x="655" y="88" text-anchor="middle" font-size="14" font-weight="700" fill="#1f883d">Run Once for Each Item</text>
+  <text x="655" y="106" text-anchor="middle" font-size="11" fill="#57606a">(une exécution par item)</text>
+
+  <rect x="478" y="120" width="160" height="60" rx="6" fill="#eaf5ea" stroke="#1f883d"/>
+  <text x="558" y="144" text-anchor="middle" font-size="11" fill="#1f2328">10 items</text>
+  <text x="558" y="162" text-anchor="middle" font-size="10" fill="#57606a">en entrée</text>
+
+  <line x1="642" y1="150" x2="678" y2="150" stroke="#57606a" stroke-width="2"/>
+  <polygon points="678,150 668,144 668,156" fill="#57606a"/>
+
+  <rect x="682" y="120" width="150" height="60" rx="6" fill="#fff4e5" stroke="#f0883e"/>
+  <text x="757" y="144" text-anchor="middle" font-size="11" font-weight="700" fill="#bc4c00">le code s'exécute</text>
+  <text x="757" y="162" text-anchor="middle" font-size="11" font-weight="700" fill="#bc4c00">10 fois</text>
+
+  <text x="655" y="215" text-anchor="middle" font-size="11" fill="#1f2328">Accès : <tspan font-family="Consolas, monospace">$json</tspan> → item courant seulement</text>
+  <text x="655" y="238" text-anchor="middle" font-size="11" fill="#57606a">Idéal pour : transformer chaque item isolément,</text>
+  <text x="655" y="256" text-anchor="middle" font-size="11" fill="#57606a">comme le font les autres nœuds</text>
+
+  <!-- Bandeau contrat de sortie -->
+  <rect x="40" y="300" width="800" height="30" rx="8" fill="#fff8f2" stroke="#f0883e"/>
+  <text x="440" y="320" text-anchor="middle" font-size="12" fill="#1f2328">Contrat de sortie identique dans les deux modes : retourner un <tspan font-weight="700">tableau d'objets avec une clé json</tspan>.</text>
+</svg>

@@ -1,0 +1,51 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 880 380" font-family="Segoe UI, Arial, sans-serif">
+  <rect x="0" y="0" width="880" height="380" rx="12" fill="#f6f8fa" stroke="#d0d7de"/>
+  <text x="440" y="34" text-anchor="middle" font-size="18" font-weight="700" fill="#1f2328">L'architecture de gestion des erreurs : le workflow d'erreur centralisé</text>
+
+  <!-- Workflow principal -->
+  <rect x="40" y="70" width="300" height="110" rx="10" fill="#ffffff" stroke="#0969da" stroke-width="2"/>
+  <text x="190" y="96" text-anchor="middle" font-size="14" font-weight="700" fill="#0969da">Workflow métier</text>
+  <text x="190" y="114" text-anchor="middle" font-size="11" fill="#57606a">(ex. ACC - Routage des demandes)</text>
+  <rect x="60" y="128" width="260" height="34" rx="6" fill="#fdf0ee" stroke="#cf222e"/>
+  <text x="190" y="150" text-anchor="middle" font-size="11" fill="#cf222e">un nœud échoue → l'exécution passe en erreur</text>
+
+  <!-- Workflow 2 -->
+  <rect x="40" y="210" width="300" height="80" rx="10" fill="#ffffff" stroke="#0969da" stroke-width="2"/>
+  <text x="190" y="240" text-anchor="middle" font-size="14" font-weight="700" fill="#0969da">Workflow métier 2</text>
+  <text x="190" y="262" text-anchor="middle" font-size="11" fill="#57606a">(même paramétrage : Settings → Error workflow)</text>
+
+  <!-- Flèches vers Error workflow -->
+  <line x1="340" y1="140" x2="440" y2="140" stroke="#cf222e" stroke-width="2"/>
+  <polygon points="440,140 430,134 430,146" fill="#cf222e"/>
+  <line x1="340" y1="250" x2="440" y2="180" stroke="#cf222e" stroke-width="2"/>
+  <polygon points="440,180 429,177 434,187" fill="#cf222e"/>
+
+  <!-- Error workflow -->
+  <rect x="445" y="90" width="200" height="150" rx="10" fill="#fff4e5" stroke="#f0883e" stroke-width="2"/>
+  <text x="545" y="116" text-anchor="middle" font-size="14" font-weight="700" fill="#bc4c00">Workflow d'erreur</text>
+  <text x="545" y="134" text-anchor="middle" font-size="11" fill="#57606a">(un seul pour toute l'instance)</text>
+  <rect x="460" y="148" width="170" height="32" rx="6" fill="#ffffff" stroke="#f0883e"/>
+  <text x="545" y="169" text-anchor="middle" font-size="11" font-weight="700" fill="#1f2328">Error Trigger (1er nœud)</text>
+  <rect x="460" y="188" width="170" height="32" rx="6" fill="#ffffff" stroke="#f0883e"/>
+  <text x="545" y="209" text-anchor="middle" font-size="11" fill="#1f2328">Formatage de l'alerte</text>
+
+  <!-- Flèches sorties -->
+  <line x1="645" y1="130" x2="700" y2="100" stroke="#57606a" stroke-width="2"/>
+  <polygon points="700,100 690,98 695,108" fill="#57606a"/>
+  <line x1="645" y1="200" x2="700" y2="230" stroke="#57606a" stroke-width="2"/>
+  <polygon points="700,230 690,227 695,237" fill="#57606a"/>
+
+  <!-- Sorties -->
+  <rect x="705" y="70" width="150" height="60" rx="10" fill="#eaf5ea" stroke="#1f883d" stroke-width="2"/>
+  <text x="780" y="96" text-anchor="middle" font-size="12" font-weight="700" fill="#1f883d">Notification</text>
+  <text x="780" y="114" text-anchor="middle" font-size="10" fill="#57606a">e-mail / Slack / ticket</text>
+
+  <rect x="705" y="200" width="150" height="60" rx="10" fill="#f6f8fa" stroke="#6e7781" stroke-width="2"/>
+  <text x="780" y="226" text-anchor="middle" font-size="12" font-weight="700" fill="#1f2328">Journal</text>
+  <text x="780" y="244" text-anchor="middle" font-size="10" fill="#57606a">tableur / base / fichier</text>
+
+  <!-- Bandeau bas -->
+  <rect x="40" y="315" width="800" height="48" rx="8" fill="#ffffff" stroke="#d0d7de"/>
+  <text x="440" y="336" text-anchor="middle" font-size="12" fill="#1f2328">L'Error Trigger reçoit le contexte complet : workflow, exécution, dernier nœud exécuté, message et pile d'erreur.</text>
+  <text x="440" y="354" text-anchor="middle" font-size="12" fill="#1f2328">Le workflow métier reste lisible — la gestion d'erreur vit dans un flux séparé, partagé par tous.</text>
+</svg>

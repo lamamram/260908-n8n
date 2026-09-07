@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 880 300" font-family="Segoe UI, Arial, sans-serif">
+  <rect x="0" y="0" width="880" height="300" rx="12" fill="#f6f8fa" stroke="#d0d7de"/>
+  <text x="440" y="36" text-anchor="middle" font-size="18" font-weight="700" fill="#1f2328">Du no-code au full-code : où se situe n8n ?</text>
+
+  <!-- Axe du spectre -->
+  <line x1="90" y1="150" x2="790" y2="150" stroke="#d0d7de" stroke-width="10" stroke-linecap="round"/>
+  <line x1="90" y1="150" x2="790" y2="150" stroke="#f0883e" stroke-width="4" stroke-linecap="round" stroke-dasharray="1 12"/>
+
+  <!-- Étape 1 : no-code -->
+  <circle cx="150" cy="150" r="14" fill="#ffffff" stroke="#1f883d" stroke-width="3"/>
+  <text x="150" y="110" text-anchor="middle" font-size="15" font-weight="700" fill="#1f883d">No-code</text>
+  <text x="150" y="190" text-anchor="middle" font-size="12" fill="#57606a">Zapier, Make</text>
+  <text x="150" y="208" text-anchor="middle" font-size="12" fill="#57606a">aucune ligne de code</text>
+
+  <!-- Étape 2 : low-code -->
+  <circle cx="380" cy="150" r="18" fill="#f0883e" stroke="#ffffff" stroke-width="3"/>
+  <text x="380" y="110" text-anchor="middle" font-size="15" font-weight="700" fill="#bc4c00">Low-code</text>
+  <text x="380" y="190" text-anchor="middle" font-size="12" fill="#57606a">n8n : visuel + code</text>
+  <text x="380" y="208" text-anchor="middle" font-size="12" fill="#57606a">quand nécessaire</text>
+
+  <!-- Étape 3 : full-code -->
+  <circle cx="720" cy="150" r="14" fill="#ffffff" stroke="#0969da" stroke-width="3"/>
+  <text x="720" y="110" text-anchor="middle" font-size="15" font-weight="700" fill="#0969da">Full-code</text>
+  <text x="720" y="190" text-anchor="middle" font-size="12" fill="#57606a">scripts Python, API</text>
+  <text x="720" y="208" text-anchor="middle" font-size="12" fill="#57606a">à la main</text>
+
+  <!-- Encadré bas -->
+  <rect x="120" y="238" width="640" height="42" rx="8" fill="#fff8f2" stroke="#f0883e"/>
+  <text x="440" y="257" text-anchor="middle" font-size="13" fill="#1f2328">n8n combine la <tspan font-weight="700">construction visuelle</tspan> (glisser-déposer de nœuds)</text>
+  <text x="440" y="274" text-anchor="middle" font-size="13" fill="#1f2328">et la possibilité d'<tspan font-weight="700">écrire du JavaScript/Python</tspan> dans un nœud Code ou une expression.</text>
+</svg>

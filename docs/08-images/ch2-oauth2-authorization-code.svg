@@ -1,0 +1,47 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 880 400" font-family="Segoe UI, Arial, sans-serif">
+  <rect x="0" y="0" width="880" height="400" rx="12" fill="#f6f8fa" stroke="#d0d7de"/>
+  <text x="440" y="34" text-anchor="middle" font-size="18" font-weight="700" fill="#1f2328">OAuth2 « Authorization Code » : la danse en 4 temps</text>
+
+  <!-- Acteurs -->
+  <rect x="60" y="60" width="180" height="50" rx="10" fill="#ffffff" stroke="#6e7781" stroke-width="2"/>
+  <text x="150" y="91" text-anchor="middle" font-size="14" font-weight="700" fill="#1f2328">Utilisateur</text>
+
+  <rect x="350" y="60" width="180" height="50" rx="10" fill="#fff4e5" stroke="#f0883e" stroke-width="2"/>
+  <text x="440" y="91" text-anchor="middle" font-size="14" font-weight="700" fill="#bc4c00">n8n (credential)</text>
+
+  <rect x="640" y="60" width="180" height="50" rx="10" fill="#ddf4ff" stroke="#0969da" stroke-width="2"/>
+  <text x="730" y="91" text-anchor="middle" font-size="14" font-weight="700" fill="#0969da">Service (API)</text>
+
+  <!-- Lignes de vie -->
+  <line x1="150" y1="110" x2="150" y2="360" stroke="#d0d7de" stroke-width="2" stroke-dasharray="4 4"/>
+  <line x1="440" y1="110" x2="440" y2="360" stroke="#d0d7de" stroke-width="2" stroke-dasharray="4 4"/>
+  <line x1="730" y1="110" x2="730" y2="360" stroke="#d0d7de" stroke-width="2" stroke-dasharray="4 4"/>
+
+  <!-- Étape 1 -->
+  <line x1="440" y1="145" x2="150" y2="145" stroke="#f0883e" stroke-width="2"/>
+  <polygon points="150,145 160,139 160,151" fill="#f0883e"/>
+  <text x="295" y="135" text-anchor="middle" font-size="12" fill="#1f2328">1. « Connect » : n8n ouvre la page de consentement du service</text>
+
+  <!-- Étape 2 -->
+  <line x1="150" y1="195" x2="730" y2="195" stroke="#0969da" stroke-width="2"/>
+  <polygon points="730,195 720,189 720,201" fill="#0969da"/>
+  <text x="440" y="185" text-anchor="middle" font-size="12" fill="#1f2328">2. L'utilisateur s'authentifie et autorise les accès demandés (scopes)</text>
+
+  <!-- Étape 3 -->
+  <line x1="730" y1="245" x2="440" y2="245" stroke="#0969da" stroke-width="2"/>
+  <polygon points="440,245 450,239 450,251" fill="#0969da"/>
+  <text x="585" y="235" text-anchor="middle" font-size="12" fill="#1f2328">3. Le service renvoie un code à l'URL de rappel de n8n</text>
+
+  <!-- Étape 4 -->
+  <line x1="440" y1="295" x2="730" y2="295" stroke="#1f883d" stroke-width="2"/>
+  <polygon points="730,295 720,289 720,301" fill="#1f883d"/>
+  <text x="585" y="285" text-anchor="middle" font-size="12" fill="#1f2328">4. n8n échange code + client_secret contre un jeton d'accès</text>
+
+  <!-- Résultat -->
+  <rect x="350" y="320" width="180" height="50" rx="10" fill="#eaf5ea" stroke="#1f883d" stroke-width="2"/>
+  <text x="440" y="342" text-anchor="middle" font-size="12" font-weight="700" fill="#1f883d">Jeton stocké chiffré</text>
+  <text x="440" y="359" text-anchor="middle" font-size="11" fill="#57606a">renouvelé automatiquement</text>
+
+  <text x="150" y="390" text-anchor="middle" font-size="11" fill="#57606a">Le mot de passe du service n'est jamais vu par n8n.</text>
+  <text x="730" y="390" text-anchor="middle" font-size="11" fill="#57606a">Le jeton est révocable côté service.</text>
+</svg>

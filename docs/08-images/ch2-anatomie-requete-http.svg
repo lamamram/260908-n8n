@@ -1,0 +1,43 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 880 340" font-family="Segoe UI, Arial, sans-serif">
+  <rect x="0" y="0" width="880" height="340" rx="12" fill="#f6f8fa" stroke="#d0d7de"/>
+  <text x="440" y="34" text-anchor="middle" font-size="18" font-weight="700" fill="#1f2328">Anatomie d'un échange HTTP : ce que le nœud HTTP Request construit</text>
+
+  <!-- Requête -->
+  <rect x="40" y="60" width="380" height="230" rx="10" fill="#ffffff" stroke="#0969da" stroke-width="2"/>
+  <text x="230" y="86" text-anchor="middle" font-size="15" font-weight="700" fill="#0969da">Requête (envoyée par n8n)</text>
+
+  <rect x="58" y="100" width="344" height="36" rx="6" fill="#ddf4ff" stroke="#54aeff"/>
+  <text x="70" y="123" font-size="12" fill="#1f2328"><tspan font-weight="700">Méthode + URL :</tspan> GET https://api.exemple.fr/v1/users</text>
+
+  <rect x="58" y="144" width="344" height="36" rx="6" fill="#ddf4ff" stroke="#54aeff"/>
+  <text x="70" y="167" font-size="12" fill="#1f2328"><tspan font-weight="700">Query string :</tspan> ?page=2&amp;limit=50</text>
+
+  <rect x="58" y="188" width="344" height="36" rx="6" fill="#ddf4ff" stroke="#54aeff"/>
+  <text x="70" y="211" font-size="12" fill="#1f2328"><tspan font-weight="700">En-têtes :</tspan> Authorization: Bearer •••, Accept: application/json</text>
+
+  <rect x="58" y="232" width="344" height="36" rx="6" fill="#ddf4ff" stroke="#54aeff"/>
+  <text x="70" y="255" font-size="12" fill="#1f2328"><tspan font-weight="700">Corps (POST/PUT/PATCH) :</tspan> { "nom": "Dupont" }</text>
+
+  <!-- Flèche -->
+  <line x1="430" y1="175" x2="470" y2="175" stroke="#57606a" stroke-width="2"/>
+  <polygon points="470,175 460,169 460,181" fill="#57606a"/>
+
+  <!-- Réponse -->
+  <rect x="480" y="60" width="360" height="230" rx="10" fill="#ffffff" stroke="#1f883d" stroke-width="2"/>
+  <text x="660" y="86" text-anchor="middle" font-size="15" font-weight="700" fill="#1f883d">Réponse (reçue par n8n)</text>
+
+  <rect x="498" y="100" width="324" height="36" rx="6" fill="#eaf5ea" stroke="#1f883d"/>
+  <text x="510" y="123" font-size="12" fill="#1f2328"><tspan font-weight="700">Code de statut :</tspan> 200 OK — 404, 401, 500 sinon</text>
+
+  <rect x="498" y="144" width="324" height="36" rx="6" fill="#eaf5ea" stroke="#1f883d"/>
+  <text x="510" y="167" font-size="12" fill="#1f2328"><tspan font-weight="700">En-têtes :</tspan> Content-Type: application/json</text>
+
+  <rect x="498" y="188" width="324" height="80" rx="6" fill="#eaf5ea" stroke="#1f883d"/>
+  <text x="510" y="211" font-size="12" fill="#1f2328"><tspan font-weight="700">Corps :</tspan> les données, qui deviennent</text>
+  <text x="510" y="229" font-size="12" fill="#1f2328">le tableau d'items en sortie du nœud</text>
+  <text x="510" y="252" font-size="11" fill="#57606a">[ { "id": 1, "nom": "Dupont" }, … ]</text>
+
+  <!-- Bandeau bas -->
+  <rect x="40" y="300" width="800" height="30" rx="8" fill="#fff8f2" stroke="#f0883e"/>
+  <text x="440" y="320" text-anchor="middle" font-size="13" fill="#1f2328">Chaque paramètre du nœud correspond à une zone de la requête — le lire, c'est savoir configurer le nœud.</text>
+</svg>

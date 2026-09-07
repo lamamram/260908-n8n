@@ -1,0 +1,2120 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="Support interactif de formation Automatisation No-Code avec n8n — Initiation + Approfondissement : 04 — Optimisation, sécurité et intégration au système d&#x27;information">
+<title>04 — Optimisation, sécurité et intégration au système d&#x27;information</title>
+<style>
+:root {
+  --bg: #0d1117; --surface: #161b22; --surface2: #1c2128; --border: #30363d;
+  --primary: #f0883e; --primary2: #ffa657;
+  --success: #3fb950; --warning: #d29922; --danger: #f85149;
+  --text: #e6edf3; --text-muted: #8b949e; --code-bg: #010409; --radius: 10px;
+  --topbar-h: 3.25rem;
+}
+:root[data-theme="light"] {
+  --bg: #ffffff; --surface: #f6f8fa; --surface2: #eaeef2; --border: #d0d7de;
+  --primary: #bc4c00; --primary2: #953800;
+  --success: #1a7f37; --warning: #9a6700; --danger: #cf222e;
+  --text: #1f2328; --text-muted: #656d76; --code-bg: #f6f8fa;
+}
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme="dark"]) {
+    --bg: #ffffff; --surface: #f6f8fa; --surface2: #eaeef2; --border: #d0d7de;
+    --primary: #bc4c00; --primary2: #953800;
+    --success: #1a7f37; --warning: #9a6700; --danger: #cf222e;
+    --text: #1f2328; --text-muted: #656d76; --code-bg: #f6f8fa;
+  }
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body { background: var(--bg); color: var(--text); font-family: system-ui, -apple-system, "Segoe UI", sans-serif; font-size: 15px; line-height: 1.7; transition: background .2s, color .2s; }
+
+/* TOPBAR — fixe, ne bouge jamais au scroll */
+.topbar {
+  position: sticky; top: 0; z-index: 200; height: var(--topbar-h);
+  background: var(--surface); border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; gap: .9rem; padding: 0 1rem;
+}
+.topbar .badge {
+  flex: 0 0 auto; background: var(--primary); color: #0d1117;
+  font-size: 10px; font-weight: 700; letter-spacing: .07em; text-transform: uppercase;
+  padding: 3px 9px; border-radius: 20px; white-space: nowrap;
+}
+.topbar a.chapter-title {
+  flex: 1 1 auto; min-width: 0; display: flex; align-items: baseline; gap: .5rem;
+  text-decoration: none; color: var(--text); font-weight: 700; font-size: .92rem;
+  overflow: hidden;
+}
+.topbar a.chapter-title:hover { color: var(--primary); }
+.topbar a.chapter-title .num { color: var(--primary); flex: 0 0 auto; }
+.topbar a.chapter-title .txt { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.topbar-links { flex: 0 0 auto; display: flex; align-items: center; gap: .5rem; }
+.topbar-link {
+  white-space: nowrap; padding: .4rem .8rem; border: 1px solid var(--border); border-radius: 20px;
+  font-size: .8rem; font-weight: 600; color: var(--text-muted); text-decoration: none; transition: all .2s;
+}
+.topbar-link:hover { color: var(--primary); border-color: var(--primary); }
+.theme-toggle {
+  flex: 0 0 auto; background: var(--surface2); border: 1px solid var(--border); color: var(--text);
+  padding: .4rem .7rem; border-radius: 20px; font-size: .8rem; cursor: pointer;
+  display: inline-flex; align-items: center; gap: .35rem;
+}
+.theme-toggle:hover { border-color: var(--primary); }
+
+/* LAYOUT — sidebar gauche + contenu */
+.layout { display: flex; align-items: flex-start; }
+.sidebar {
+  flex: 0 0 280px; width: 280px;
+  position: sticky; top: var(--topbar-h);
+  height: calc(100vh - var(--topbar-h));
+  overflow-y: auto; border-right: 1px solid var(--border); background: var(--surface);
+  padding: 1.25rem 1rem 2rem;
+}
+.objectifs {
+  background: var(--surface2); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: .8rem 1rem; margin-bottom: 1.25rem;
+}
+.objectifs-label { font-size: .7rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--primary); }
+.objectifs ul { margin: .4rem 0 0 1.1rem; }
+.objectifs li { font-size: .82rem; color: var(--text-muted); margin-bottom: .3rem; line-height: 1.4; }
+.side-nav { display: flex; flex-direction: column; gap: .1rem; }
+.side-nav button {
+  text-align: left; background: none; border: none; border-left: 3px solid transparent;
+  color: var(--text-muted); padding: .55rem .7rem; font-size: .87rem; font-weight: 500;
+  cursor: pointer; border-radius: 0 6px 6px 0; transition: all .15s;
+}
+.side-nav button:hover { color: var(--text); background: var(--surface2); }
+.side-nav button.active { color: var(--primary); border-left-color: var(--primary); background: var(--surface2); font-weight: 600; }
+.side-nav-sep { height: 1px; background: var(--border); margin: .6rem 0; }
+
+.content { flex: 1 1 auto; min-width: 0; }
+.tab-content { display: none; padding: 2rem 2.5rem 4rem; max-width: 1100px; margin: 0 auto; }
+.tab-content.active { display: block; }
+
+/* SECTIONS */
+h2 { font-size: 1.25rem; color: var(--primary2); margin: 1.8rem 0 .8rem; border-left: 3px solid var(--primary); padding-left: .75rem; }
+h3 { font-size: 1.05rem; color: var(--text); margin: 1.4rem 0 .6rem; }
+p { margin-bottom: .9rem; }
+ul, ol { padding-left: 1.4rem; margin-bottom: .9rem; }
+li { margin-bottom: .35rem; }
+
+/* RESSOURCES — liste sous forme de cartes plutôt que de puces */
+#tab-ressources ul { list-style: none; padding-left: 0; display: flex; flex-direction: column; gap: .5rem; }
+#tab-ressources li {
+  background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
+  padding: .75rem 1rem; margin-bottom: 0;
+}
+#tab-ressources li a { color: var(--primary2); font-weight: 600; text-decoration: none; }
+#tab-ressources li a:hover { text-decoration: underline; }
+
+/* AIDE — divulgation progressive pas-à-pas */
+details.aide { margin-top: 1.5rem; border: 1px solid var(--border); border-radius: var(--radius); background: var(--surface); }
+details.aide summary {
+  cursor: pointer; padding: .8rem 1.1rem; font-weight: 600; color: var(--primary);
+  list-style: none; display: flex; align-items: center; gap: .5rem;
+}
+details.aide summary::-webkit-details-marker { display: none; }
+details.aide summary::before { content: "▶"; font-size: .7rem; transition: transform .15s; }
+details.aide[open] summary::before { transform: rotate(90deg); }
+details.aide .aide-body { padding: 0 1.1rem 1.1rem; border-top: 1px solid var(--border); margin-top: .2rem; padding-top: 1rem; }
+img { max-width: 100%; height: auto; display: block; margin: 1rem auto; }
+
+/* EXERCICE — un bloc par atelier, avec son aide pas-à-pas attachée juste en dessous */
+.exercice { padding: 1.3rem 0; border-top: 1px solid var(--border); }
+.exercice:first-of-type { border-top: none; padding-top: 0; }
+.exercice h3 { margin: 0 0 .8rem; color: var(--primary2); }
+
+/* CALLOUTS */
+.callout { border-radius: var(--radius); padding: .9rem 1.1rem; margin: 1.2rem 0; border-left: 4px solid; background: var(--surface2); }
+.callout.note   { border-color: var(--primary); }
+.callout.tip    { border-color: var(--success); }
+.callout.warn   { border-color: var(--warning); }
+.callout.danger { border-color: var(--danger); }
+.callout p:last-child { margin-bottom: 0; }
+.callout-title { font-weight: 700; font-size: .82rem; text-transform: uppercase; letter-spacing: .07em; margin-bottom: .4rem; }
+.callout.note   .callout-title { color: var(--primary); }
+.callout.tip    .callout-title { color: var(--success); }
+.callout.warn   .callout-title { color: var(--warning); }
+.callout.danger .callout-title { color: var(--danger); }
+
+/* TABLES */
+.table-wrap { overflow-x: auto; margin: 1rem 0; }
+table { width: 100%; border-collapse: collapse; font-size: .9rem; }
+th { background: var(--surface2); color: var(--primary2); text-align: left; padding: .6rem .9rem; font-weight: 600; border: 1px solid var(--border); }
+td { padding: .55rem .9rem; border: 1px solid var(--border); vertical-align: top; }
+tr:hover td { background: var(--surface2); }
+
+/* CODE */
+.code-block { position: relative; margin: 1rem 0; }
+pre { background: var(--code-bg); border: 1px solid var(--border); border-radius: var(--radius); padding: 1rem 1rem 1rem 1.2rem; overflow-x: auto; }
+code { font-family: 'Consolas', 'Cascadia Code', monospace; font-size: .88rem; color: var(--primary2); }
+p code, li code, td code { background: var(--code-bg); border: 1px solid var(--border); border-radius: 5px; padding: .05rem .35rem; }
+.copy-btn {
+  position: absolute; top: .5rem; right: .5rem;
+  background: var(--surface2); border: 1px solid var(--border); color: var(--text-muted);
+  padding: .25rem .6rem; font-size: .75rem; border-radius: 5px; cursor: pointer; transition: all .2s;
+}
+.copy-btn:hover { background: var(--primary); color: #0d1117; }
+.copy-btn.copied { background: var(--success); color: #0d1117; }
+
+/* QUIZ */
+.quiz-question { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 1.2rem; margin-bottom: 1.2rem; }
+.quiz-question h4 { color: var(--primary2); margin-bottom: .9rem; font-size: .98rem; }
+.quiz-options { display: flex; flex-direction: column; gap: .5rem; }
+.quiz-option {
+  background: var(--surface2); border: 1px solid var(--border);
+  border-radius: 8px; padding: .6rem .9rem; cursor: pointer;
+  font-size: .9rem; transition: all .2s; text-align: left; color: var(--text);
+}
+.quiz-option:hover:not(:disabled) { border-color: var(--primary); }
+.quiz-option.correct { border-color: var(--success); color: var(--success); }
+.quiz-option.wrong   { border-color: var(--danger);  color: var(--danger);  }
+.quiz-option:disabled { cursor: default; }
+.quiz-feedback { margin-top: .6rem; font-size: .87rem; color: var(--text-muted); font-style: italic; }
+.quiz-score {
+  background: var(--surface2); border: 1px solid var(--primary);
+  border-radius: var(--radius); padding: 1.5rem; text-align: center; margin-top: 1.5rem; display: none;
+}
+.quiz-score .score-num { font-size: 2.5rem; font-weight: 700; color: var(--primary); }
+.quiz-score p { color: var(--text-muted); margin-top: .4rem; }
+.btn-restart { background: var(--primary); color: #0d1117; border: none; padding: .6rem 1.4rem; border-radius: 8px; font-weight: 700; cursor: pointer; margin-top: 1rem; font-size: .9rem; }
+.btn-restart:hover { background: var(--primary2); }
+
+/* RESPONSIVE — sidebar devient une barre horizontale sous 900px */
+@media (max-width: 900px) {
+  .layout { flex-direction: column; }
+  .sidebar {
+    position: static; width: 100%; height: auto; max-height: 40vh;
+    border-right: none; border-bottom: 1px solid var(--border);
+  }
+  .side-nav { flex-direction: row; flex-wrap: nowrap; overflow-x: auto; gap: .3rem; }
+  .side-nav button { border-left: none; border-bottom: 3px solid transparent; white-space: nowrap; border-radius: 6px 6px 0 0; }
+  .side-nav button.active { border-left-color: transparent; border-bottom-color: var(--primary); }
+  .side-nav-sep { display: none; }
+  .tab-content { padding: 1.5rem 1.2rem 3rem; }
+  .topbar a.chapter-title { font-size: .82rem; }
+}
+</style>
+<link rel="stylesheet" href="assets/course-common.css">
+<script src="assets/course-common.js" defer></script>
+</head>
+<body>
+
+<div class="topbar">
+  <span class="badge">Automatisation No-Code avec n8n — Initiation + Approfondissement</span>
+  <a class="chapter-title" href="index.html" title="Retour à l'accueil de la formation">
+    <span class="num">04</span><span class="txt">Optimisation, sécurité et intégration au système d&#x27;information</span>
+  </a>
+  <div class="topbar-links">
+    <a href="annexes.html" class="topbar-link">Annexes ↗</a>
+    <a class="topbar-link" href="index.html">Sommaire</a>
+    <button class="theme-toggle" id="theme-toggle" onclick="toggleTheme()" aria-label="Basculer entre thème clair et sombre">
+      <span id="theme-icon">🌙</span> <span id="theme-label">Sombre</span>
+    </button>
+  </div>
+</div>
+
+<div class="layout">
+  <aside class="sidebar">
+    <div class="objectifs"><span class="objectifs-label">Objectifs</span><ul><li>Optimiser et sécuriser les automatisations</li><li>Gérer les secrets et les informations sensibles</li><li>Déployer n8n en environnement professionnel</li><li>Intégrer n8n dans une architecture applicative existante</li></ul></div>
+    <nav class="side-nav" id="main-nav">
+      <button class="active" onclick="showTab('du-prototype-a-la-production')">Du prototype à la production</button>
+  <button class="" onclick="showTab('optimiser-les-performances-des-workflows')">Optimiser les performances des workflows</button>
+  <button class="" onclick="showTab('gerer-les-secrets-et-les-informations-sensibles')">Gérer les secrets et les informations sensibles</button>
+  <button class="" onclick="showTab('securiser-les-echanges-et-les-acces')">Sécuriser les échanges et les accès</button>
+  <button class="" onclick="showTab('deployer-n8n-en-environnement-professionnel')">Déployer n8n en environnement professionnel</button>
+  <button class="" onclick="showTab('surveiller-et-maintenir-l-instance')">Surveiller et maintenir l&#x27;instance</button>
+  <button class="" onclick="showTab('positionner-n8n-dans-le-systeme-d-information')">Positionner n8n dans le système d&#x27;information</button>
+  <button class="" onclick="showTab('atelier-7-securiser-et-optimiser-un-workflow-existant')">Atelier 7 — Sécuriser et optimiser un workflow existant</button>
+  <button class="" onclick="showTab('atelier-8-integrer-n8n-dans-une-architecture-applicative-reelle')">Atelier 8 — Intégrer n8n dans une architecture applicative réelle</button>
+  <button class="" onclick="showTab('cloturer-la-formation')">Clôturer la formation</button>
+  <button class="" onclick="showTab('quiz')">Quiz</button>
+    </nav>
+  </aside>
+  <div class="content">
+    <div id="tab-du-prototype-a-la-production" class="tab-content active">
+<h3>Ce qui change quand le flux devient critique</h3>
+<p>Les trois premiers jours ont produit des workflows qui fonctionnent — sur le
+poste du stagiaire, à heure de bureau, sous ses yeux. La production ajoute trois
+contraintes qui changent tout :</p>
+<ul>
+<li>
+<p><strong>la continuité</strong> : le flux tourne la nuit, le week-end, pendant les congés de
+  son concepteur — personne ne regarde ;</p>
+</li>
+<li>
+<p><strong>la charge</strong> : les volumes réels remplacent les dix items de test, et les API
+  appellent au rythme de l'activité de l'entreprise ;</p>
+</li>
+<li>
+<p><strong>l'accès</strong> : plusieurs personnes lisent, modifient, dépannent — avec des
+  droits et des responsabilités différents.</p>
+</li>
+</ul>
+<p>Cette journée traite ces trois contraintes : optimiser et sécuriser les flux le
+matin, déployer et intégrer l'instance dans le système d'information
+l'après-midi. Le fil rouge des demandes de contact, fiabilisé hier, sera audité,
+durci et présenté comme une architecture complète — la démonstration que le
+stagiaire est prêt à reproduire la démarche dans son organisation.</p>
+<h3>La liste de maturité</h3>
+<p>Avant de détailler, voici le tableau de bord d'un passage en production réussi —
+chaque ligne est développée dans les sections qui suivent :</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Domaine</th>
+<th>Question à trancher</th>
+<th>Traité dans</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Performance</td>
+<td>Le flux tient-il la charge réelle ?</td>
+<td>Optimisation</td>
+</tr>
+<tr>
+<td>Secrets</td>
+<td>Où vivent les clés, qui y accède ?</td>
+<td>Secrets</td>
+</tr>
+<tr>
+<td>Accès</td>
+<td>Qui peut voir, modifier, exécuter ?</td>
+<td>Sécurisation</td>
+</tr>
+<tr>
+<td>Déploiement</td>
+<td>Où tourne l'instance, comment est-elle sauvegardée ?</td>
+<td>Déploiement</td>
+</tr>
+<tr>
+<td>Évolution</td>
+<td>Comment un changement va-t-il de l'idée à la production ?</td>
+<td>Déploiement</td>
+</tr>
+<tr>
+<td>Supervision</td>
+<td>Qui sait que le flux tourne — ou pas ?</td>
+<td>Surveillance</td>
+</tr>
+<tr>
+<td>Intégration</td>
+<td>Quelle place occupe n8n dans le SI ?</td>
+<td>Positionnement</td>
+</tr>
+</tbody>
+</table></div>
+<div class="callout note"><div class="callout-title">Analogie : du food-truck au restaurant</div><p>Le workflow de démonstration est un food-truck : excellent tant que le
+propriétaire est à bord. La production est un restaurant : il faut une cuisine
+qui tourne sans lui, un dressage identique à chaque service, un carnet de
+commandes, et quelqu'un qui répond quand le frigo tombe en panne à 23 h. Rien
+de tout cela ne change la recette — tout cela la rend servable tous les soirs.</p></div>
+<h3>Le jeu des responsabilités</h3>
+<p>Le passage en production se joue d'abord dans les rôles, pas dans la technique.
+Quatre questions trouvent leur réponse avant tout déploiement — et les réponses
+sont écrites dans la sticky note d'en-tête du flux, pas dans un échange de
+mails oublié :</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Question</th>
+<th>Réponse type</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Qui construit et modifie les workflows ?</td>
+<td>L'équipe métier technique ou l'intégrateur identifié</td>
+</tr>
+<tr>
+<td>Qui administre l'instance (utilisateurs, mises à jour, sauvegardes) ?</td>
+<td>L'administrateur système ou le référent outil</td>
+</tr>
+<tr>
+<td>Qui est alerté en cas d'échec ?</td>
+<td>Un canal d'équipe, jamais une seule personne</td>
+</tr>
+<tr>
+<td>Qui décide de la mise en production d'un nouveau flux ?</td>
+<td>Le propriétaire du processus métier, après recette</td>
+</tr>
+</tbody>
+</table></div>
+<p>Sans ces quatre réponses, l'outil le mieux déployé finit en zone grise : des
+flux critiques dont personne n'est responsable, et des alertes que personne ne
+lit. Les sections suivantes supposent ce cadre posé — et l'atelier 7 commencera
+par vérifier que le fil rouge porte bien ces quatre réponses.</p>
+<h3>Le coût réel d'une automatisation qui tombe</h3>
+<p>Pour justifier l'investissement des deux prochains jours auprès du métier,
+sachez chiffrer la panne :</p>
+<ul>
+<li>
+<p>une synchronisation de commandes en panne une nuit, c'est un matin de
+  saisies manuelles de rattrapage — mesurable en heures ;</p>
+</li>
+<li>
+<p>une relance de factures en panne une semaine, c'est un décalage de trésorerie
+  — mesurable en jours d'encaissement ;</p>
+</li>
+<li>
+<p>une alerte de sécurité jamais émise, c'est un incident découvert par le
+  client — incommensurable en heures.</p>
+</li>
+</ul>
+<p>Ces trois ordres de grandeur, évalués avec le métier lors de la conception,
+décident rationnellement du niveau de défense à construire : tout flux ne
+mérite pas le queue mode, mais tout flux mérite qu'on sache combien coûte son
+arrêt.</p>
+<h3>Les signes qu'un flux est prêt pour la production</h3>
+<p>Un flux mérite son passage en production quand il répond « oui » à ces cinq
+questions :</p>
+<ol>
+<li>
+<p>a-t-il tourné <strong>plusieurs jours en recette</strong> sur des données réelles ou
+   réalistes, sans intervention ?</p>
+</li>
+<li>
+<p>chaque <strong>branche</strong> a-t-elle été exercée au moins une fois ?</p>
+</li>
+<li>
+<p>les <strong>échecs</strong> provoqués volontairement (panne simulée, donnée pourrie)
+   ont-ils produit le comportement attendu — retry, exception, alerte ?</p>
+</li>
+<li>
+<p>quelqu'un d'autre que son concepteur <strong>comprend-il</strong> le flux en le lisant ?</p>
+</li>
+<li>le <strong>propriétaire métier</strong> a-t-il signé le comportement, pas seulement le
+   résultat ?</li>
+</ol>
+<p>Cinq « oui » et le flux part en production ; un seul « non » et il reste en
+recette. Cette barre est volontairement simple à énoncer — elle se tient en
+réunion sans ouvrir l'outil. Elle est aussi volontairement exigeante sur
+l'humain : deux de ses cinq questions (compréhension par un tiers, signature du
+métier) ne concernent pas la technique. Les flux qui échouent en production
+souffrent rarement d'un défaut technique ; ils souffrent d'avoir été activés
+trop tôt, par une seule personne, sans témoin.</p>
+</div>
+
+<div id="tab-optimiser-les-performances-des-workflows" class="tab-content">
+<h3>Le premier réflexe : mesurer avant d'optimiser</h3>
+<p>L'optimisation sans mesure est de la divination. Deux instruments suffisent :</p>
+<ul>
+<li>
+<p>la <strong>durée de chaque exécution</strong>, visible dans l'historique Executions — une
+  exécution qui passe de 3 s à 45 s après une modification est un signal, pas
+  une curiosité ;</p>
+</li>
+<li>
+<p>le <strong>détail par nœud</strong> dans l'exécution : chaque nœud affiche sa durée
+  propre — c'est là que se trouve le goulot, presque toujours dans un appel
+  externe.</p>
+</li>
+</ul>
+<p>La règle d'expérience : 80 % du temps d'un workflow se passe dans les appels
+réseau (API, bases, fichiers). Optimiser le code d'un nœud Code qui prend 40 ms
+quand l'appel amont prend 12 s est un contresens.</p>
+<h3>Un diagnostic de performance, pas à pas</h3>
+<p>Le scénario d'école : un flux de synchronisation nocturne mettait 4 minutes,
+il en prend désormais 25. La méthode :</p>
+<ol>
+<li>
+<p><strong>comparer deux exécutions</strong> (une rapide d'il y a une semaine, une lente
+   d'aujourd'hui) dans l'historique : quels nœuds ont changé de durée ? ;</p>
+</li>
+<li>
+<p><strong>comparer les volumes</strong> : le tableau d'entrée est passé de 200 à 4 000
+   items — la lenteur est peut-être juste proportionnelle, et c'est le volume
+   qu'il faut traiter (lots, filtrage amont) ;</p>
+</li>
+<li>
+<p><strong>isoler le nœud fautif</strong> : si un nœud HTTP est passé de 200 ms à 4 s par
+   appel, c'est le service externe qui souffre — pas le workflow ;</p>
+</li>
+<li>
+<p><strong>vérifier les ajouts récents</strong> : un nœud ajouté « pour loguer » qui
+   sérialise un fichier à chaque item est un classique des régressions.</p>
+</li>
+</ol>
+<p>Ce raisonnement en entonnoir — flux, puis nœud, puis données — évite de
+réécrire un workflow dont seul le contexte a changé.</p>
+<h3>Réduire les données transportées</h3>
+<p>Chaque item qui traverse le flux est sérialisé, transmis au nœud suivant, et —
+selon les réglages — enregistré dans l'historique. Alléger les items, c'est
+accélérer tout le flux :</p>
+<ul>
+<li>
+<p><strong>ne garder que les champs utiles</strong> dès la sortie de la source (Edit Fields en
+  mode « ne conserver que les champs définis ») : un contact de 80 champs dont
+  on en utilise 4 doit être réduit immédiatement ;</p>
+</li>
+<li>
+<p><strong>ne pas transporter les binaires</strong> plus loin que nécessaire : un PDF de 5 Mo
+  dans chaque item pendant dix nœuds coûte dix fois sa place — lire le fichier
+  au plus tard, l'écrire au plus tôt ;</p>
+</li>
+<li>
+<p><strong>filtrer avant de transformer</strong> : les items écartés ne doivent pas payer le
+  coût des nœuds en aval — le Filter se place en amont des traitements lourds.</p>
+</li>
+</ul>
+<h3>Réduire le nombre d'appels externes</h3>
+<p>Chaque appel d'API coûte du temps réseau et du quota. Trois techniques, déjà
+croisées, à appliquer systématiquement :</p>
+<ul>
+<li>
+<p><strong>regrouper</strong> : beaucoup d'API acceptent des opérations en masse (créer 50
+  lignes en un appel) — privilégier l'opération bulk quand elle existe dans le
+  nœud natif ;</p>
+</li>
+<li>
+<p><strong>espacer</strong> : Batching (HTTP Request) ou Loop Over Items + Wait quand le quota
+  l'exige — lent mais sûr vaut mieux que rapide et bloqué ;</p>
+</li>
+<li>
+<p><strong>mémoriser</strong> : une référence qui change peu (liste des agences, grille
+  tarifaire) se relit à chaque exécution ou se stocke — les <strong>données statiques
+  du workflow</strong> (<code>getWorkflowStaticData</code>) ou un stockage annexe évitent des
+  milliers d'appels identiques.</p>
+</li>
+</ul>
+<h3>Réduire la fréquence : le levier le plus simple</h3>
+<p>L'optimisation la plus efficace est souvent une question posée au métier : le
+rapport « toutes les 15 minutes » est-il lu plus d'une fois par jour ? Les
+fréquences se règlent à la demande réelle :</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Besoin réel</th>
+<th>Réglage</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Action immédiate attendue par un humain</td>
+<td>Webhook ou polling court</td>
+</tr>
+<tr>
+<td>Information consultée le matin</td>
+<td>Planification quotidienne, avant l'arrivée</td>
+</tr>
+<tr>
+<td>Réconciliation de stocks</td>
+<td>Planification nocturne hebdomadaire</td>
+</tr>
+<tr>
+<td>Surveillance de quota</td>
+<td>Horaire, avec seuil d'alerte plutôt que rapport systématique</td>
+</tr>
+</tbody>
+</table></div>
+<p>Chaque exécution évitée économise des appels d'API, de la base, et du temps de
+lecture des journaux — les trois ressources partagées de l'instance.</p>
+<h3>Le cas des gros volumes : items et mémoire</h3>
+<p>Le modèle « tout le tableau en mémoire » a une limite physique : des dizaines de
+milliers d'items avec de gros champs font gonfler la mémoire de l'instance.
+Signes et remèdes :</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Signe</th>
+<th>Cause</th>
+<th>Remède</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Exécution très lente sur gros tableau</td>
+<td>Tout tient en mémoire</td>
+<td>Traiter par lots (Loop Over Items)</td>
+</tr>
+<tr>
+<td>Erreur mémoire du conteneur</td>
+<td>Items × champs volumineux</td>
+<td>Réduire les champs transportés, externaliser les binaires</td>
+</tr>
+<tr>
+<td>Base qui gonfle sans fin</td>
+<td>Historique complet conservé</td>
+<td>Régler la purge des exécutions (section suivante)</td>
+</tr>
+<tr>
+<td>Webhook lent à répondre</td>
+<td>Le flux entier s'exécute avant de répondre</td>
+<td>Répondre immédiatement (<em>Respond: immediately</em>), traiter ensuite</td>
+</tr>
+</tbody>
+</table></div>
+<h3>Les données binaires à fort volume</h3>
+<p>Les fichiers posent un problème spécifique : par défaut, ils voyagent <strong>en
+mémoire</strong> avec l'item. Un flux qui manipule des pièces jointes volumineuses
+toute la journée finit par saturer le processus. Les remèdes, par ordre
+d'effort :</p>
+<ol>
+<li>limiter la taille acceptée en entrée (rejet explicite au-delà d'un seuil) ;</li>
+<li>
+<p>traiter le fichier dès réception puis le déposer (écriture disque, stockage
+   objet) sans le promener dans dix nœuds ;</p>
+</li>
+<li>
+<p>en auto-hébergé, basculer le stockage binaire de la mémoire vers le système
+   de fichiers ou un stockage externe (variable
+   <code>N8N_DEFAULT_BINARY_DATA_MODE</code>) — indispensable dès que le queue mode ou
+   les gros fichiers entrent en jeu.</p>
+</li>
+</ol>
+<div class="callout tip"><div class="callout-title">Répondre vite au webhook, traiter ensuite</div><p>Un appelant de webhook n'a pas besoin d'attendre la fin du traitement : le
+nœud Webhook réglé sur <em>Respond immediately</em> acquitte en millisecondes, et le
+traitement continue en arrière-plan. Pour les appelants à timeout court
+(certains services abandonnent après quelques secondes), c'est la différence
+entre un flux fiable et des appels retentés en boucle par l'émetteur.</p></div>
+<h3>Régler la rétention des exécutions</h3>
+<p>Chaque exécution enregistrée écrit les données de chaque nœud en base. Sur une
+instance active, c'est le premier poste de croissance — et le premier réglage
+d'optimisation, par variables d'environnement :</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Variable</th>
+<th>Effet</th>
+<th>Réglage sobre typique</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>EXECUTIONS_DATA_SAVE_ON_SUCCESS</code></td>
+<td>Sauver les exécutions réussies</td>
+<td><code>none</code> sur les flux bavards et sans risque</td>
+</tr>
+<tr>
+<td><code>EXECUTIONS_DATA_SAVE_ON_ERROR</code></td>
+<td>Sauver les exécutions en échec</td>
+<td><code>all</code> — l'échec est toujours utile au diagnostic</td>
+</tr>
+<tr>
+<td><code>EXECUTIONS_DATA_SAVE_ON_PROGRESS</code></td>
+<td>Sauver l'avancement nœud par nœud</td>
+<td><code>false</code> sauf besoin de debug fin</td>
+</tr>
+<tr>
+<td><code>EXECUTIONS_DATA_SAVE_MANUAL_EXECUTIONS</code></td>
+<td>Sauver les tests manuels</td>
+<td><code>false</code> en production</td>
+</tr>
+<tr>
+<td><code>EXECUTIONS_DATA_PRUNE</code></td>
+<td>Activer la purge</td>
+<td><code>true</code> (défaut)</td>
+</tr>
+<tr>
+<td><code>EXECUTIONS_DATA_MAX_AGE</code></td>
+<td>Âge maximal conservé, en heures</td>
+<td><code>168</code> (7 jours) par exemple</td>
+</tr>
+<tr>
+<td><code>EXECUTIONS_DATA_PRUNE_MAX_COUNT</code></td>
+<td>Nombre maximal d'exécutions conservées</td>
+<td>selon le volume, ex. <code>50000</code></td>
+</tr>
+</tbody>
+</table></div>
+<p>Ces réglages se déclinent aussi <strong>par workflow</strong> (Workflow Settings), ce qui
+permet de garder l'historique complet des flux sensibles tout en purgeant les
+flux bavards. Les exécutions annotées (étiquetées) et celles en cours ne sont
+jamais purgées.</p>
+<div class="callout warn"><div class="callout-title">SQLite et la place disque</div><p>Avec la base SQLite par défaut, la purge supprime les lignes mais ne rend pas
+la place au disque sans opération VACUUM (activable au démarrage par
+<code>DB_SQLITE_VACUUM_ON_STARTUP=true</code>). C'est une des raisons — avec la
+concurrence — qui font passer la production sur PostgreSQL, section
+Déploiement.</p></div>
+</div>
+
+<div id="tab-gerer-les-secrets-et-les-informations-sensibles" class="tab-content">
+<h3>Ce qui est un secret — et ce qui n'en est pas un</h3>
+<p>Un secret est toute valeur dont la divulgation donne un pouvoir : clés d'API,
+mots de passe, jetons OAuth2, certificats. Ne sont pas des secrets : les URL
+publiques, les identifiants non sensibles (un numéro de client), les seuils
+métier. La confusion la plus coûteuse consiste à traiter un secret comme une
+simple configuration — écrite en clair dans un paramètre de nœud.</p>
+<h3>Les trois étages de stockage des secrets</h3>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Étage</th>
+<th>Outil</th>
+<th>Usage</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1. Credentials n8n</td>
+<td>Base chiffrée de l'instance</td>
+<td>Le défaut — toute clé d'API, tout compte de service</td>
+</tr>
+<tr>
+<td>2. Variables d'environnement</td>
+<td>Fichier <code>.env</code>, gestionnaire du conteneur</td>
+<td>La configuration de l'instance elle-même (clé de chiffrement, accès base)</td>
+</tr>
+<tr>
+<td>3. Coffre externe</td>
+<td>Vault, secrets manager du cloud (selon édition)</td>
+<td>Secrets partagés entre plusieurs instances ou applications</td>
+</tr>
+</tbody>
+</table></div>
+<p>L'étage 1 est déjà connu : chiffré, jamais relisible après enregistrement,
+partageable sans divulgation. Son point faible est sa dépendance à la <strong>clé de
+chiffrement de l'instance</strong> : <code>N8N_ENCRYPTION_KEY</code>, posée en variable
+d'environnement dès la première mise en production, et sauvegardée à part —
+sans elle, une base restaurée contient des credentials illisibles.</p>
+<p>L'étage 3 concerne les organisations déjà outillées : les credentials n8n
+référencent alors le coffre (<code>{{ $secrets.coffre.entree }}</code> dans les champs de
+credential), la rotation se fait dans le coffre, et l'instance ne stocke plus
+les secrets eux-mêmes. C'est un mécanisme des éditions entreprise ; les deux
+premiers étages couvrent l'immense majorité des besoins.</p>
+<h3>Le dossier de données : le coffre physique</h3>
+<p>Tout ce qui fait l'instance vit dans un seul dossier — <code>/home/node/.n8n</code> dans le
+conteneur, <code>~/.n8n</code> en installation npm :</p>
+<ul>
+<li>
+<p>la base SQLite par défaut (avant PostgreSQL) : workflows, exécutions,
+  credentials chiffrés ;</p>
+</li>
+<li>
+<p>le fichier <code>config</code>, qui contient la clé de chiffrement si elle n'est pas
+  fournie par variable d'environnement ;</p>
+</li>
+<li>
+<p>les journaux d'événements et les binaires selon la configuration.</p>
+</li>
+</ul>
+<p>Ce dossier mérite la protection d'un coffre : accès restreint au compte de
+service, chiffrement du disque sur le serveur, inclusion dans les sauvegardes,
+exclusion de tout partage réseau. Le formateur le montre en démonstration sur
+l'instance de la salle — sa simplicité (un dossier) est précisément ce qui rend
+sa protection facile à faire correctement.</p>
+<div class="callout danger"><div class="callout-title">Ce qui ne doit jamais arriver à un secret</div><p>Jamais dans un paramètre de nœud en clair. Jamais dans une expression qui le
+concatène dans un champ visible. Jamais dans une sticky note, un nom de
+workflow ou un message de log. Jamais dans un export JSON partagé — les
+exports référencent les credentials par nom, sans leur contenu, et c'est une
+raison de plus de passer systématiquement par eux.</p></div>
+<h3>Les cinq fuites classiques — et leurs parades</h3>
+<p>Les fuites de secrets ne viennent presque jamais d'une attaque sophistiquée :</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Fuite</th>
+<th>Scénario</th>
+<th>Parade</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Paramètre en clair</td>
+<td>La clé est tapée dans l'URL du nœud « pour tester »</td>
+<td>Credential dès le premier essai, jamais de valeur en dur</td>
+</tr>
+<tr>
+<td>Export partagé</td>
+<td>Le workflow JSON est envoyé par e-mail à un prestataire</td>
+<td>Les exports ne contiennent pas les secrets — mais vérifier avant envoi</td>
+</tr>
+<tr>
+<td>Capture d'écran</td>
+<td>Une démo montre le panneau du credential ouvert</td>
+<td>Le credential n'affiche jamais sa valeur après sauvegarde — la démo se fait avant saisie</td>
+</tr>
+<tr>
+<td>Journal verbeux</td>
+<td>Un <code>debug</code> oublié logue les en-têtes, <code>Authorization</code> compris</td>
+<td>Niveau de log sobre en production, pas de secret dans les logs métier</td>
+</tr>
+<tr>
+<td>Historique d'exécution</td>
+<td>Le jeton transite dans un champ de données</td>
+<td>Ne jamais faire transiter un secret comme donnée — il vit dans le credential, utilisé par le nœud</td>
+</tr>
+</tbody>
+</table></div>
+<p>La dernière ligne surprend : un secret qui devient une <strong>donnée</strong> du flux (dans
+un champ d'item) sera enregistré dans l'historique des exécutions comme
+n'importe quelle donnée. Les secrets voyagent dans les credentials, jamais dans
+les items.</p>
+<h3>Les données sensibles dans les exécutions</h3>
+<p>Les secrets ne sont pas les seules données à protéger : les exécutions
+enregistrent les données métier — coordonnées clients, montants, contenus de
+messages. Trois réglages bornent cette exposition :</p>
+<ul>
+<li>la <strong>rétention courte</strong> pour les flux sensibles (réglages du workflow) ;</li>
+<li>
+<p>l'option de <strong>masquage des données d'exécution</strong> (redaction, selon édition)
+  qui n'enregistre pas les entrées/sorties des nœuds ;</p>
+</li>
+<li>
+<p>la ségrégation : les flux les plus sensibles tournent sur une instance
+  dédiée, avec des accès restreints (section suivante).</p>
+</li>
+</ul>
+<p>Le réflexe à transmettre : avant d'activer un flux qui touche des données
+personnelles, on décide <strong>explicitement</strong> ce que son historique enregistre — et
+on vérifie une fois, dans Executions, ce qui s'y trouve réellement.</p>
+<h3>La rotation des credentials : la procédure avant l'incident</h3>
+<p>Tôt ou tard, une clé fuite ou expire. L'organisation qui s'y est préparée met
+dix minutes ; l'autre y passe la journée. La procédure, écrite à l'avance :</p>
+<ol>
+<li>
+<p><strong>repérer</strong> : la liste des credentials (page Credentials) est tenue à jour —
+   chacun nomme le service, le compte, et le propriétaire ;</p>
+</li>
+<li>
+<p><strong>révoquer</strong> la clé compromise côté service (les consoles des API ont toutes
+   un bouton de révocation) ;</p>
+</li>
+<li>
+<p><strong>générer</strong> la nouvelle clé avec les mêmes permissions minimales ;</p>
+</li>
+<li>
+<p><strong>mettre à jour</strong> le credential n8n — une seule modification, tous les
+   workflows qui l'utilisent suivent (c'est la force du stockage centralisé) ;</p>
+</li>
+<li>
+<p><strong>vérifier</strong> : relancer manuellement un flux représentatif par credential
+   impacté, et surveiller la prochaine exécution planifiée.</p>
+</li>
+</ol>
+<p>Le nommage rigoureux du chapitre 2 (<code>Service — compte</code>) fait ici toute la
+différence : c'est lui qui permet de répondre « quels flux cassent si cette clé
+meurt ? » en dix secondes.</p>
+<h3>Variables d'environnement et variables d'instance</h3>
+<p>Deux mécanismes évitent de disperser les valeurs de configuration :</p>
+<ul>
+<li>
+<p>les <strong>variables d'environnement</strong> (<code>GENERIC_TIMEZONE</code>, <code>WEBHOOK_URL</code>…)
+  configurent l'instance au démarrage — elles vivent dans le fichier <code>.env</code> du
+  déploiement, versionné sans les valeurs sensibles ;</p>
+</li>
+<li>
+<p>les <strong>variables n8n</strong> (selon édition) stockent des constantes lisibles par
+  les expressions (<code>$vars.seuil_relance</code>) — parfaites pour les seuils métier
+  partagés, jamais pour les secrets : elles ne sont pas chiffrées comme les
+  credentials.</p>
+</li>
+</ul>
+</div>
+
+<div id="tab-securiser-les-echanges-et-les-acces" class="tab-content">
+<p>La sécurité d'une instance n8n ne se joue pas sur un seul plan : quatre couches
+se protègent mutuellement, de l'organisation quotidienne jusqu'aux données
+elles-mêmes.</p>
+<p><img alt="Les quatre couches de sécurité d'une instance n8n : organisation, accès réseau, instance, données" src="../08-images/ch4-couches-securite.svg" /></p>
+<p>Le schéma se lit de l'extérieur vers l'intérieur : les <strong>procédures</strong> (rôles,
+revues, mises à jour, sauvegardes testées) entourent l'<strong>accès réseau</strong> (HTTPS,
+ports non exposés, webhooks authentifiés), qui protège l'<strong>instance</strong> (comptes
+nominatifs, 2FA, projets), au cœur de laquelle vivent les <strong>données</strong>
+(credentials chiffrés, exécutions bornées). Une faille dans une couche est
+rattrapée par la suivante — c'est le principe de défense en profondeur. Les
+quatre sections qui suivent parcourent ces couches de l'extérieur vers le
+cœur.</p>
+<h3>Première couche : chiffrer le transport</h3>
+<p>Une instance professionnelle ne parle qu'en <strong>HTTPS</strong> : le chiffrement protège
+les credentials en transit, les données des webhooks, et la session de
+l'éditeur. En pratique, n8n ne gère pas TLS lui-même : un <strong>reverse proxy</strong>
+(Traefik, nginx) devant l'instance termine TLS et redirige vers le port 5678 —
+le montage Docker Compose officiel, détaillé à la section Déploiement, embarque
+Traefik et l'obtention automatique du certificat.</p>
+<p>Deux variables alignent n8n avec ce montage : <code>WEBHOOK_URL</code> (l'URL publique que
+les webhooks afficheront aux services externes) et <code>N8N_PROTOCOL=https</code>.</p>
+<h3>Deuxième couche : contrôler l'entrée des webhooks</h3>
+<p>Un webhook de production est une porte ouverte sur Internet : quiconque connaît
+l'URL peut poster. Les défenses, à cumuler :</p>
+<ul>
+<li>
+<p>l'<strong>authentification du webhook</strong> (paramètre Authentication du nœud : en-tête
+  secret, Basic Auth) — le service appelant présente un credential ;</p>
+</li>
+<li>
+<p>un <strong>chemin non trivial</strong> (le Path du nœud n'est pas un secret, mais un chemin
+  long et unique réduit le balayage) ;</p>
+</li>
+<li>
+<p>la <strong>validation d'entrée</strong> dès le premier nœud (le Filter du chapitre 2) :
+  une charge malformée est rejetée avant tout traitement ;</p>
+</li>
+<li>
+<p>la <strong>vérification de signature</strong> quand le service la propose (HMAC dans un
+  en-tête — le nœud Crypto calcule la signature à comparer).</p>
+</li>
+</ul>
+<div class="callout warn"><div class="callout-title">L'URL de webhook n'est pas un secret suffisant</div><p>Une URL longue retarde le balayage, elle n'empêche pas une fuite (journaux,
+redirections, copier-coller). Dès que le flux déclenche une action
+significative — écriture, envoi, suppression — l'authentification du webhook
+est obligatoire, pas optionnelle.</p></div>
+<h3>Vérifier une signature HMAC, pas à pas</h3>
+<p>Les services sérieux (GitHub, Stripe, Slack…) signent leurs webhooks : un
+en-tête contient une empreinte calculée sur le corps de la requête avec un
+secret partagé. La vérification dans n8n :</p>
+<ol>
+<li>
+<p>le service est configuré avec un <strong>secret de webhook</strong> (généré chez lui,
+   stocké dans un credential n8n) ;</p>
+</li>
+<li>
+<p>à chaque appel, il joint l'en-tête de signature (par exemple
+   <code>X-Hub-Signature-256</code>) ;</p>
+</li>
+<li>
+<p>dans le workflow, juste après le Webhook, un nœud <strong>Crypto</strong> calcule le HMAC
+   SHA-256 du corps brut avec le même secret ;</p>
+</li>
+<li>
+<p>un IF compare la signature calculée à l'en-tête reçu ; en cas de différence,
+   Stop and Error — la requête ne vient pas du service attendu.</p>
+</li>
+</ol>
+<p>Cette vérification est la seule preuve cryptographique de l'origine de l'appel ;
+l'authentification par en-tête, plus simple, reste un bon niveau pour les flux
+internes. Les deux se combinent : l'en-tête authentifie le canal, la signature
+prouve le message.</p>
+<h3>Troisième couche : qui accède à l'instance</h3>
+<p>Sur une instance partagée, la gestion des utilisateurs devient un enjeu :</p>
+<ul>
+<li>chaque intervenant a <strong>son compte</strong> — jamais de compte partagé ;</li>
+<li>
+<p>l'<strong>authentification à deux facteurs</strong> (2FA) est activée pour tous, exigée
+  par la politique de sécurité de l'instance ;</p>
+</li>
+<li>
+<p>les <strong>projets</strong> séparent les périmètres : chaque équipe ne voit que ses
+  workflows et ses credentials ;</p>
+</li>
+<li>
+<p>le <strong>SSO</strong> (SAML ou OIDC, selon édition) rattache l'instance à l'annuaire de
+  l'entreprise : les arrivées et départs y sont gérés une fois ;</p>
+</li>
+<li>
+<p>l'<strong>API publique</strong> de n8n, inutilisée, se désactive — une surface d'attaque
+  de moins ;</p>
+</li>
+<li>
+<p>la <strong>protection SSRF</strong> restreint les adresses que les nœuds peuvent appeler :
+  elle empêche un workflow (ou un stagiaire maladroit) d'interroger les
+  services internes du réseau via l'instance.</p>
+</li>
+</ul>
+<h3>La matrice des accès : un exemple raisonnable</h3>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Profil</th>
+<th>Périmètre</th>
+<th>Droits</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Administrateur d'instance</td>
+<td>Toute l'instance</td>
+<td>Compte owner : utilisateurs, réglages, tout</td>
+</tr>
+<tr>
+<td>Constructeur référent</td>
+<td>Projets de son équipe</td>
+<td>Créer/modifier les workflows et credentials du projet</td>
+</tr>
+<tr>
+<td>Contributeur métier</td>
+<td>Un projet, en lecture principalement</td>
+<td>Exécuter, consulter ; modification encadrée par revue</td>
+</tr>
+<tr>
+<td>Lecture seule / audit</td>
+<td>Exécutions et flux, sans modification</td>
+<td>Consultation des historiques et des définitions</td>
+</tr>
+</tbody>
+</table></div>
+<p>Deux principes guident l'attribution : le <strong>moindre privilège</strong> (on commence
+lecture, on élargit au besoin) et la <strong>traçabilité</strong> (un compte par personne —
+l'historique des versions indique qui a modifié quoi). Le compte propriétaire,
+lui, ne sert qu'à l'administration de l'instance, jamais à construire des flux.</p>
+<h3>Quatrième couche : tenir l'instance à jour</h3>
+<p>n8n publie des versions fréquentes — correctifs de sécurité compris. La
+discipline : suivre les notes de version, appliquer les mises à jour
+correctives sans délai, planifier les montées mineures en recette d'abord. La
+section Déploiement détaille la procédure avec Docker ; la règle d'or reste :
+<strong>sauvegarde avant, recette avant, production après</strong>.</p>
+<h3>Le tableau de bord sécurité minimal</h3>
+<p>Pour savoir où en est une instance à tout instant, dix questions suffisent :</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>#</th>
+<th>Contrôle</th>
+<th>Attendu</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>L'éditeur est-il servi en HTTPS uniquement ?</td>
+<td>Oui, via le reverse proxy</td>
+</tr>
+<tr>
+<td>2</td>
+<td>Le port 5678 est-il exposé directement ?</td>
+<td>Non, boucle locale uniquement</td>
+</tr>
+<tr>
+<td>3</td>
+<td>Chaque utilisateur a-t-il son compte ?</td>
+<td>Oui, pas de compte partagé</td>
+</tr>
+<tr>
+<td>4</td>
+<td>La 2FA est-elle activée ?</td>
+<td>Oui, exigée</td>
+</tr>
+<tr>
+<td>5</td>
+<td>Les credentials sont-ils des comptes de service ?</td>
+<td>Oui, à permissions minimales</td>
+</tr>
+<tr>
+<td>6</td>
+<td>Les webhooks de production sont-ils authentifiés ?</td>
+<td>Oui, en-tête ou signature</td>
+</tr>
+<tr>
+<td>7</td>
+<td>L'API publique est-elle désactivée si inutilisée ?</td>
+<td>Oui</td>
+</tr>
+<tr>
+<td>8</td>
+<td>La clé de chiffrement est-elle sauvegardée hors de la machine ?</td>
+<td>Oui</td>
+</tr>
+<tr>
+<td>9</td>
+<td>L'instance est-elle à jour des correctifs ?</td>
+<td>Oui, moins d'un mois de retard</td>
+</tr>
+<tr>
+<td>10</td>
+<td>Les données d'exécution sensibles sont-elles bornées ?</td>
+<td>Oui, rétention réglée par flux</td>
+</tr>
+</tbody>
+</table></div>
+<p>Dix « oui » ne font pas une forteresse, mais ils ferment les portes par
+lesquelles entrent 95 % des incidents réels. Ce tableau, appliqué à l'instance
+de formation en atelier, devient l'audit type que les stagiaires reproduiront
+dans leur organisation.</p>
+</div>
+
+<div id="tab-deployer-n8n-en-environnement-professionnel" class="tab-content">
+<h3>Le montage de référence : Docker Compose + reverse proxy</h3>
+<p>Le déploiement documenté officiellement réunit quatre éléments dans un
+<code>compose.yaml</code> : l'instance n8n, un reverse proxy Traefik (TLS automatique via
+Let's Encrypt), un volume pour les données, et un fichier <code>.env</code> pour les
+paramètres. Extraits commentés :</p>
+<div class="code-block"><pre><code class="language-yaml">services:
+  traefik:
+    image: &quot;traefik&quot;
+    restart: always
+    command:
+      - &quot;--providers.docker=true&quot;
+      - &quot;--providers.docker.exposedbydefault=false&quot;
+      - &quot;--entrypoints.web.address=:80&quot;
+      - &quot;--entrypoints.websecure.address=:443&quot;
+      - &quot;--certificatesresolvers.mytlschallenge.acme.tlschallenge=true&quot;
+      - &quot;--certificatesresolvers.mytlschallenge.acme.email=${SSL_EMAIL}&quot;
+      - &quot;--certificatesresolvers.mytlschallenge.acme.storage=/letsencrypt/acme.json&quot;
+    ports:
+      - &quot;80:80&quot;
+      - &quot;443:443&quot;
+    volumes:
+      - traefik_data:/letsencrypt
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+
+  n8n:
+    image: n8nio/n8n
+    restart: always
+    ports:
+      - &quot;127.0.0.1:5678:5678&quot;        # n8n n'écoute que localement : tout passe par Traefik
+    environment:
+      - N8N_HOST=${SUBDOMAIN}.${DOMAIN_NAME}
+      - N8N_PORT=5678
+      - N8N_PROTOCOL=https
+      - NODE_ENV=production
+      - WEBHOOK_URL=https://${SUBDOMAIN}.${DOMAIN_NAME}/
+      - GENERIC_TIMEZONE=${GENERIC_TIMEZONE}
+      - TZ=${GENERIC_TIMEZONE}
+      - N8N_ENCRYPTION_KEY=${N8N_ENCRYPTION_KEY}   # posée explicitement, sauvegardée à part
+    volumes:
+      - n8n_data:/home/node/.n8n
+      - ./local-files:/files          # zone d'échange de fichiers, restreinte
+
+volumes:
+  n8n_data:
+  traefik_data:
+</code></pre><button class="copy-btn" onclick="copyCode(this)">Copier</button></div>
+<p>Trois points à remarquer : le port 5678 n'est exposé que sur <code>127.0.0.1</code> (tout
+le trafic passe par Traefik en HTTPS), la clé de chiffrement est fournie
+explicitement, et le dossier <code>/files</code> borne les accès fichiers
+(<code>N8N_RESTRICT_FILE_ACCESS_TO</code>).</p>
+<h3>Le fichier .env : la configuration en un point unique</h3>
+<p>Le fichier <code>.env</code> lu par Docker Compose concentre tout ce qui varie d'une
+machine à l'autre. Le squelette documenté officiellement, complété de la clé :</p>
+<div class="code-block"><pre><code class="language-bash"># Adresse publique de l'instance
+DOMAIN_NAME=exemple.fr
+SUBDOMAIN=n8n
+
+# Fuseau horaire des planifications
+GENERIC_TIMEZONE=Europe/Paris
+
+# Adresse utilisée pour la création du certificat TLS
+SSL_EMAIL=admin@exemple.fr
+
+# Clé de chiffrement des credentials — générée une fois, jamais régénérée
+N8N_ENCRYPTION_KEY=remplacer-par-une-cle-longue-et-aleatoire
+
+# Accès à la base PostgreSQL (section suivante)
+DB_PASSWORD=un-mot-de-passe-costaud
+</code></pre><button class="copy-btn" onclick="copyCode(this)">Copier</button></div>
+<p>Trois règles de vie avec ce fichier : il ne se <strong>commit jamais</strong> dans Git (il
+contient les secrets de l'instance) ; il se sauvegarde dans le gestionnaire de
+secrets de l'organisation ; et toute modification exige un redémarrage du
+service (<code>docker compose up -d</code> après édition).</p>
+<h3>Remplacer SQLite par PostgreSQL</h3>
+<p>SQLite convient à la découverte ; la production lui préfère PostgreSQL pour la
+concurrence (plusieurs processus en écriture), les sauvegardes outillées et la
+robustesse. Le basculement est une affaire de variables d'environnement :</p>
+<div class="code-block"><pre><code class="language-bash">DB_TYPE=postgresdb
+DB_POSTGRESDB_HOST=postgres
+DB_POSTGRESDB_PORT=5432
+DB_POSTGRESDB_DATABASE=n8n
+DB_POSTGRESDB_USER=n8n
+DB_POSTGRESDB_PASSWORD=${DB_PASSWORD}
+</code></pre><button class="copy-btn" onclick="copyCode(this)">Copier</button></div>
+<p>La migration des données existantes (workflows, credentials) passe par les
+commandes d'export/import de la CLI n8n — avec la clé de chiffrement d'origine,
+indispensable pour ré-importer des credentials lisibles.</p>
+<h3>La CLI n8n : exporter et importer</h3>
+<p>L'interface en ligne de commande de n8n gère les migrations et les sauvegardes
+logiques :</p>
+<div class="code-block"><pre><code class="language-bash"># Exporter tous les workflows d'une instance
+n8n export:workflow --all --output=./backup/workflows/
+
+# Exporter les credentials (chiffrés — la clé de l'instance les déchiffre)
+n8n export:credentials --all --output=./backup/credentials/
+
+# Réimporter sur l'instance cible (avec la même N8N_ENCRYPTION_KEY)
+n8n import:workflow --input=./backup/workflows/
+n8n import:credentials --input=./backup/credentials/
+</code></pre><button class="copy-btn" onclick="copyCode(this)">Copier</button></div>
+<p>Ces commandes s'exécutent dans le conteneur (<code>docker compose exec n8n n8n
+export:workflow ...</code>). Elles servent à trois occasions : la migration
+SQLite → PostgreSQL, la sauvegarde logique avant une opération risquée, et
+l'alimentation du dépôt Git de workflows (les exports de workflows, sans
+credentials, y sont sans danger).</p>
+<h3>Monter en charge : le mode file d'attente (queue mode)</h3>
+<p>Quand le volume d'exécutions dépasse ce qu'un seul processus absorbe, n8n passe
+en <strong>queue mode</strong> : une instance principale reçoit les déclenchements et dépose
+les exécutions dans une file <strong>Redis</strong> ; des <strong>workers</strong> les consomment en
+parallèle et écrivent les résultats en base.</p>
+<p><img alt="Le mode file d'attente : instance principale, Redis, workers et PostgreSQL" src="../08-images/ch4-queue-mode.svg" /></p>
+<p>Le schéma résume la mécanique et ses prérequis : PostgreSQL obligatoire (SQLite
+n'est pas supporté dans ce mode), Redis accessible de tous les processus, la
+même <code>N8N_ENCRYPTION_KEY</code> partagée partout, <code>EXECUTIONS_MODE=queue</code> sur
+l'instance principale comme sur les workers. La montée en charge consiste alors
+à ajouter des workers (<code>n8n worker --concurrency=5</code>), et le trafic webhook
+intense peut être délégué à des processus dédiés (<code>n8n webhook</code>) derrière un
+répartiteur de charge — l'éditeur reste sur l'instance principale, hors du
+chemin des requêtes.</p>
+<div class="callout note"><div class="callout-title">À qui s'adresse le queue mode ?</div><p>Aux instances qui exécutent des centaines de milliers de flux par jour ou des
+webhooks à fort débit. Une PME qui traite quelques milliers d'exécutions
+quotidiennes reste confortablement en mode simple : la complexité du queue
+mode se justifie par la charge, pas par le prestige.</p></div>
+<h3>Dimensionner l'instance : les ordres de grandeur</h3>
+<p>Le dimensionnement n'est pas une science exacte, mais des repères aident :</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Profil d'usage</th>
+<th>Montage recommandé</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Découverte, petite équipe, quelques flux</td>
+<td>1 vCPU / 1 Go — conteneur unique, SQLite</td>
+</tr>
+<tr>
+<td>Production PME, dizaines de flux actifs</td>
+<td>2 vCPU / 4 Go, PostgreSQL, sauvegardes quotidiennes</td>
+</tr>
+<tr>
+<td>Forte intensité, flux critiques</td>
+<td>Queue mode : main + workers, Redis, PostgreSQL, supervision</td>
+</tr>
+<tr>
+<td>Fichiers volumineux fréquents</td>
+<td>Binaires sur stockage externe (S3) plutôt qu'en mémoire</td>
+</tr>
+</tbody>
+</table></div>
+<p>Le goulot d'étranglement le plus fréquent n'est ni le processeur ni la mémoire,
+mais la <strong>latence des API externes</strong> — le queue mode ne rend pas un service
+lent plus rapide, il permet seulement d'en absorber davantage en parallèle.</p>
+<h3>Environnements : du développement à la production</h3>
+<p>Un flux professionnel ne se modifie jamais directement en production. Le circuit
+de référence :</p>
+<p><img alt="Le circuit d'un workflow : développement, dépôt Git, recette, production" src="../08-images/ch4-pipeline-deploiement.svg" /></p>
+<ul>
+<li>
+<p>le <strong>développement</strong> se fait sur une instance locale ou de dev, avec données
+  épinglées et services d'écho ;</p>
+</li>
+<li>
+<p>l'<strong>export JSON</strong> alimente un dépôt Git — il ne contient aucun secret, les
+  credentials étant référencés par nom ;</p>
+</li>
+<li>
+<p>la <strong>recette</strong> est une instance miroir avec des credentials de test, où le
+  métier valide ;</p>
+</li>
+<li>
+<p>la <strong>production</strong> reçoit le flux importé, les credentials de production, et
+  la supervision.</p>
+</li>
+</ul>
+<p>Selon l'édition, la fonction <strong>source control</strong> de n8n automatise ce circuit
+(push/pull Git depuis l'éditeur) ; sinon, l'export/import manuel et la CLI
+remplissent le même rôle avec un peu plus de gestes.</p>
+<h3>Sauvegarder : les deux trésors</h3>
+<p>Une sauvegarde d'instance complète ne demande que deux éléments :</p>
+<ol>
+<li>
+<p><strong>la base de données</strong> (workflows, credentials chiffrés, historique) —
+  <code>pg_dump</code> en PostgreSQL, copie du fichier en SQLite ;</p>
+</li>
+<li>
+<p><strong>la clé de chiffrement</strong> (<code>N8N_ENCRYPTION_KEY</code> ou le fichier <code>config</code> du
+  dossier de données) — sans elle, la base restaurée est un coffre sans
+  serrure.</p>
+</li>
+</ol>
+<p>La fréquence suit la criticité des flux ; le test de restauration, lui, est le
+seul élément non négociable : une sauvegarde jamais restaurée n'existe pas.</p>
+<h3>Le test de restauration : la procédure qui prouve</h3>
+<p>Une fois par trimestre, la sauvegarde se rejoue sur une instance jetable :</p>
+<ol>
+<li>monter un conteneur n8n neuf avec la clé de chiffrement sauvegardée ;</li>
+<li>restaurer la base (fichier SQLite ou import <code>pg_restore</code>) ;</li>
+<li>
+<p>ouvrir l'éditeur : les workflows sont-ils là ? les credentials
+   s'affichent-ils (masqués mais présents) ?</p>
+</li>
+<li>
+<p>exécuter un workflow de lecture (sans écriture) pour valider la chaîne ;</p>
+</li>
+<li>consigner la date et le résultat du test dans le dossier d'exploitation.</li>
+</ol>
+<p>Ce test de vingt minutes transforme la sauvegarde d'un acte de foi en preuve.
+Le jour de la panne réelle — disque mort, mauvaise manipulation — c'est lui qui
+détermine si la reprise prend une heure ou une semaine. Les organisations qui
+découvrent le jour de l'incident que leur sauvegarde était incomplète (base
+sans la clé, clé sans la base) ont appris la leçon la plus chère de
+l'exploitation : on ne sauvegarde bien que ce qu'on a déjà restauré.</p>
+</div>
+
+<div id="tab-surveiller-et-maintenir-l-instance" class="tab-content">
+<h3>Les trois signaux à surveiller</h3>
+<p>En exploitation, trois indicateurs couvrent l'essentiel de la santé d'une
+instance :</p>
+<ul>
+<li>
+<p><strong>les échecs d'exécution</strong> — le workflow d'erreur du chapitre 3 alerte déjà ;
+  la page Executions filtrée sur « Error » chaque matin complète ;</p>
+</li>
+<li>
+<p><strong>la latence</strong> — une exécution habituelle qui double de durée signale une API
+  externe en difficulté ou un volume qui a changé ;</p>
+</li>
+<li>
+<p><strong>les ressources</strong> — disque (base et historique), mémoire (gros tableaux),
+  et pour le queue mode, la longueur de la file Redis.</p>
+</li>
+</ul>
+<p>L'instance expose ses journaux (niveau réglable) et peut publier des métriques
+d'exploitation vers une supervision externe (endpoint Prometheus, log streaming)
+— à raccorder à l'outil de supervision de l'organisation quand il existe.</p>
+<h3>Les journaux de l'instance en pratique</h3>
+<p>Les journaux techniques du conteneur répondent aux questions que l'historique
+des exécutions ne couvre pas : démarrages, connexions, erreurs système.</p>
+<div class="code-block"><pre><code class="language-bash"># Suivre les journaux en direct
+docker compose logs -f n8n
+
+# Isoler les erreurs récentes
+docker compose logs --since 24h n8n | grep -i error
+</code></pre><button class="copy-btn" onclick="copyCode(this)">Copier</button></div>
+<p>Le niveau de détail se règle par variable d'environnement (les niveaux vont de
+<code>error</code> — le plus sobre — à <code>debug</code> — le plus verbeux). En production : <code>info</code>
+ou <code>warn</code> au quotidien ; <code>debug</code> temporairement pendant un diagnostic, jamais
+en permanence — le volume généré devient lui-même un problème de stockage, et
+les journaux verbeux peuvent contenir des fragments de données.</p>
+<h3>La maintenance courante</h3>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Fréquence</th>
+<th>Action</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Quotidienne</td>
+<td>Revue des exécutions en erreur</td>
+</tr>
+<tr>
+<td>Hebdomadaire</td>
+<td>Vérification de l'espace disque et de la purge</td>
+</tr>
+<tr>
+<td>Mensuelle</td>
+<td>Revue des credentials (expiration, permissions) et des workflows inactifs oubliés</td>
+</tr>
+<tr>
+<td>À chaque version corrective</td>
+<td>Mise à jour après lecture des notes de version</td>
+</tr>
+<tr>
+<td>Trimestrielle</td>
+<td>Test de restauration de la sauvegarde ; revue des accès utilisateurs</td>
+</tr>
+</tbody>
+</table></div>
+<h3>Le chien de garde : un workflow qui surveille les autres</h3>
+<p>La supervision la plus élégante tient dans n8n lui-même : un workflow
+planifié <code>SYS - Surveillance quotidienne</code> qui, chaque matin :</p>
+<ol>
+<li>
+<p>interroge l'<strong>API interne de n8n</strong> (ou la base) pour compter les échecs des
+   dernières 24 heures par workflow ;</p>
+</li>
+<li>
+<p>compare au rythme habituel — une absence totale d'exécutions sur un flux
+   censé tourner chaque heure est un signal d'alarme aussi fort qu'un échec ;</p>
+</li>
+<li>
+<p>envoie un rapport de synthèse (échecs, silences anormaux, durées
+   inhabituelles) au canal de l'équipe.</p>
+</li>
+</ol>
+<p>Ce flux « watchdog » capte ce que le workflow d'erreur ne voit pas : les
+<strong>absences</strong> — un déclencheur mort, une credential expirée, un workflow
+désactivé par mégarde. Une automatisation fiable, c'est quelqu'un qui sait
+quand elle se tait.</p>
+<h3>Mettre à jour sans casse</h3>
+<p>La procédure qui évite les mauvaises surprises :</p>
+<ol>
+<li>
+<p>lire les notes de version — les changements cassants (<em>breaking changes</em>) y
+   sont signalés en tête ;</p>
+</li>
+<li>
+<p>sauvegarder la base et la clé de chiffrement ;</p>
+</li>
+<li>appliquer d'abord sur la recette et y exécuter les flux critiques ;</li>
+<li>
+<p>appliquer en production — avec Docker, tirer la nouvelle image et recréer le
+   conteneur, le volume conservant les données ;</p>
+</li>
+<li>
+<p>surveiller les premières exécutions réelles, et savoir revenir à l'image
+   précédente si nécessaire.</p>
+</li>
+</ol>
+<h3>Lire une note de version sans y passer la soirée</h3>
+<p>Les notes de version de n8n sont fréquentes et détaillées. La lecture ciblée
+tient en trois passages :</p>
+<ol>
+<li>
+<p><strong>la section des changements cassants</strong> (<em>breaking changes</em>) en premier —
+   chaque élément y est évalué : « mes flux utilisent-ils cette fonctionnalité ? »
+   ;</p>
+</li>
+<li>
+<p><strong>les correctifs de sécurité</strong> ensuite — leur présence change l'urgence de
+   la mise à jour ;</p>
+</li>
+<li>
+<p><strong>les nouveautés</strong> enfin, en diagonale — une nouvelle fonction peut simplifier
+   un flux existant (un nœud qui apparaît, une option attendue), c'est le
+   retour sur investissement de la veille.</p>
+</li>
+</ol>
+<p>Sur une instance de production, la cible de référence est la version marquée
+<em>stable</em> (par opposition à <em>beta</em>) : les notes de version indiquent toujours
+laquelle est laquelle. Les organisations prudentes attendent quelques jours
+après une version majeure — les retours de la communauté y signalent vite les
+soucis de jeunesse.</p>
+</div>
+
+<div id="tab-positionner-n8n-dans-le-systeme-d-information" class="tab-content">
+<h3>n8n ne remplace rien : il relie</h3>
+<p>La question d'intégration revient à chaque projet : où se place n8n par rapport
+à l'ERP, au CRM, aux développements internes ? La réponse tient en une phrase :
+n8n est un <strong>orchestrateur</strong> — il n'héberge ni données maîtresses, ni logique
+produit, il fait circuler et transformer l'information entre les systèmes qui,
+eux, la détiennent.</p>
+<h3>La donnée maîtresse reste chez les systèmes sources</h3>
+<p>Un piège d'architecture guette les premiers projets : laisser n8n devenir une
+base de données de fait — un tableau de référence « pratique » stocké dans une
+variable, un historique d'exécutions utilisé comme archive. Deux règles
+évitent cette dérive :</p>
+<ul>
+<li>
+<p>la <strong>vérité d'une donnée reste dans son système source</strong> (le CRM pour les
+  clients, l'ERP pour les commandes) ; n8n la lit, la transforme, la transporte
+  — il ne la détient pas ;</p>
+</li>
+<li>
+<p>l'<strong>historique d'exécutions est un outil de diagnostic</strong>, pas d'audit légal :
+  ce qui doit être conservé pour preuve part vers un stockage d'archivage
+  prévu pour cela, comme le fichier JSONL de l'atelier 8.</p>
+</li>
+</ul>
+<p>Ces deux règles gardent l'instance légère, les sauvegardes bornées, et le RGPD
+sous contrôle — l'orchestrateur oublie, les systèmes sources se souviennent.</p>
+<p><img alt="n8n au centre du système d'information : SaaS, outils internes, applications métier et humains" src="../08-images/ch4-positionnement-si.svg" /></p>
+<p>Le schéma montre les quatre flux typiques : les applications SaaS poussent leurs
+événements (webhooks) ou répondent au polling ; les outils internes reçoivent
+les écritures (API, SQL, fichiers) ; les applications métier full-code
+dialoguent avec n8n dans les deux sens — elles appellent ses webhooks comme
+n'importe quelle API, et il appelle leurs interfaces ; les humains restent dans
+la boucle par les notifications, les formulaires et les validations (nœud Wait
+en mode approbation).</p>
+<h3>Interagir avec le no-code, le low-code et le full-code</h3>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Partie du SI</th>
+<th>Comment n8n interagit</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Outils no-code (formulaires, tableurs, CRM)</td>
+<td>Intégrations natives et déclencheurs d'applications</td>
+</tr>
+<tr>
+<td>Services exposant une API</td>
+<td>Nœud HTTP Request, credentials prédéfinis ou génériques</td>
+</tr>
+<tr>
+<td>Applications full-code internes</td>
+<td>n8n appelle leurs API ; elles appellent les webhooks n8n comme une API interne</td>
+</tr>
+<tr>
+<td>Cas sans API (fichiers plats, FTP, bases legacy)</td>
+<td>Nœuds fichiers, FTP, bases SQL — n8n comme traducteur de dernier recours</td>
+</tr>
+</tbody>
+</table></div>
+<p>Le dernier point mérite d'être souligné : beaucoup de systèmes anciens n'ont
+aucune API mais savent déposer un fichier CSV quelque part. n8n lit ce dépôt,
+transforme, et pousse vers les systèmes modernes — l'orchestrateur devient le
+pont entre deux époques du SI.</p>
+<h3>Répondre aux questions de la DSI</h3>
+<p>L'intégration d'un orchestrateur dans le SI soulève toujours les mêmes
+questions de la direction des systèmes d'information. Les anticiper, c'est
+gagner des semaines de validation :</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Question de la DSI</th>
+<th>Réponse argumentée</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Où vont les données ?</td>
+<td>Instance auto-hébergée sur notre infrastructure ; seuls les appels aux services connectés sortent</td>
+</tr>
+<tr>
+<td>Qui accède à quoi ?</td>
+<td>Comptes nominatifs, projets par équipe, 2FA, SSO possible</td>
+</tr>
+<tr>
+<td>Comment sont stockés les secrets ?</td>
+<td>Chiffrés en base, clé sauvegardée à part, coffre externe possible</td>
+</tr>
+<tr>
+<td>Que se passe-t-il en cas de panne ?</td>
+<td>Workflow d'erreur, alertes, watchdog, sauvegardes testées</td>
+</tr>
+<tr>
+<td>Comment se fait la montée en charge ?</td>
+<td>Queue mode : Redis + workers, détaillé en section Déploiement</td>
+</tr>
+<tr>
+<td>Le produit sera-t-il maintenu dans 5 ans ?</td>
+<td>Projet open-source actif depuis 2019, communauté importante, export JSON des flux = réversibilité totale</td>
+</tr>
+</tbody>
+</table></div>
+<p>La dernière ligne mérite d'être soulignée : les workflows s'exportent en JSON
+lisible — quitter n8n ne signifie jamais repartir de zéro, la logique reste
+portable et documentée. C'est un argument de réversibilité que peu d'outils
+SaaS d'automatisation peuvent aligner.</p>
+<h3>Exposer n8n comme une API interne</h3>
+<p>Un workflow dont le déclencheur est un webhook <strong>est</strong> une API : URL, méthode,
+contrat d'entrée, réponse (via Respond to Webhook). Cette propriété permet aux
+développeurs de l'entreprise de consommer des traitements n8n sans en connaître
+l'implémentation :</p>
+<ul>
+<li>
+<p>l'application métier appelle <code>POST https://n8n.exemple.fr/webhook/devis</code> avec
+  les données du dossier ;</p>
+</li>
+<li>
+<p>le workflow orchestre : vérification, enrichissement, calcul, réponse ;</p>
+</li>
+<li>l'appelant reçoit un JSON propre, ignorant que derrière se jouent trois
+  services.</li>
+</ul>
+<p>Pour les développeurs, n8n devient un accélérateur d'intégration ; pour les
+équipes métier, le workflow reste lisible et modifiable sans solliciter un
+développement. C'est la synergie no-code / full-code annoncée au premier
+chapitre, concrétisée.</p>
+<h3>Le contrat d'appel : ce que les développeurs attendent</h3>
+<p>Pour qu'une application full-code consomme sereinement un webhook n8n, le flux
+se comporte comme une vraie API — avec ses conventions :</p>
+<ul>
+<li>
+<p>un <strong>contrat d'entrée documenté</strong> : champs attendus, types, exemple de corps —
+  la sticky note d'en-tête du workflow fait office de documentation ;</p>
+</li>
+<li>
+<p>des <strong>codes de réponse explicites</strong> : <code>200</code> traité, <code>400</code> charge invalide,
+  <code>401</code> non authentifié — posés dans le nœud Respond to Webhook, pas subis ;</p>
+</li>
+<li>
+<p>une <strong>réponse immédiate</strong> quand le traitement est long, avec un identifiant
+  de suivi dans le corps de l'acquittement ;</p>
+</li>
+<li>
+<p>une <strong>version</strong> dans le chemin (<code>/webhook/v1/demandes</code>) : le jour où le
+  contrat change, la v2 naît sans casser les appelants de la v1.</p>
+</li>
+</ul>
+<p>Ces conventions coûtent quelques minutes à poser et évitent le principal grief
+des équipes de développement contre les outils no-code : l'opacité. Un webhook
+n8n bien tenu se documente, se teste et se versionne comme n'importe quel point
+d'entrée du SI.</p>
+<h3>Cas d'usage d'intégration en entreprise</h3>
+<p>Pour clore le panorama, quatre architectures récurrentes, du plus simple au
+plus structurant :</p>
+<ol>
+<li>
+<p><strong>la notification enrichie</strong> : un événement technique (alerte monitoring,
+   ticket) est enrichi de contexte métier (fiche client, historique) avant
+   d'arriver à la bonne personne — n8n comme standardiste intelligent ;</p>
+</li>
+<li>
+<p><strong>la synchronisation de référentiels</strong> : clients, produits, employés tenus
+   identiques entre plusieurs outils, en flux planifié avec Compare Datasets —
+   n8n comme répéteur de vérité ;</p>
+</li>
+<li>
+<p><strong>le processus documentaire</strong> : génération de document à la commande,
+   envoi pour signature, archivage, relance — n8n comme chef de file ;</p>
+</li>
+<li>
+<p><strong>l'API d'assemblage</strong> : une façade unique qui agrège plusieurs services
+   internes pour l'application web de l'entreprise — n8n comme composition
+   d'API.</p>
+</li>
+</ol>
+<h3>Quand ne pas choisir n8n</h3>
+<p>L'honnêteté du positionnement fait la crédibilité de l'outil. n8n est un mauvais
+choix quand :</p>
+<ul>
+<li>
+<p>le besoin est un <strong>traitement de données massif</strong> (des millions de lignes à
+  agréger) — c'est le territoire des ETL et des moteurs de calcul, pas d'un
+  orchestrateur d'API ;</p>
+</li>
+<li>
+<p>la logique est le <strong>cœur du produit vendu</strong> — elle appartient au code de
+  l'application, testée et versionnée comme telle ;</p>
+</li>
+<li>
+<p>l'organisation exige un <strong>support éditeur contractuel</strong> sans vouloir
+  administrer quoi que ce soit — n8n Cloud ou une offre managée répondent
+  alors mieux ;</p>
+</li>
+<li>
+<p>le processus exige une <strong>latence milliseconde à très fort débit</strong> — un
+  orchestrateur généraliste ajoute des couches qu'un service dédié n'a pas.</p>
+</li>
+</ul>
+<p>Dans ces quatre cas, n8n reste souvent utile <strong>autour</strong> du composant dédié —
+pour l'alimenter, le superviser, le notifier — plutôt qu'à sa place.</p>
+</div>
+
+<div id="tab-atelier-7-securiser-et-optimiser-un-workflow-existant" class="tab-content">
+<div class="callout note"><div class="callout-title">Objectif de l'atelier</div><p>Audit croisé et remise à niveau : par binôme, auditer le fil rouge de l'autre
+binôme (routage des demandes, chapitres 2 et 3) avec la grille d'optimisation
+et de sécurité, corriger, et présenter les écarts. Durée indicative : 2 h.
+Chaque binôme repart avec la grille complétée de son propre flux — le premier
+livrable d'exploitation de son futur usage.</p></div>
+<h3>Pourquoi auditer le flux d'un autre</h3>
+<p>Auditer son propre flux, c'est relire sa propre copie : on y voit ce qu'on a
+voulu écrire. Auditer celui du binôme voisin, c'est le découvrir — exactement
+la situation du collègue qui reprendra le flux dans six mois. Les angles morts
+trouvés chez l'autre sont les angles morts que les autres trouveront chez soi.</p>
+<h3>Étape 1 — L'audit par la grille</h3>
+<p>Chaque binôme évalue le workflow reçu, point par point, et note les écarts —
+chaque case « non conforme » est discutée avec son auteur avant correction :
+l'écart est parfois un choix assumé, et le défendre fait partie de l'exercice.</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Contrôle</th>
+<th>Conforme ?</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Aucun secret ni clé dans les paramètres des nœuds</td>
+<td></td>
+</tr>
+<tr>
+<td>Données transportées réduites aux champs utiles dès la source</td>
+<td></td>
+</tr>
+<tr>
+<td>Appels externes : batching ou regroupement là où c'est possible</td>
+<td></td>
+</tr>
+<tr>
+<td>Le webhook exige une authentification</td>
+<td></td>
+</tr>
+<tr>
+<td>Les entrées sont validées avant tout traitement</td>
+<td></td>
+</tr>
+<tr>
+<td>Les branches du Switch ont un fallback utilisé</td>
+<td></td>
+</tr>
+<tr>
+<td>Les items écartés ont un destin explicite (trace, exception)</td>
+<td></td>
+</tr>
+<tr>
+<td>La rétention des exécutions est décidée pour ce flux</td>
+<td></td>
+</tr>
+<tr>
+<td>Les nœuds sensibles ont Retry On Fail réglé</td>
+<td></td>
+</tr>
+<tr>
+<td>Une sticky note documente le processus et le propriétaire</td>
+<td></td>
+</tr>
+</tbody>
+</table></div>
+<h3>Étape 2 — Corriger les écarts</h3>
+<ol>
+<li>
+<p>Sécuriser le webhook : activer <em>Header Auth</em> avec un en-tête
+   <code>X-Webhook-Token</code> stocké en credential ; rejouer le curl de l'atelier 4 avec
+   et sans l'en-tête pour constater le rejet.</p>
+</li>
+<li>
+<p>Optimiser : insérer un Edit Fields de réduction des champs juste après le
+   webhook ; déplacer le Filter de validation <strong>avant</strong> tout nœud coûteux.</p>
+</li>
+<li>
+<p>Ajouter au début du flux un Edit Fields qui normalise et un IF de rejet
+   explicite des charges malformées vers une file d'exception.</p>
+</li>
+<li>
+<p>Régler les Settings du workflow : rétention des exécutions adaptée au flux
+   (les demandes contiennent des données personnelles), workflow d'erreur
+   vérifié.</p>
+</li>
+</ol>
+<h3>Étape 3 — Mesurer</h3>
+<ol>
+<li>
+<p>Exécuter le flux avant et après optimisation sur le même jeu de données
+   épinglées.</p>
+</li>
+<li>
+<p>Comparer la durée totale et la durée par nœud dans le détail d'exécution.</p>
+</li>
+<li>Consigner les deux mesures dans la sticky note — l'optimisation qui ne se
+   mesure pas n'est pas faite.</li>
+</ol>
+<h3>Étape 4 — Restituer l'audit</h3>
+<p>Chaque binôme présente au groupe les trois écarts les plus instructifs trouvés
+chez l'autre : le problème, le risque encouru, la correction appliquée. Le
+formateur consolide au tableau la liste des écarts rencontrés — elle devient la
+grille d'audit de référence de la salle, réutilisable telle quelle dans les
+organisations des stagiaires.</p>
+<h3>Points de validation de l'atelier 7</h3>
+<ul>
+<li>Le webhook rejette toute requête sans en-tête d'authentification valide.</li>
+<li>Le flux ne transporte plus que les champs utiles, vérifié en vue Schema.</li>
+<li>La décision de rétention des exécutions est écrite et justifiée.</li>
+<li>Les mesures avant/après figurent dans la sticky note du flux.</li>
+</ul>
+<div class="callout tip"><div class="callout-title">Résultat attendu</div><p>Le fil rouge ressort de l'audit avec une entrée authentifiée et validée, des
+données allégées, des réglages d'exécution décidés, et deux mesures de
+durée qui prouvent (ou non) le gain. Chaque binôme a pratiqué l'audit d'un
+flux qu'il n'a pas écrit — la situation réelle de la reprise en main.</p></div>
+</div>
+
+<div id="tab-atelier-8-integrer-n8n-dans-une-architecture-applicative-reelle" class="tab-content">
+<div class="callout note"><div class="callout-title">Objectif de l'atelier</div><p>Construire la mini-architecture complète de bout en bout : une « application »
+(simulée par curl ou un second workflow) consomme l'API exposée par n8n ; le
+flux orchestre un service externe, un stockage et une notification, avec les
+défenses des chapitres 2 et 3. Durée indicative : 2 h 30.</p></div>
+<h3>Le scénario</h3>
+<p>L'association du fil rouge grandit : son site (ici, un appel curl) soumet les
+demandes de contact à n8n, qui joue le rôle d'<strong>API d'assemblage</strong> : valider,
+enrichir via un service externe, archiver dans un fichier, notifier la bonne
+équipe, répondre au site avec un numéro de ticket — le tout sous une seconde
+perçue par l'appelant.</p>
+<p>Ce scénario est volontairement proche d'une situation de production réelle :
+l'appelant est un système externe qui n'a ni patience ni seconde chance, les
+données reçues ne sont pas maîtrisées, et le traitement touche trois systèmes
+différents. Tout ce qui a été appris cette semaine converge ici.</p>
+<h3>Étape 1 — Exposer l'API</h3>
+<ol>
+<li>
+<p>Dans le fil rouge fiabilisé, vérifier le nœud Webhook : chemin
+   <code>api/demandes</code>, authentification par en-tête (atelier 7), réponse
+   <em>immediately</em> — le traitement se poursuit en arrière-plan.</p>
+</li>
+<li>
+<p>Expliquer le compromis au binôme : réponse immédiate = appelant rapide, mais
+   pas de statut métier dans la réponse.</p>
+</li>
+</ol>
+<h3>Étape 2 — Consommer l'API depuis l'extérieur</h3>
+<ol>
+<li>Depuis un terminal, appeler l'URL de production avec l'en-tête d'auth :</li>
+</ol>
+<div class="code-block"><pre><code class="language-bash">curl -X POST http://localhost:5678/webhook/api/demandes \
+  -H &quot;Content-Type: application/json&quot; \
+  -H &quot;X-Webhook-Token: &lt;jeton-du-credential&gt;&quot; \
+  -d '{&quot;nom&quot;:&quot;Martin&quot;,&quot;email&quot;:&quot;martin@exemple.fr&quot;,&quot;type&quot;:&quot;support&quot;,&quot;message&quot;:&quot;Question&quot;}'
+</code></pre><button class="copy-btn" onclick="copyCode(this)">Copier</button></div>
+<ol>
+<li>
+<p>Constater la réponse immédiate, puis retrouver l'exécution complète dans
+   l'historique.</p>
+</li>
+<li>
+<p>Variante : construire un second workflow <code>APP - Simulateur de site</code> dont un
+   nœud HTTP Request joue le rôle du site appelant — deux workflows qui se
+   parlent, l'architecture applicative en miniature.</p>
+</li>
+</ol>
+<h3>Étape 3 — Enrichir et archiver</h3>
+<ol>
+<li>
+<p>Ajouter un appel de complément (API publique au choix validée par le
+   formateur, ou données épinglées) qui enrichit la demande.</p>
+</li>
+<li>
+<p>Archiver chaque demande au format JSONL dans le dossier partagé
+   (<code>/files/demandes.jsonl</code> via le nœud d'écriture de fichier) — une ligne par
+   demande, le journal d'audit minimal.</p>
+</li>
+<li>
+<p>Brancher la notification par type (le Switch existant) et vérifier le
+   parcours complet dans une seule exécution.</p>
+</li>
+</ol>
+<h3>Étape 4 — Présenter l'architecture</h3>
+<p>Chaque binôme dessine sur papier (ou tableau blanc) l'architecture finale :
+acteurs, flux, défenses, supervision — et la présente en cinq minutes au
+groupe. Le formateur challenge : « que se passe-t-il si… » (l'API externe
+tombe, le volume double, le jeton fuite, le fichier grossit).</p>
+<p>Le dessin attendu comporte au minimum : l'appelant (le site), l'entrée (webhook
+authentifié), les défenses (validation, filtre, retry, exception), les sorties
+(archive, notification), et les surveillances (workflow d'erreur, historique).
+Les binômes s'évaluent mutuellement sur la complétude de cette carte — tout
+élément oublié est retrouvé en le cherchant ensemble dans le flux réel.</p>
+<div class="callout tip"><div class="callout-title">Résultat attendu</div><p>Le stagiaire repart avec une architecture d'intégration complète et assumée :
+il sait exposer n8n comme une API, protéger l'entrée, traiter en
+arrière-plan, journaliser, et défendre ses choix devant un public technique.
+C'est la compétence qui clôt la formation.</p></div>
+<h3>Dépannage des ateliers 7 et 8</h3>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Symptôme</th>
+<th>Cause probable</th>
+<th>Remède</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Le webhook répond 401</td>
+<td>En-tête d'authentification absent ou mal nommé</td>
+<td>Vérifier le nom exact attendu par le credential Header Auth</td>
+</tr>
+<tr>
+<td>La réponse arrive après tout le traitement</td>
+<td>Mode de réponse encore sur « when last node finishes »</td>
+<td>Repasser le webhook sur <em>Respond immediately</em></td>
+</tr>
+<tr>
+<td>Le fichier d'archive n'apparaît pas</td>
+<td>Chemin hors de la zone autorisée</td>
+<td>Écrire sous <code>/files/</code>, vérifier le montage <code>./local-files:/files</code></td>
+</tr>
+<tr>
+<td>L'enrichissement double la durée d'exécution</td>
+<td>Appel externe par item</td>
+<td>Regrouper ou mémoriser la donnée de référence</td>
+</tr>
+<tr>
+<td>Le simulateur appelle l'URL de test</td>
+<td>Confusion <code>/webhook-test/</code> vs <code>/webhook/</code></td>
+<td>URL de production + workflow actif</td>
+</tr>
+</tbody>
+</table></div>
+<h3>Extensions proposées par le formateur</h3>
+<ul>
+<li>
+<p>Versionner le webhook : dupliquer le chemin en <code>/api/v2/demandes</code> avec un
+  champ supplémentaire, et faire cohabiter les deux versions.</p>
+</li>
+<li>
+<p>Ajouter le workflow <code>SYS - Surveillance quotidienne</code> (watchdog) qui rapporte
+  chaque matin les échecs et silences de la veille.</p>
+</li>
+<li>
+<p>Simuler la panne de l'API d'enrichissement pendant une démonstration :
+  observer la chaîne de défenses (retry → exception → alerte) s'activer en
+  direct.</p>
+</li>
+</ul>
+<h3>Points de validation de l'atelier 8</h3>
+<ul>
+<li>
+<p>L'appel curl externe reçoit un acquittement immédiat, et l'exécution complète
+  est retrouvée dans l'historique.</p>
+</li>
+<li>
+<p>L'archive JSONL contient une ligne par demande, exploitable par un tableur.</p>
+</li>
+<li>L'architecture présentée couvre acteurs, flux, défenses et supervision, et
+  répond aux questions « que se passe-t-il si… » sans improvisation.</li>
+</ul>
+</div>
+
+<div id="tab-cloturer-la-formation" class="tab-content">
+<h3>Ce que les quatre jours ont construit</h3>
+<p>Le parcours suivi reprend exactement le programme officiel :</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Jour</th>
+<th>Acquis</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>Principes de l'automatisation, prise en main de n8n, premiers workflows</td>
+</tr>
+<tr>
+<td>2</td>
+<td>Connexion de services, authentification, conditions et filtres, flux structurés</td>
+</tr>
+<tr>
+<td>3</td>
+<td>Workflows complexes (boucles, fusions, code), gestion fiable des erreurs, alertes</td>
+</tr>
+<tr>
+<td>4</td>
+<td>Optimisation, sécurité, déploiement professionnel, intégration au SI</td>
+</tr>
+</tbody>
+</table></div>
+<p>Le fil rouge — le routage des demandes de l'association — a grandi avec les
+stagiaires : d'un tuyau fragile à une API d'assemblage supervisée, protégée et
+défendable devant un RSSI.</p>
+<h3>La checklist du décollage en solo</h3>
+<p>Avant de lancer le premier vrai flux en production dans son organisation :</p>
+<ol>
+<li>l'instance est déployée proprement (HTTPS, PostgreSQL, clé sauvegardée) ;</li>
+<li>les credentials sont des comptes de service au moindre privilège ;</li>
+<li>chaque flux a son workflow d'erreur rattaché et ses alertes testées ;</li>
+<li>la liste de contrôle d'activation du chapitre 2 est passée ;</li>
+<li>le circuit dev → recette → production est décidé, même simple ;</li>
+<li>quelqu'un — nommément — surveille les exécutions chaque matin.</li>
+</ol>
+<h3>Évaluation et suite</h3>
+<p>L'évaluation de fin de formation s'appuie sur les quiz des quatre chapitres, la
+revue des ateliers et la présentation d'architecture de l'atelier 8. Le support
+reste disponible après la session : l'annexe Ressources pointe vers la
+documentation officielle à consulter en priorité, l'annexe Cheat-sheet résume
+les gestes quotidiens, et l'annexe Glossaire fixe le vocabulaire.</p>
+<h3>Pour continuer après la formation</h3>
+<p>Trois chantiers naturels prolongent ces quatre jours :</p>
+<ul>
+<li>
+<p><strong>le premier flux réel</strong> : choisir le processus cartographié au jour 1, le
+  construire sur une instance de recette, le faire valider, le passer en
+  production — la première boucle complète est celle qui enseigne le plus ;</p>
+</li>
+<li>
+<p><strong>la bibliothèque interne</strong> : capitaliser les sous-workflows réutilisables
+  (notification formatée, écriture d'audit, appel d'un service interne) dans un
+  projet partagé de l'instance ;</p>
+</li>
+<li>
+<p><strong>la montée en compétence continue</strong> : la documentation officielle et les
+  modèles de la bibliothèque n8n, cités en annexe Ressources, couvrent les
+  sujets avancés non traités ici (IA intégrée, nœuds communautaires,
+  intégrations spécifiques).</p>
+</li>
+</ul>
+<p>Pour toute question ultérieure liée à la formation : Formateur Dawan —
+formation@dawan.fr.</p>
+<p>Bonne continuation dans vos automatisations.</p>
+</div>
+
+<div id="tab-quiz" class="tab-content">
+<div id="quiz-container">
+<div class="quiz-question" id="q1">
+  <h4>Question 1 — Une exécution de workflow passe de 3 s à 45 s après une modification. Quel est le premier réflexe ?</h4>
+  <div class="quiz-options">
+    <button class="quiz-option" onclick="answer(1,'a')">A) Réécrire le nœud Code en JavaScript optimisé</button>
+    <button class="quiz-option" onclick="answer(1,'b')">B) Comparer dans l'historique deux exécutions (avant/après) pour identifier le nœud dont la durée a changé — le goulot est presque toujours un appel externe</button>
+    <button class="quiz-option" onclick="answer(1,'c')">C) Passer l'instance en queue mode immédiatement</button>
+    <button class="quiz-option" onclick="answer(1,'d')">D) Augmenter la mémoire du conteneur</button>
+  </div>
+  <div class="quiz-feedback" id="fb1"></div>
+</div>
+<div class="quiz-question" id="q2">
+  <h4>Question 2 — Quelle variable d'environnement empêche l'historique des exécutions de gonfler indéfiniment ?</h4>
+  <div class="quiz-options">
+    <button class="quiz-option" onclick="answer(2,'a')">A) <code>N8N_ENCRYPTION_KEY</code></button>
+    <button class="quiz-option" onclick="answer(2,'b')">B) <code>WEBHOOK_URL</code></button>
+    <button class="quiz-option" onclick="answer(2,'c')">C) <code>EXECUTIONS_DATA_PRUNE</code> (avec <code>EXECUTIONS_DATA_MAX_AGE</code> et <code>EXECUTIONS_DATA_PRUNE_MAX_COUNT</code>)</button>
+    <button class="quiz-option" onclick="answer(2,'d')">D) <code>GENERIC_TIMEZONE</code></button>
+  </div>
+  <div class="quiz-feedback" id="fb2"></div>
+</div>
+<div class="quiz-question" id="q3">
+  <h4>Question 3 — Où doit vivre une clé d'API utilisée par un workflow en production ?</h4>
+  <div class="quiz-options">
+    <button class="quiz-option" onclick="answer(3,'a')">A) Dans le champ URL du nœud, masquée par des étoiles</button>
+    <button class="quiz-option" onclick="answer(3,'b')">B) Dans un credential n8n chiffré — et pour les organisations outillées, dans un coffre externe référencé par le credential</button>
+    <button class="quiz-option" onclick="answer(3,'c')">C) Dans une variable d'instance <code>$vars</code> pour être partagée entre workflows</button>
+    <button class="quiz-option" onclick="answer(3,'d')">D) Dans la sticky note du workflow pour la retrouver facilement</button>
+  </div>
+  <div class="quiz-feedback" id="fb3"></div>
+</div>
+<div class="quiz-question" id="q4">
+  <h4>Question 4 — Pourquoi <code>N8N_ENCRYPTION_KEY</code> doit-elle être sauvegardée séparément de la base de données ?</h4>
+  <div class="quiz-options">
+    <button class="quiz-option" onclick="answer(4,'a')">A) Pour accélérer le démarrage du conteneur</button>
+    <button class="quiz-option" onclick="answer(4,'b')">B) Parce que sans elle, une base restaurée contient des credentials illisibles — la sauvegarde devient inutilisable</button>
+    <button class="quiz-option" onclick="answer(4,'c')">C) Pour permettre le partage des workflows entre instances</button>
+    <button class="quiz-option" onclick="answer(4,'d')">D) C'est une obligation légale du RGPD</button>
+  </div>
+  <div class="quiz-feedback" id="fb4"></div>
+</div>
+<div class="quiz-question" id="q5">
+  <h4>Question 5 — Quel montage expose correctement une instance n8n en production ?</h4>
+  <div class="quiz-options">
+    <button class="quiz-option" onclick="answer(5,'a')">A) Le port 5678 exposé directement sur Internet avec un mot de passe fort</button>
+    <button class="quiz-option" onclick="answer(5,'b')">B) Un reverse proxy (Traefik/nginx) qui termine TLS en HTTPS, n8n n'écoutant que sur la boucle locale, et <code>WEBHOOK_URL</code> pointant vers l'adresse publique</button>
+    <button class="quiz-option" onclick="answer(5,'c')">C) Le tunnel de développement <code>n8n start --tunnel</code></button>
+    <button class="quiz-option" onclick="answer(5,'d')">D) Le port 5678 ouvert en HTTP avec une URL longue et compliquée</button>
+  </div>
+  <div class="quiz-feedback" id="fb5"></div>
+</div>
+<div class="quiz-question" id="q6">
+  <h4>Question 6 — Dans le queue mode n8n, quel est le rôle de Redis ?</h4>
+  <div class="quiz-options">
+    <button class="quiz-option" onclick="answer(6,'a')">A) Stocker les workflows et les credentials</button>
+    <button class="quiz-option" onclick="answer(6,'b')">B) Servir l'éditeur web aux utilisateurs</button>
+    <button class="quiz-option" onclick="answer(6,'c')">C) Maintenir la file des exécutions en attente : l'instance principale y dépose les exécutions, les workers les consomment</button>
+    <button class="quiz-option" onclick="answer(6,'d')">D) Remplacer PostgreSQL pour les petites instances</button>
+  </div>
+  <div class="quiz-feedback" id="fb6"></div>
+</div>
+<div class="quiz-question" id="q7">
+  <h4>Question 7 — Quels sont les deux prérequis d'infrastructure non négociables du queue mode ?</h4>
+  <div class="quiz-options">
+    <button class="quiz-option" onclick="answer(7,'a')">A) Deux écrans et une connexion fibre</button>
+    <button class="quiz-option" onclick="answer(7,'b')">B) PostgreSQL (SQLite non supporté) et la même <code>N8N_ENCRYPTION_KEY</code> partagée par tous les processus (main, workers, webhooks)</button>
+    <button class="quiz-option" onclick="answer(7,'c')">C) Un nom de domaine en .fr et un certificat wildcard</button>
+    <button class="quiz-option" onclick="answer(7,'d')">D) Un abonnement n8n Cloud Enterprise obligatoire</button>
+  </div>
+  <div class="quiz-feedback" id="fb7"></div>
+</div>
+<div class="quiz-question" id="q8">
+  <h4>Question 8 — Un service externe doit appeler un webhook de production n8n qui déclenche des écritures. Quelle protection minimale ?</h4>
+  <div class="quiz-options">
+    <button class="quiz-option" onclick="answer(8,'a')">A) Aucune : l'URL longue du webhook suffit</button>
+    <button class="quiz-option" onclick="answer(8,'b')">B) L'authentification du webhook (en-tête secret ou Basic Auth), complétée si le service le permet par la vérification de la signature HMAC du corps</button>
+    <button class="quiz-option" onclick="answer(8,'c')">C) Le changement quotidien du chemin du webhook</button>
+    <button class="quiz-option" onclick="answer(8,'d')">D) Le passage du workflow en mode inactif la nuit</button>
+  </div>
+  <div class="quiz-feedback" id="fb8"></div>
+</div>
+<div class="quiz-question" id="q9">
+  <h4>Question 9 — Pourquoi répondre « immediately » au webhook plutôt qu'à la fin du flux ?</h4>
+  <div class="quiz-options">
+    <button class="quiz-option" onclick="answer(9,'a')">A) Pour économiser la mémoire de Redis</button>
+    <button class="quiz-option" onclick="answer(9,'b')">B) Pour acquitter l'appelant en millisecondes et traiter en arrière-plan — les appelants à timeout court ne retentent pas en boucle</button>
+    <button class="quiz-option" onclick="answer(9,'c')">C) Parce que la réponse de fin de flux est toujours vide</button>
+    <button class="quiz-option" onclick="answer(9,'d')">D) Pour éviter d'écrire dans l'historique des exécutions</button>
+  </div>
+  <div class="quiz-feedback" id="fb9"></div>
+</div>
+<div class="quiz-question" id="q10">
+  <h4>Question 10 — Que doit faire un flux n8n qui manipule des données personnelles avant sa mise en production ?</h4>
+  <div class="quiz-options">
+    <button class="quiz-option" onclick="answer(10,'a')">A) Chiffrer chaque item avec le nœud Crypto</button>
+    <button class="quiz-option" onclick="answer(10,'b')">B) Décider explicitement de la rétention de ses données d'exécution (raccourcie ou masquée si nécessaire) et vérifier dans Executions ce qui est réellement enregistré</button>
+    <button class="quiz-option" onclick="answer(10,'c')">C) Exporter les données vers un tableur personnel chaque soir</button>
+    <button class="quiz-option" onclick="answer(10,'d')">D) Rien : les données personnelles ne passent jamais par n8n</button>
+  </div>
+  <div class="quiz-feedback" id="fb10"></div>
+</div>
+</div>
+<div class="quiz-score" id="quiz-score">
+  <div class="score-num" id="score-display">0 / 10</div>
+  <p id="score-msg"></p>
+  <button class="btn-restart" onclick="restartQuiz()">Recommencer</button>
+</div>
+</div>
+  </div>
+</div>
+
+<script>
+// ─── THEME ──────────────────────────────────────────────────────────────────
+(function () {
+  const root = document.documentElement;
+  const stored = localStorage.getItem('dawan-theme');
+  if (stored) root.setAttribute('data-theme', stored);
+  updateToggleLabel();
+})();
+
+function updateToggleLabel() {
+  const current = document.documentElement.getAttribute('data-theme') ||
+    (window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark');
+  document.getElementById('theme-icon').textContent = current === 'dark' ? '🌙' : '☀️';
+  document.getElementById('theme-label').textContent = current === 'dark' ? 'Sombre' : 'Clair';
+}
+
+function toggleTheme() {
+  const root = document.documentElement;
+  const current = root.getAttribute('data-theme') ||
+    (window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark');
+  const next = current === 'dark' ? 'light' : 'dark';
+  root.setAttribute('data-theme', next);
+  localStorage.setItem('dawan-theme', next);
+  updateToggleLabel();
+}
+
+// ─── TABS ───────────────────────────────────────────────────────────────────
+function showTab(id) {
+  document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+  document.querySelectorAll('.side-nav button').forEach(el => el.classList.remove('active'));
+  document.getElementById('tab-' + id).classList.add('active');
+  event.target.classList.add('active');
+  document.querySelector('.content').scrollTo({ top: 0, behavior: 'instant' });
+}
+
+// ─── COPY CODE ──────────────────────────────────────────────────────────────
+function copyCode(btn) {
+  const pre = btn.previousElementSibling;
+  navigator.clipboard.writeText(pre.textContent).then(() => {
+    btn.textContent = 'Copié !'; btn.classList.add('copied');
+    setTimeout(() => { btn.textContent = 'Copier'; btn.classList.remove('copied'); }, 2000);
+  });
+}
+
+// ─── QUIZ ────────────────────────────────────────────────────────────────────
+const answers = { 1:'b', 2:'c', 3:'b', 4:'b', 5:'b', 6:'c', 7:'b', 8:'b', 9:'b', 10:'b' };
+const feedbacks = {
+  1: { b: "Exact ! L'optimisation sans mesure est de la divination : le détail par nœud de l'exécution montre la durée de chacun, et l'expérience montre que 80 % du temps d'un flux se passe dans les appels réseau, pas dans le code.", wrong: "Non. La bonne réponse est B) Comparer dans l'historique deux exécutions (avant/après) pour identifier le nœud dont la durée a changé — le goulot est presque toujours un appel externe — L'optimisation sans mesure est de la divination : le détail par nœud de l'exécution montre la durée de chacun, et l'expérience montre que 80 % du temps d'un flux se passe dans les appels réseau, pas dans le code." },
+  2: { c: "Exact ! La purge (activée par défaut) supprime les exécutions au-delà d'un âge ou d'un nombre donnés ; combinée à <code>EXECUTIONS_DATA_SAVE_ON_SUCCESS=none</code> sur les flux bavards, elle borne la croissance de la base.", wrong: "Non. La bonne réponse est C) <code>EXECUTIONS_DATA_PRUNE</code> (avec <code>EXECUTIONS_DATA_MAX_AGE</code> et <code>EXECUTIONS_DATA_PRUNE_MAX_COUNT</code>) — La purge (activée par défaut) supprime les exécutions au-delà d'un âge ou d'un nombre donnés ; combinée à <code>EXECUTIONS_DATA_SAVE_ON_SUCCESS=none</code> sur les flux bavards, elle borne la croissance de la base." },
+  3: { b: "Exact ! Le credential chiffre la valeur, ne la réaffiche jamais après enregistrement et la mutualise entre workflows ; les coffres externes (éditions entreprise) ajoutent rotation centralisée et non-stockage dans n8n.", wrong: "Non. La bonne réponse est B) Dans un credential n8n chiffré — et pour les organisations outillées, dans un coffre externe référencé par le credential — Le credential chiffre la valeur, ne la réaffiche jamais après enregistrement et la mutualise entre workflows ; les coffres externes (éditions entreprise) ajoutent rotation centralisée et non-stockage dans n8n." },
+  4: { b: "Exact ! Les credentials sont chiffrés avec cette clé : restaurer la base sur une autre machine sans la clé restaure des secrets indéchiffrables. Base et clé se sauvegardent ensemble mais se stockent séparément.", wrong: "Non. La bonne réponse est B) Parce que sans elle, une base restaurée contient des credentials illisibles — la sauvegarde devient inutilisable — Les credentials sont chiffrés avec cette clé : restaurer la base sur une autre machine sans la clé restaure des secrets indéchiffrables. Base et clé se sauvegardent ensemble mais se stockent séparément." },
+  5: { b: "Exact ! C'est le montage documenté officiellement : Traefik gère le certificat (Let's Encrypt), le port 5678 reste sur <code>127.0.0.1</code>, et les webhooks affichent l'URL publique HTTPS aux services externes.", wrong: "Non. La bonne réponse est B) Un reverse proxy (Traefik/nginx) qui termine TLS en HTTPS, n8n n'écoutant que sur la boucle locale, et <code>WEBHOOK_URL</code> pointant vers l'adresse publique — C'est le montage documenté officiellement : Traefik gère le certificat (Let's Encrypt), le port 5678 reste sur <code>127.0.0.1</code>, et les webhooks affichent l'URL publique HTTPS aux services externes." },
+  6: { c: "Exact ! Redis joue le rôle de message broker : la main y dépose les identifiants d'exécution, chaque worker libre prend le suivant, exécute, écrit le résultat en base et notifie la fin via Redis.", wrong: "Non. La bonne réponse est C) Maintenir la file des exécutions en attente : l'instance principale y dépose les exécutions, les workers les consomment — Redis joue le rôle de message broker : la main y dépose les identifiants d'exécution, chaque worker libre prend le suivant, exécute, écrit le résultat en base et notifie la fin via Redis." },
+  7: { b: "Exact ! Plusieurs processus écrivent en concurrence (d'où PostgreSQL obligatoire) et tous doivent déchiffrer les mêmes credentials (d'où la clé partagée), avec <code>EXECUTIONS_MODE=queue</code> partout.", wrong: "Non. La bonne réponse est B) PostgreSQL (SQLite non supporté) et la même <code>N8N_ENCRYPTION_KEY</code> partagée par tous les processus (main, workers, webhooks) — Plusieurs processus écrivent en concurrence (d'où PostgreSQL obligatoire) et tous doivent déchiffrer les mêmes credentials (d'où la clé partagée), avec <code>EXECUTIONS_MODE=queue</code> partout." },
+  8: { b: "Exact ! L'URL seule fuite trop facilement (journaux, copier-coller) ; l'authentification prouve le canal, et la signature HMAC (recalculée avec le nœud Crypto et un secret partagé) prouve cryptographiquement l'origine du message.", wrong: "Non. La bonne réponse est B) L'authentification du webhook (en-tête secret ou Basic Auth), complétée si le service le permet par la vérification de la signature HMAC du corps — L'URL seule fuite trop facilement (journaux, copier-coller) ; l'authentification prouve le canal, et la signature HMAC (recalculée avec le nœud Crypto et un secret partagé) prouve cryptographiquement l'origine du message." },
+  9: { b: "Exact ! Un appelant qui attend la fin d'un long traitement dépasse son timeout et retente l'appel, créant des exécutions en double ; l'acquittement immédiat suivi du traitement asynchrone est le motif fiable.", wrong: "Non. La bonne réponse est B) Pour acquitter l'appelant en millisecondes et traiter en arrière-plan — les appelants à timeout court ne retentent pas en boucle — Un appelant qui attend la fin d'un long traitement dépasse son timeout et retente l'appel, créant des exécutions en double ; l'acquittement immédiat suivi du traitement asynchrone est le motif fiable." },
+  10: { b: "Exact ! Les exécutions enregistrent les données métier de chaque nœud ; la rétention par workflow (ou le masquage des données selon l'édition) borne l'exposition, et la vérification dans l'historique est le seul moyen de savoir ce qui est réellement conservé.", wrong: "Non. La bonne réponse est B) Décider explicitement de la rétention de ses données d'exécution (raccourcie ou masquée si nécessaire) et vérifier dans Executions ce qui est réellement enregistré — Les exécutions enregistrent les données métier de chaque nœud ; la rétention par workflow (ou le masquage des données selon l'édition) borne l'exposition, et la vérification dans l'historique est le seul moyen de savoir ce qui est réellement conservé." }
+};
+const QUIZ_TOTAL = 10;
+let score = 0;
+let answered = {};
+
+function answer(qNum, choice) {
+  if (answered[qNum]) return;
+  answered[qNum] = true;
+  score += (choice === answers[qNum]) ? 1 : 0;
+  const qEl = document.getElementById('q' + qNum);
+  qEl.querySelectorAll('.quiz-option').forEach(btn => {
+    btn.disabled = true;
+    const ltr = btn.textContent.trim()[0].toLowerCase();
+    if (ltr === answers[qNum]) btn.classList.add('correct');
+    else if (ltr === choice) btn.classList.add('wrong');
+  });
+  const fb = feedbacks[qNum];
+  document.getElementById('fb' + qNum).textContent = (choice === answers[qNum]) ? fb[answers[qNum]] : fb.wrong;
+  if (Object.keys(answered).length === QUIZ_TOTAL) showScore();
+}
+
+function showScore() {
+  const el = document.getElementById('quiz-score');
+  el.style.display = 'block';
+  document.getElementById('score-display').textContent = score + ' / ' + QUIZ_TOTAL;
+  const ratio = score / QUIZ_TOTAL;
+  let msg;
+  if (ratio === 1) msg = 'Parfait ! Toutes les réponses sont correctes.';
+  else if (ratio >= .8) msg = 'Très bien ! Vous maîtrisez l\'essentiel.';
+  else if (ratio >= .6) msg = 'Pas mal ! Relisez les points manqués.';
+  else if (ratio >= .4) msg = 'Quelques notions à revoir.';
+  else msg = 'Revoyez le cours avant de continuer.';
+  document.getElementById('score-msg').textContent = msg;
+}
+
+function restartQuiz() {
+  score = 0; answered = {};
+  document.getElementById('quiz-score').style.display = 'none';
+  document.querySelectorAll('.quiz-option').forEach(btn => {
+    btn.disabled = false;
+    btn.classList.remove('correct','wrong');
+  });
+  document.querySelectorAll('.quiz-feedback').forEach(fb => fb.textContent = '');
+}
+</script>
+</body>
+</html>

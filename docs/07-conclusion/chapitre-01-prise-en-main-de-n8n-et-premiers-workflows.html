@@ -1,0 +1,2058 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="Support interactif de formation Automatisation No-Code avec n8n — Initiation + Approfondissement : 01 — Prise en main de n8n et premiers workflows">
+<title>01 — Prise en main de n8n et premiers workflows</title>
+<style>
+:root {
+  --bg: #0d1117; --surface: #161b22; --surface2: #1c2128; --border: #30363d;
+  --primary: #f0883e; --primary2: #ffa657;
+  --success: #3fb950; --warning: #d29922; --danger: #f85149;
+  --text: #e6edf3; --text-muted: #8b949e; --code-bg: #010409; --radius: 10px;
+  --topbar-h: 3.25rem;
+}
+:root[data-theme="light"] {
+  --bg: #ffffff; --surface: #f6f8fa; --surface2: #eaeef2; --border: #d0d7de;
+  --primary: #bc4c00; --primary2: #953800;
+  --success: #1a7f37; --warning: #9a6700; --danger: #cf222e;
+  --text: #1f2328; --text-muted: #656d76; --code-bg: #f6f8fa;
+}
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme="dark"]) {
+    --bg: #ffffff; --surface: #f6f8fa; --surface2: #eaeef2; --border: #d0d7de;
+    --primary: #bc4c00; --primary2: #953800;
+    --success: #1a7f37; --warning: #9a6700; --danger: #cf222e;
+    --text: #1f2328; --text-muted: #656d76; --code-bg: #f6f8fa;
+  }
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body { background: var(--bg); color: var(--text); font-family: system-ui, -apple-system, "Segoe UI", sans-serif; font-size: 15px; line-height: 1.7; transition: background .2s, color .2s; }
+
+/* TOPBAR — fixe, ne bouge jamais au scroll */
+.topbar {
+  position: sticky; top: 0; z-index: 200; height: var(--topbar-h);
+  background: var(--surface); border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; gap: .9rem; padding: 0 1rem;
+}
+.topbar .badge {
+  flex: 0 0 auto; background: var(--primary); color: #0d1117;
+  font-size: 10px; font-weight: 700; letter-spacing: .07em; text-transform: uppercase;
+  padding: 3px 9px; border-radius: 20px; white-space: nowrap;
+}
+.topbar a.chapter-title {
+  flex: 1 1 auto; min-width: 0; display: flex; align-items: baseline; gap: .5rem;
+  text-decoration: none; color: var(--text); font-weight: 700; font-size: .92rem;
+  overflow: hidden;
+}
+.topbar a.chapter-title:hover { color: var(--primary); }
+.topbar a.chapter-title .num { color: var(--primary); flex: 0 0 auto; }
+.topbar a.chapter-title .txt { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.topbar-links { flex: 0 0 auto; display: flex; align-items: center; gap: .5rem; }
+.topbar-link {
+  white-space: nowrap; padding: .4rem .8rem; border: 1px solid var(--border); border-radius: 20px;
+  font-size: .8rem; font-weight: 600; color: var(--text-muted); text-decoration: none; transition: all .2s;
+}
+.topbar-link:hover { color: var(--primary); border-color: var(--primary); }
+.theme-toggle {
+  flex: 0 0 auto; background: var(--surface2); border: 1px solid var(--border); color: var(--text);
+  padding: .4rem .7rem; border-radius: 20px; font-size: .8rem; cursor: pointer;
+  display: inline-flex; align-items: center; gap: .35rem;
+}
+.theme-toggle:hover { border-color: var(--primary); }
+
+/* LAYOUT — sidebar gauche + contenu */
+.layout { display: flex; align-items: flex-start; }
+.sidebar {
+  flex: 0 0 280px; width: 280px;
+  position: sticky; top: var(--topbar-h);
+  height: calc(100vh - var(--topbar-h));
+  overflow-y: auto; border-right: 1px solid var(--border); background: var(--surface);
+  padding: 1.25rem 1rem 2rem;
+}
+.objectifs {
+  background: var(--surface2); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: .8rem 1rem; margin-bottom: 1.25rem;
+}
+.objectifs-label { font-size: .7rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--primary); }
+.objectifs ul { margin: .4rem 0 0 1.1rem; }
+.objectifs li { font-size: .82rem; color: var(--text-muted); margin-bottom: .3rem; line-height: 1.4; }
+.side-nav { display: flex; flex-direction: column; gap: .1rem; }
+.side-nav button {
+  text-align: left; background: none; border: none; border-left: 3px solid transparent;
+  color: var(--text-muted); padding: .55rem .7rem; font-size: .87rem; font-weight: 500;
+  cursor: pointer; border-radius: 0 6px 6px 0; transition: all .15s;
+}
+.side-nav button:hover { color: var(--text); background: var(--surface2); }
+.side-nav button.active { color: var(--primary); border-left-color: var(--primary); background: var(--surface2); font-weight: 600; }
+.side-nav-sep { height: 1px; background: var(--border); margin: .6rem 0; }
+
+.content { flex: 1 1 auto; min-width: 0; }
+.tab-content { display: none; padding: 2rem 2.5rem 4rem; max-width: 1100px; margin: 0 auto; }
+.tab-content.active { display: block; }
+
+/* SECTIONS */
+h2 { font-size: 1.25rem; color: var(--primary2); margin: 1.8rem 0 .8rem; border-left: 3px solid var(--primary); padding-left: .75rem; }
+h3 { font-size: 1.05rem; color: var(--text); margin: 1.4rem 0 .6rem; }
+p { margin-bottom: .9rem; }
+ul, ol { padding-left: 1.4rem; margin-bottom: .9rem; }
+li { margin-bottom: .35rem; }
+
+/* RESSOURCES — liste sous forme de cartes plutôt que de puces */
+#tab-ressources ul { list-style: none; padding-left: 0; display: flex; flex-direction: column; gap: .5rem; }
+#tab-ressources li {
+  background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
+  padding: .75rem 1rem; margin-bottom: 0;
+}
+#tab-ressources li a { color: var(--primary2); font-weight: 600; text-decoration: none; }
+#tab-ressources li a:hover { text-decoration: underline; }
+
+/* AIDE — divulgation progressive pas-à-pas */
+details.aide { margin-top: 1.5rem; border: 1px solid var(--border); border-radius: var(--radius); background: var(--surface); }
+details.aide summary {
+  cursor: pointer; padding: .8rem 1.1rem; font-weight: 600; color: var(--primary);
+  list-style: none; display: flex; align-items: center; gap: .5rem;
+}
+details.aide summary::-webkit-details-marker { display: none; }
+details.aide summary::before { content: "▶"; font-size: .7rem; transition: transform .15s; }
+details.aide[open] summary::before { transform: rotate(90deg); }
+details.aide .aide-body { padding: 0 1.1rem 1.1rem; border-top: 1px solid var(--border); margin-top: .2rem; padding-top: 1rem; }
+img { max-width: 100%; height: auto; display: block; margin: 1rem auto; }
+
+/* EXERCICE — un bloc par atelier, avec son aide pas-à-pas attachée juste en dessous */
+.exercice { padding: 1.3rem 0; border-top: 1px solid var(--border); }
+.exercice:first-of-type { border-top: none; padding-top: 0; }
+.exercice h3 { margin: 0 0 .8rem; color: var(--primary2); }
+
+/* CALLOUTS */
+.callout { border-radius: var(--radius); padding: .9rem 1.1rem; margin: 1.2rem 0; border-left: 4px solid; background: var(--surface2); }
+.callout.note   { border-color: var(--primary); }
+.callout.tip    { border-color: var(--success); }
+.callout.warn   { border-color: var(--warning); }
+.callout.danger { border-color: var(--danger); }
+.callout p:last-child { margin-bottom: 0; }
+.callout-title { font-weight: 700; font-size: .82rem; text-transform: uppercase; letter-spacing: .07em; margin-bottom: .4rem; }
+.callout.note   .callout-title { color: var(--primary); }
+.callout.tip    .callout-title { color: var(--success); }
+.callout.warn   .callout-title { color: var(--warning); }
+.callout.danger .callout-title { color: var(--danger); }
+
+/* TABLES */
+.table-wrap { overflow-x: auto; margin: 1rem 0; }
+table { width: 100%; border-collapse: collapse; font-size: .9rem; }
+th { background: var(--surface2); color: var(--primary2); text-align: left; padding: .6rem .9rem; font-weight: 600; border: 1px solid var(--border); }
+td { padding: .55rem .9rem; border: 1px solid var(--border); vertical-align: top; }
+tr:hover td { background: var(--surface2); }
+
+/* CODE */
+.code-block { position: relative; margin: 1rem 0; }
+pre { background: var(--code-bg); border: 1px solid var(--border); border-radius: var(--radius); padding: 1rem 1rem 1rem 1.2rem; overflow-x: auto; }
+code { font-family: 'Consolas', 'Cascadia Code', monospace; font-size: .88rem; color: var(--primary2); }
+p code, li code, td code { background: var(--code-bg); border: 1px solid var(--border); border-radius: 5px; padding: .05rem .35rem; }
+.copy-btn {
+  position: absolute; top: .5rem; right: .5rem;
+  background: var(--surface2); border: 1px solid var(--border); color: var(--text-muted);
+  padding: .25rem .6rem; font-size: .75rem; border-radius: 5px; cursor: pointer; transition: all .2s;
+}
+.copy-btn:hover { background: var(--primary); color: #0d1117; }
+.copy-btn.copied { background: var(--success); color: #0d1117; }
+
+/* QUIZ */
+.quiz-question { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 1.2rem; margin-bottom: 1.2rem; }
+.quiz-question h4 { color: var(--primary2); margin-bottom: .9rem; font-size: .98rem; }
+.quiz-options { display: flex; flex-direction: column; gap: .5rem; }
+.quiz-option {
+  background: var(--surface2); border: 1px solid var(--border);
+  border-radius: 8px; padding: .6rem .9rem; cursor: pointer;
+  font-size: .9rem; transition: all .2s; text-align: left; color: var(--text);
+}
+.quiz-option:hover:not(:disabled) { border-color: var(--primary); }
+.quiz-option.correct { border-color: var(--success); color: var(--success); }
+.quiz-option.wrong   { border-color: var(--danger);  color: var(--danger);  }
+.quiz-option:disabled { cursor: default; }
+.quiz-feedback { margin-top: .6rem; font-size: .87rem; color: var(--text-muted); font-style: italic; }
+.quiz-score {
+  background: var(--surface2); border: 1px solid var(--primary);
+  border-radius: var(--radius); padding: 1.5rem; text-align: center; margin-top: 1.5rem; display: none;
+}
+.quiz-score .score-num { font-size: 2.5rem; font-weight: 700; color: var(--primary); }
+.quiz-score p { color: var(--text-muted); margin-top: .4rem; }
+.btn-restart { background: var(--primary); color: #0d1117; border: none; padding: .6rem 1.4rem; border-radius: 8px; font-weight: 700; cursor: pointer; margin-top: 1rem; font-size: .9rem; }
+.btn-restart:hover { background: var(--primary2); }
+
+/* RESPONSIVE — sidebar devient une barre horizontale sous 900px */
+@media (max-width: 900px) {
+  .layout { flex-direction: column; }
+  .sidebar {
+    position: static; width: 100%; height: auto; max-height: 40vh;
+    border-right: none; border-bottom: 1px solid var(--border);
+  }
+  .side-nav { flex-direction: row; flex-wrap: nowrap; overflow-x: auto; gap: .3rem; }
+  .side-nav button { border-left: none; border-bottom: 3px solid transparent; white-space: nowrap; border-radius: 6px 6px 0 0; }
+  .side-nav button.active { border-left-color: transparent; border-bottom-color: var(--primary); }
+  .side-nav-sep { display: none; }
+  .tab-content { padding: 1.5rem 1.2rem 3rem; }
+  .topbar a.chapter-title { font-size: .82rem; }
+}
+</style>
+<link rel="stylesheet" href="assets/course-common.css">
+<script src="assets/course-common.js" defer></script>
+</head>
+<body>
+
+<div class="topbar">
+  <span class="badge">Automatisation No-Code avec n8n — Initiation + Approfondissement</span>
+  <a class="chapter-title" href="index.html" title="Retour à l'accueil de la formation">
+    <span class="num">01</span><span class="txt">Prise en main de n8n et premiers workflows</span>
+  </a>
+  <div class="topbar-links">
+    <a href="annexes.html" class="topbar-link">Annexes ↗</a>
+    <a class="topbar-link" href="index.html">Sommaire</a>
+    <button class="theme-toggle" id="theme-toggle" onclick="toggleTheme()" aria-label="Basculer entre thème clair et sombre">
+      <span id="theme-icon">🌙</span> <span id="theme-label">Sombre</span>
+    </button>
+  </div>
+</div>
+
+<div class="layout">
+  <aside class="sidebar">
+    <div class="objectifs"><span class="objectifs-label">Objectifs</span><ul><li>Comprendre les principes de l&#x27;automatisation no-code et de l&#x27;orchestration de workflows</li><li>Prendre en main l&#x27;outil n8n et son interface</li><li>Concevoir des workflows simples et automatisés</li><li>Connecter des services via des déclencheurs et des actions</li></ul></div>
+    <nav class="side-nav" id="main-nav">
+      <button class="active" onclick="showTab('l-automatisation-des-processus-en-entreprise')">L&#x27;automatisation des processus en entreprise</button>
+  <button class="" onclick="showTab('positionnement-no-code-low-code-et-full-code')">Positionnement no-code, low-code et full-code</button>
+  <button class="" onclick="showTab('presentation-de-n8n')">Présentation de n8n</button>
+  <button class="" onclick="showTab('installation-de-n8n')">Installation de n8n</button>
+  <button class="" onclick="showTab('tour-de-l-interface')">Tour de l&#x27;interface</button>
+  <button class="" onclick="showTab('structure-d-un-workflow')">Structure d&#x27;un workflow</button>
+  <button class="" onclick="showTab('le-modele-de-donnees-les-items')">Le modèle de données : les items</button>
+  <button class="" onclick="showTab('les-declencheurs')">Les déclencheurs</button>
+  <button class="" onclick="showTab('premieres-transformations-de-donnees')">Premières transformations de données</button>
+  <button class="" onclick="showTab('atelier-1-installation-et-decouverte-de-l-interface-n8n')">Atelier 1 — Installation et découverte de l&#x27;interface n8n</button>
+  <button class="" onclick="showTab('atelier-2-creation-d-un-premier-workflow-automatise')">Atelier 2 — Création d&#x27;un premier workflow automatisé</button>
+  <button class="" onclick="showTab('quiz')">Quiz</button>
+    </nav>
+  </aside>
+  <div class="content">
+    <div id="tab-l-automatisation-des-processus-en-entreprise" class="tab-content active">
+<h3>Pourquoi automatiser ?</h3>
+<p>Chaque organisation, quelle que soit sa taille, fait tourner des dizaines de processus
+répétitifs : copier une pièce jointe reçue par e-mail vers un dossier partagé, saisir
+une commande dans deux logiciels différents, relancer un client dont la facture est
+en retard, créer un compte utilisateur dans quatre outils à l'arrivée d'un salarié.</p>
+<p>Ces tâches ont trois points communs : elles sont <strong>répétitives</strong>, elles suivent des
+<strong>règles stables</strong> et elles ne demandent <strong>aucun jugement humain</strong>. Ce sont les
+candidates idéales à l'automatisation.</p>
+<p>Automatiser un processus, c'est le confier à un logiciel qui l'exécute :</p>
+<ul>
+<li><strong>plus vite</strong> — une copie de fichier ou un appel d'API prend quelques millisecondes ;</li>
+<li><strong>sans erreur de saisie</strong> — pas de faute de frappe, pas de champ oublié ;</li>
+<li><strong>à toute heure</strong> — la nuit, le week-end, sans intervention ;</li>
+<li><strong>de façon traçable</strong> — chaque exécution est datée et journalisée.</li>
+</ul>
+<div class="callout note"><div class="callout-title">Analogie : la recette de cuisine</div><p>Un workflow d'automatisation ressemble à une recette de cuisine. Les ingrédients,
+ce sont les données d'entrée (un e-mail reçu, une ligne de tableur). Les étapes,
+ce sont les actions (filtrer, transformer, envoyer). La personne qui suit la
+recette, c'est le moteur d'automatisation : il applique les étapes dans l'ordre,
+sans improvisation, et obtient le même plat à chaque exécution.</p></div>
+<h3>L'orchestration de workflows</h3>
+<p>Un <strong>workflow</strong> (flux de travail) est une suite ordonnée d'étapes qui transforment
+ou transportent une information. Quand ces étapes franchissent les frontières de
+plusieurs applications — lire dans un CRM, écrire dans un tableur, notifier sur un
+outil de messagerie — on parle d'<strong>orchestration</strong> : un chef d'orchestre logiciel
+déclenche chaque étape au bon moment, avec les bonnes données, et gère les cas
+d'erreur.</p>
+<p>L'orchestrateur apporte trois services que la simple juxtaposition de scripts
+n'offre pas :</p>
+<ul>
+<li>une <strong>vision centralisée</strong> de tous les flux, dessinée visuellement ;</li>
+<li>une <strong>journalisation</strong> de chaque exécution, indispensable pour diagnostiquer ;</li>
+<li>des <strong>mécanismes standard</strong> de reprise sur erreur, de temporisation et de
+  branchement conditionnel.</li>
+</ul>
+<h3>Des exemples par métier</h3>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Métier</th>
+<th>Processus automatisé type</th>
+<th>Déclencheur</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Ressources humaines</td>
+<td>Création des comptes à l'arrivée d'un salarié</td>
+<td>Ligne ajoutée au fichier d'onboarding</td>
+</tr>
+<tr>
+<td>Support client</td>
+<td>Routage d'un ticket vers la bonne équipe</td>
+<td>Nouveau ticket dans l'outil de support</td>
+</tr>
+<tr>
+<td>Marketing</td>
+<td>Alerte quand un prospect remplit un formulaire</td>
+<td>Soumission du formulaire web</td>
+</tr>
+<tr>
+<td>Finance</td>
+<td>Relance des factures échues</td>
+<td>Planification quotidienne</td>
+</tr>
+<tr>
+<td>Informatique</td>
+<td>Sauvegarde et rapport d'état des serveurs</td>
+<td>Planification nocturne</td>
+</tr>
+<tr>
+<td>Commerce</td>
+<td>Synchronisation des commandes boutique → ERP</td>
+<td>Nouvelle commande en ligne</td>
+</tr>
+</tbody>
+</table></div>
+<p>Ces exemples partagent la même ossature : un <strong>événement déclencheur</strong>, une ou
+plusieurs <strong>étapes de traitement</strong>, et un <strong>résultat</strong> écrit quelque part. Toute la
+formation consiste à apprendre à construire cette ossature sans écrire de programme
+complet.</p>
+<p>À l'issue du chapitre, chaque stagiaire sait reconnaître cette ossature dans les
+processus de sa propre organisation — c'est le premier livrable concret de la
+journée, avant même d'ouvrir l'éditeur. Il servira de base aux échanges du
+tour de table qui ouvre traditionnellement la formation.</p>
+<h3>Ce qui est automatisable — et ce qui ne l'est pas</h3>
+<p>Un processus est automatisable s'il respecte trois conditions :</p>
+<ul>
+<li>ses règles sont <strong>explicites et stables</strong> (on peut les écrire sans ambiguïté) ;</li>
+<li>ses données d'entrée sont <strong>accessibles par un logiciel</strong> (API, fichier, base) ;</li>
+<li>ses cas particuliers sont <strong>limités et identifiables</strong> à l'avance.</li>
+</ul>
+<p>À l'inverse, une tâche qui demande d'apprécier un contexte humain, de négocier, ou
+dont les règles changent chaque semaine, sera mal automatisée. L'automatisation
+d'un mauvais processus produit des erreurs à grande vitesse : on cartographie et
+on assainit le processus <strong>avant</strong> de l'automatiser.</p>
+<p>En formation, ce filtre s'applique aux cas apportés par les stagiaires : chacun
+est invité à décrire un processus réel de son quotidien, et le groupe vérifie
+collectivement qu'il passe les trois conditions — c'est ce cas réel qui servira
+de fil rouge aux ateliers des chapitres suivants.</p>
+<h3>Évaluer le gain avant de construire</h3>
+<p>Une automatisation se justifie par un calcul simple que tout stagiaire doit savoir
+mener avec le métier concerné :</p>
+<ul>
+<li><strong>fréquence</strong> : combien de fois le processus s'exécute-t-il par semaine ?</li>
+<li><strong>durée manuelle</strong> : combien de minutes prend une exécution à la main ?</li>
+<li><strong>taux d'erreur</strong> : combien d'exécutions demandent une reprise ?</li>
+</ul>
+<p>Un processus qui prend dix minutes, cinq fois par semaine, représente plus de
+quarante heures par an — sans compter les erreurs et les oublis. Si le flux se
+construit en une journée et se maintient en une heure par trimestre, le retour sur
+investissement est atteint en quelques mois. À l'inverse, un processus exécuté
+deux fois par an ne mérite souvent pas d'être automatisé : une procédure écrite
+suffit.</p>
+<p>Ce calcul a aussi une vertu pédagogique : il force à <strong>cartographier le processus
+avant de l'automatiser</strong> — étapes, acteurs, données, exceptions. Cette
+cartographie, même sommaire, devient le plan directeur du workflow à construire.</p>
+<div class="callout warn"><div class="callout-title">Automatiser un processus cassé</div><p>Automatiser un processus mal conçu ne le répare pas : cela se contente de
+reproduire ses défauts plus vite et à plus grande échelle. La première question
+à poser n'est pas « comment automatiser ? » mais « ce processus est-il sain ? ».</p></div>
+</div>
+
+<div id="tab-positionnement-no-code-low-code-et-full-code" class="tab-content">
+<h3>Trois familles d'outils</h3>
+<p>Face à un besoin d'automatisation, trois approches coexistent :</p>
+<ul>
+<li>
+<p>le <strong>no-code</strong> : l'intégralité du flux se construit visuellement, en configurant
+  des blocs. Aucune ligne de code n'est écrite. Exemples : Zapier, Make ;</p>
+</li>
+<li>
+<p>le <strong>low-code</strong> : la construction reste visuelle, mais il est possible d'injecter
+  du code à certains endroits pour traiter les cas que les blocs ne couvrent pas.
+  Exemples : n8n, Power Automate (avec ses expressions) ;</p>
+</li>
+<li>
+<p>le <strong>full-code</strong> : tout est écrit dans un langage de programmation (scripts
+  Python, Node.js…) et déployé par des développeurs.</p>
+</li>
+</ul>
+<p><img alt="Spectre du no-code au full-code : n8n occupe la position low-code" src="../08-images/ch1-spectre-no-code-low-code.svg" /></p>
+<p>Le schéma ci-dessus positionne n8n entre les deux extrêmes. La construction d'un
+workflow se fait par glisser-déposer de nœuds sur un canevas : c'est du visuel,
+accessible sans savoir programmer. Mais dès qu'une transformation de données sort
+de l'ordinaire, une <strong>expression</strong> (formule JavaScript courte) ou un <strong>nœud Code</strong>
+(JavaScript ou Python) prend le relais à l'intérieur même du workflow.</p>
+<p>Cette position hybride a une conséquence pratique pour cette formation : aucune
+compétence de développement n'est exigée pour démarrer, et pourtant rien n'est
+bloquant quand le besoin devient pointu. Le stagiaire progresse du visuel vers le
+code à son rythme, sans changer d'outil.</p>
+<h3>Comparatif des approches</h3>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Critère</th>
+<th>No-code</th>
+<th>Low-code (n8n)</th>
+<th>Full-code</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Profil de l'utilisateur</td>
+<td>Métier</td>
+<td>Métier technique, développeur</td>
+<td>Développeur</td>
+</tr>
+<tr>
+<td>Vitesse de mise en route</td>
+<td>Très rapide</td>
+<td>Rapide</td>
+<td>Lente</td>
+</tr>
+<tr>
+<td>Cas complexes gérés</td>
+<td>Non</td>
+<td>Oui (code ponctuel)</td>
+<td>Oui (sans limite)</td>
+</tr>
+<tr>
+<td>Maintenance par un tiers</td>
+<td>Facile</td>
+<td>Facile</td>
+<td>Difficile sans le code</td>
+</tr>
+<tr>
+<td>Coût à grande échelle</td>
+<td>Élevé (abonnement par tâche)</td>
+<td>Maîtrisable</td>
+<td>Variable</td>
+</tr>
+<tr>
+<td>Contrôle des données</td>
+<td>Hébergé chez l'éditeur</td>
+<td>Hébergement libre possible</td>
+<td>Libre</td>
+</tr>
+</tbody>
+</table></div>
+<h3>Quand choisir quoi ?</h3>
+<p>Le no-code pur convient aux flux simples et standard, mis en place par des équipes
+métier sans ressource technique. Le full-code se justifie quand la logique est le
+cœur de l'entreprise, avec des exigences fortes de performance ou de tests. Le
+low-code couvre le vaste territoire intermédiaire : des flux qui démarrent simples,
+puis gagnent en exigence — transformations fines, branchements multiples,
+interconnexion avec des outils internes.</p>
+<div class="callout tip"><div class="callout-title">En pratique</div><p>Beaucoup d'organisations combinent les trois approches : du no-code pour un flux
+marketing ponctuel, n8n pour les intégrations entre outils internes, et du code
+pour le produit vendu aux clients. Les approches ne s'opposent pas, elles se
+complètent.</p></div>
+<h3>Le risque du « shadow IT »</h3>
+<p>Quand les équipes métier automatisent sans en parler à la direction des systèmes
+d'information, apparaît une <strong>informatique parallèle</strong> (shadow IT) : des flux dont
+personne n'a la cartographie, qui manipulent parfois des données sensibles, et qui
+cassent silencieusement le jour où une API change. Un outil comme n8n, déployé de
+façon centralisée et visible de tous, est aussi une réponse à ce risque : les
+automatisations deviennent des objets partagés, documentés et supervisés.</p>
+<h3>Données personnelles : la question à poser dès la conception</h3>
+<p>Un workflow qui déplace des coordonnées de clients, de salariés ou de prospects
+manipule des <strong>données personnelles</strong> au sens du RGPD. Trois questions simples,
+à poser avant de construire :</p>
+<ul>
+<li>
+<p>les données transitent-elles <strong>hors de l'Union européenne</strong> (serveurs d'un
+  outil SaaS américain, par exemple) ?</p>
+</li>
+<li>
+<p>le flux est-il <strong>documenté</strong> dans le registre des traitements de
+  l'organisation ?</p>
+</li>
+<li>
+<p>les credentials utilisés donnent-ils un accès <strong>proportionné</strong> au besoin ?</p>
+</li>
+</ul>
+<p>L'auto-hébergement de n8n simplifie la première question : le moteur et les
+journaux restent sur l'infrastructure de l'organisation, et seuls les appels aux
+services connectés franchissent le réseau. Le chapitre 4 revient sur la gestion
+des secrets et la sécurisation des accès.</p>
+</div>
+
+<div id="tab-presentation-de-n8n" class="tab-content">
+<h3>Un outil d'orchestration né en 2019</h3>
+<p>n8n (qui se prononce « nodemation », contraction de <em>node</em> et <em>automation</em>) est un
+outil d'automatisation de workflows créé en 2019 à Berlin par Jan Oberhauser. Il
+est écrit en TypeScript et s'exécute sur Node.js.</p>
+<p>Trois choix fondateurs le distinguent :</p>
+<ul>
+<li>
+<p>le <strong>code source est disponible</strong> : n8n est distribué sous une licence dite
+  <em>fair-code</em> (Sustainable Use License) — utilisation interne libre et gratuite,
+  y compris auto-hébergée, avec restriction sur sa revente comme service ;</p>
+</li>
+<li>
+<p>l'outil est <strong>auto-hébergeable</strong> : il tourne sur votre machine, votre serveur ou
+  votre cloud, et les données ne quittent pas votre infrastructure ;</p>
+</li>
+<li>
+<p>le moteur reste <strong>extensible par le code</strong> : nœud Code, expressions JavaScript,
+  et possibilité de créer ses propres nœuds.</p>
+</li>
+</ul>
+<h3>n8n Cloud ou auto-hébergé ?</h3>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Critère</th>
+<th>n8n Cloud</th>
+<th>Auto-hébergé</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Installation</td>
+<td>Aucune</td>
+<td>Docker, npm… (à votre charge)</td>
+</tr>
+<tr>
+<td>Maintenance et mises à jour</td>
+<td>Assurées par n8n</td>
+<td>À votre charge</td>
+</tr>
+<tr>
+<td>Localisation des données</td>
+<td>Serveurs de l'éditeur (UE)</td>
+<td>Votre infrastructure</td>
+</tr>
+<tr>
+<td>Coût</td>
+<td>Abonnement selon le volume d'exécutions</td>
+<td>Gratuit (licence fair-code) en usage interne</td>
+</tr>
+<tr>
+<td>Accès réseau aux outils internes</td>
+<td>À ouvrir explicitement</td>
+<td>Natif, n8n est dans votre réseau</td>
+</tr>
+<tr>
+<td>Public typique</td>
+<td>Équipes sans infra</td>
+<td>Équipes techniques, contraintes de données</td>
+</tr>
+</tbody>
+</table></div>
+<p>Pour cette formation, l'auto-hébergement local est utilisé : c'est le mode le plus
+formateur, car il expose tous les réglages. Tout ce qui est appris reste
+transposable à n8n Cloud, dont l'interface est identique.</p>
+<h3>Les briques de l'écosystème</h3>
+<p>L'univers n8n s'articule autour de quatre objets, que le chapitre manipulera
+tour à tour :</p>
+<ul>
+<li>les <strong>workflows</strong> : les flux eux-mêmes, dessinés sur le canevas ;</li>
+<li>
+<p>les <strong>credentials</strong> (identifiants) : les clés d'API, comptes et mots de passe,
+  stockés chiffrés et réutilisables d'un workflow à l'autre ;</p>
+</li>
+<li>
+<p>les <strong>exécutions</strong> : l'historique daté de chaque passage d'un workflow, avec les
+  données entrées et sorties de chaque nœud ;</p>
+</li>
+<li>
+<p>les <strong>intégrations natives</strong> : plusieurs centaines de nœuds prêts à l'emploi
+  (plus de 400 : Gmail, Slack, Google Sheets, GitHub, PostgreSQL…), complétés par
+  le nœud générique HTTP Request pour parler à n'importe quelle API.</p>
+</li>
+</ul>
+<p>Autour de l'outil gravitent une bibliothèque de <strong>modèles de workflows</strong> (des
+centaines de flux prêts à adapter), une <strong>communauté</strong> active (forum, nœuds
+communautaires) et une documentation officielle exhaustive — les liens sont
+centralisés dans le fichier Ressources en annexe de ce support.</p>
+<h3>Sous le capot : les composants d'une instance</h3>
+<p>Une instance n8n auto-hébergée, même minimale, réunit quatre composants qu'il est
+utile de distinguer dès maintenant pour comprendre les chapitres suivants :</p>
+<ul>
+<li>
+<p>l'<strong>éditeur</strong> : l'application web servie sur le port 5678, où l'on dessine les
+  workflows ;</p>
+</li>
+<li>
+<p>le <strong>moteur d'exécution</strong> : le processus Node.js qui exécute les workflows,
+  nœud par nœud, quand un déclencheur se manifeste ;</p>
+</li>
+<li>
+<p>la <strong>base de données</strong> : SQLite par défaut — un simple fichier dans le dossier
+  de données — qui stocke les workflows, les credentials chiffrés et l'historique
+  des exécutions ; PostgreSQL la remplace en production (chapitre 4) ;</p>
+</li>
+<li>
+<p>le <strong>dossier de données</strong> (<code>/home/node/.n8n</code> dans le conteneur, <code>~/.n8n</code> en
+  installation npm) : il contient la base SQLite, la clé de chiffrement des
+  credentials et les éventuels fichiers binaires.</p>
+</li>
+</ul>
+<div class="callout danger"><div class="callout-title">La clé de chiffrement est aussi précieuse que les données</div><p>n8n chiffre les credentials avec une clé stockée dans le dossier de données
+(fichier <code>config</code>, variable <code>N8N_ENCRYPTION_KEY</code> si on la fournit soi-même).
+Restaurer une base sur une autre machine <strong>sans</strong> cette clé rend tous les
+credentials illisibles. Sauvegarder le dossier de données, c'est sauvegarder
+la base <strong>et</strong> la clé.</p></div>
+<h3>Face aux autres outils du marché</h3>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th></th>
+<th>n8n</th>
+<th>Zapier</th>
+<th>Make</th>
+<th>Power Automate</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Modèle</td>
+<td>Fair-code, auto-hébergeable</td>
+<td>SaaS propriétaire</td>
+<td>SaaS propriétaire</td>
+<td>SaaS, écosystème Microsoft</td>
+</tr>
+<tr>
+<td>Code possible</td>
+<td>Oui (JS/Python dans le flux)</td>
+<td>Très limité</td>
+<td>Limité (fonctions)</td>
+<td>Expressions</td>
+</tr>
+<tr>
+<td>Branchements complexes</td>
+<td>Oui</td>
+<td>Payant et limité</td>
+<td>Oui</td>
+<td>Oui</td>
+</tr>
+<tr>
+<td>Tarification</td>
+<td>Exécutions (Cloud) / gratuit (self-hosted)</td>
+<td>Par tâche</td>
+<td>Par opération</td>
+<td>Par utilisateur/flux</td>
+</tr>
+<tr>
+<td>Cible</td>
+<td>Équipes techniques et mixtes</td>
+<td>Métier</td>
+<td>Métier et technique</td>
+<td>Entreprises Microsoft 365</td>
+</tr>
+</tbody>
+</table></div>
+<div class="callout note"><div class="callout-title">Un cas concret</div><p>Une PME de vente en ligne reçoit ses commandes dans sa boutique, ses factures
+dans son outil comptable et ses demandes SAV dans sa boîte mail. Aucun de ces
+trois logiciels ne parle nativement aux deux autres. n8n, installé sur un petit
+serveur interne, joue le rôle de traducteur permanent : chaque nouvelle commande
+crée la facture, chaque facture échue déclenche une relance, chaque e-mail SAV
+devient un ticket. C'est précisément le type de flux que vous saurez construire
+à l'issue de cette formation.</p></div>
+</div>
+
+<div id="tab-installation-de-n8n" class="tab-content">
+<h3>Trois portes d'entrée</h3>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Option</th>
+<th>Pour qui</th>
+<th>Prérequis</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>n8n Cloud</td>
+<td>Essai rapide, production sans infra</td>
+<td>Un navigateur</td>
+</tr>
+<tr>
+<td>Docker</td>
+<td>Serveurs, postes de travail outillés</td>
+<td>Docker Desktop ou moteur Docker</td>
+</tr>
+<tr>
+<td>npm</td>
+<td>Postes de développement</td>
+<td>Node.js 20 LTS ou supérieur</td>
+</tr>
+</tbody>
+</table></div>
+<p>La suite du chapitre détaille Docker et npm, les deux modes auto-hébergés utilisés
+pendant la formation. Le formateur indique en début de session lequel est retenu
+pour la salle.</p>
+<h3>Installation avec Docker</h3>
+<p>Docker empaquette n8n et toutes ses dépendances dans un conteneur isolé : c'est le
+mode de déploiement de référence, en formation comme en production.</p>
+<p>Vérifier d'abord que Docker est disponible :</p>
+<div class="code-block"><pre><code class="language-bash">docker --version
+</code></pre><button class="copy-btn" onclick="copyCode(this)">Copier</button></div>
+<p>Puis lancer n8n avec la commande documentée :</p>
+<div class="code-block"><pre><code class="language-bash">docker volume create n8n_data
+
+docker run -it --rm \
+  --name n8n \
+  -p 5678:5678 \
+  -v n8n_data:/home/node/.n8n \
+  docker.n8n.io/n8nio/n8n
+</code></pre><button class="copy-btn" onclick="copyCode(this)">Copier</button></div>
+<p>Chaque élément de cette commande a un rôle précis :</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Élément</th>
+<th>Rôle</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>docker volume create n8n_data</code></td>
+<td>Crée un volume persistant pour les données</td>
+</tr>
+<tr>
+<td><code>-it --rm</code></td>
+<td>Console interactive, conteneur supprimé à l'arrêt (les données survivent, elles sont dans le volume)</td>
+</tr>
+<tr>
+<td><code>--name n8n</code></td>
+<td>Nomme le conteneur pour le manipuler facilement</td>
+</tr>
+<tr>
+<td><code>-p 5678:5678</code></td>
+<td>Expose le port 5678 de n8n sur le port 5678 de la machine</td>
+</tr>
+<tr>
+<td><code>-v n8n_data:/home/node/.n8n</code></td>
+<td>Monte le volume sur le dossier interne où n8n écrit workflows, credentials et base SQLite</td>
+</tr>
+<tr>
+<td><code>docker.n8n.io/n8nio/n8n</code></td>
+<td>L'image officielle, tirée du registre de n8n</td>
+</tr>
+</tbody>
+</table></div>
+<p>Quand la console affiche <code>Editor is now accessible via: http://localhost:5678</code>,
+l'interface est prête. Le navigateur s'ouvre sur cette adresse.</p>
+<div class="callout danger"><div class="callout-title">Ne jamais perdre le volume</div><p>Tout le travail — workflows, credentials, historique d'exécutions — vit dans le
+volume <code>n8n_data</code> (base SQLite par défaut). Lancer le conteneur <strong>sans</strong> <code>-v</code>,
+c'est repartir d'un n8n vierge à chaque redémarrage. En production, ce volume
+fait l'objet de sauvegardes régulières, traitées au chapitre 4.</p></div>
+<p>Pour fixer le fuseau horaire utilisé par les planifications, on ajoute deux
+variables d'environnement au lancement :</p>
+<div class="code-block"><pre><code class="language-bash">docker run -it --rm \
+  --name n8n \
+  -p 5678:5678 \
+  -e GENERIC_TIMEZONE=&quot;Europe/Paris&quot; \
+  -e TZ=&quot;Europe/Paris&quot; \
+  -v n8n_data:/home/node/.n8n \
+  docker.n8n.io/n8nio/n8n
+</code></pre><button class="copy-btn" onclick="copyCode(this)">Copier</button></div>
+<h3>Installation avec npm</h3>
+<p>Sur un poste de développement disposant de Node.js 20 LTS ou supérieur, n8n
+s'installe comme un paquet global :</p>
+<div class="code-block"><pre><code class="language-bash">node --version        # vérifier la version de Node.js
+npm install n8n -g    # installation
+n8n start             # lancement
+</code></pre><button class="copy-btn" onclick="copyCode(this)">Copier</button></div>
+<p>Les données sont alors écrites dans le dossier <code>.n8n</code> du répertoire personnel de
+l'utilisateur. L'interface est la même : <code>http://localhost:5678</code>.</p>
+<h3>Premier démarrage : le compte propriétaire</h3>
+<p>À la toute première ouverture, n8n demande de créer le <strong>compte propriétaire</strong>
+(owner) : adresse e-mail, nom, mot de passe. Ce compte administre l'instance —
+gestion des utilisateurs, des credentials partagés, des réglages.</p>
+<div class="callout warn"><div class="callout-title">Une instance locale, mais un vrai mot de passe</div><p>Même sur <code>localhost</code>, le compte propriétaire protège l'accès à l'éditeur. Sur
+une machine partagée ou une instance exposée au réseau, un mot de passe robuste
+est indispensable : les credentials stockés dans n8n ouvrent l'accès à tous les
+services connectés.</p></div>
+<h3>Le tunnel de développement</h3>
+<p>Les webhooks — abordés plus loin dans ce chapitre — exigent que des services
+extérieurs atteignent votre n8n par une URL publique, ce que <code>localhost</code> ne permet
+pas. Pour les phases de test, n8n fournit un tunnel intégré :</p>
+<div class="code-block"><pre><code class="language-bash">n8n start --tunnel
+</code></pre><button class="copy-btn" onclick="copyCode(this)">Copier</button></div>
+<p>n8n affiche alors une URL publique temporaire du type
+<code>https://xxxx.hooks.n8n.cloud</code>, vers laquelle les webhooks de test sont redirigés.</p>
+<div class="callout danger"><div class="callout-title">Le tunnel n'est pas fait pour la production</div><p>L'URL du tunnel change à chaque démarrage et l'ensemble de l'éditeur devient
+accessible depuis Internet. Le tunnel sert uniquement à tester un webhook
+pendant la construction ; la mise en production repose sur un vrai nom de
+domaine et un reverse proxy — c'est l'objet du chapitre 4.</p></div>
+<h3>Mettre à jour</h3>
+<p>Avec Docker, la mise à jour consiste à tirer la nouvelle image puis relancer le
+conteneur ; le volume conserve les données :</p>
+<div class="code-block"><pre><code class="language-bash">docker pull docker.n8n.io/n8nio/n8n
+# puis relancer la commande docker run habituelle
+</code></pre><button class="copy-btn" onclick="copyCode(this)">Copier</button></div>
+<p>Avec npm : <code>npm update -g n8n</code>. Avant toute mise à jour d'une instance qui compte,
+on consulte les notes de version : n8n publie des <em>breaking changes</em> signalés dans
+son changelog, et le chapitre 4 détaillera une stratégie de mise à jour sûre.</p>
+<h3>Démarrage en tâche de fond avec Docker Compose</h3>
+<p>La commande <code>docker run</code> précédente occupe la console ; dès que l'instance doit
+tourner durablement sur une machine, on la décrit dans un fichier
+<code>docker-compose.yml</code> :</p>
+<div class="code-block"><pre><code class="language-yaml">services:
+  n8n:
+    image: docker.n8n.io/n8nio/n8n
+    restart: unless-stopped
+    ports:
+      - &quot;5678:5678&quot;
+    environment:
+      - GENERIC_TIMEZONE=Europe/Paris
+      - TZ=Europe/Paris
+    volumes:
+      - n8n_data:/home/node/.n8n
+
+volumes:
+  n8n_data:
+</code></pre><button class="copy-btn" onclick="copyCode(this)">Copier</button></div>
+<p>Puis on pilote le service avec deux commandes :</p>
+<div class="code-block"><pre><code class="language-bash">docker compose up -d     # démarrage en arrière-plan
+docker compose logs -f   # suivi des journaux
+docker compose down      # arrêt propre
+</code></pre><button class="copy-btn" onclick="copyCode(this)">Copier</button></div>
+<p>Ce fichier est la première brique du déploiement professionnel présenté au
+chapitre 4, qui y ajoutera PostgreSQL, le reverse proxy HTTPS et la supervision.</p>
+<h3>Vérifier une installation saine</h3>
+<p>Quatre contrôles rapides après chaque installation ou mise à jour :</p>
+<ol>
+<li>l'éditeur répond sur <code>http://localhost:5678</code> (ou l'URL de l'instance) ;</li>
+<li>un workflow de test se sauvegarde et s'exécute sans erreur ;</li>
+<li>
+<p>les journaux du conteneur (<code>docker compose logs -f</code> ou la console) ne montrent
+   pas d'erreur répétée ;</p>
+</li>
+<li>
+<p>le fuseau horaire affiché dans les exécutions correspond au fuseau attendu.</p>
+</li>
+</ol>
+</div>
+
+<div id="tab-tour-de-l-interface" class="tab-content">
+<h3>La page d'accueil (Overview)</h3>
+<p>Après connexion, la page d'accueil invite à créer un <strong>Workflow</strong>, et donne accès via la bouton "Personal" ou oerview, aux
+espaces suivants :</p>
+<ul>
+<li>
+<p><strong>Workflows</strong> : la liste des flux, avec pour chacun son statut (actif ou
+  inactif) et sa date de dernière modification ;</p>
+</li>
+<li>
+<p><strong>Credentials</strong> : les identifiants stockés (clés d'API, comptes OAuth…) ;</p>
+</li>
+<li><strong>Executions</strong> : l'historique de toutes les exécutions, réussies ou en erreur ;</li>
+<li>
+<p><strong>Projects</strong> (projets) : des espaces de rangement pour regrouper workflows et
+  credentials par équipe ou par sujet — la disponibilité dépend de l'édition et
+  de l'offre ;</p>
+</li>
+<li>
+<p><strong>variables</strong>: gestion de variables globales entre workflows — la disponibilité dépend de l'édition et
+  de l'offre ;</p>
+</li>
+<li>
+<p><strong>Data Tables</strong>: gestion de données persistantes pour stocker les données de sorties de workflows </p>
+</li>
+</ul>
+<p>Et sur la barre latérale</p>
+<ul>
+<li><strong>Templates</strong> : la bibliothèque de modèles prêts à importer.</li>
+</ul>
+<h3>Le canevas (canvas)</h3>
+<p>L'éditeur de workflow est un canevas infini sur lequel on pose des <strong>nœuds</strong> et
+qu'on relie par des <strong>connexions</strong>. Trois gestes suffisent pour démarrer :</p>
+<ul>
+<li>
+<p>cliquer sur le bouton <strong>+</strong> (ou faire un clic droit) pour ouvrir le panneau
+  d'ajout de nœuds, doté d'un champ de recherche ;</p>
+</li>
+<li>
+<p><strong>glisser-déposer</strong> le nœud choisi sur le canevas ;</p>
+</li>
+<li>tirer la <strong>poignée de sortie</strong> d'un nœud (le petit cercle à droite) vers la
+  poignée d'entrée du suivant pour créer une connexion.</li>
+</ul>
+<p>Le canevas se parcourt à la souris (molette pour zoomer, clic maintenu pour se
+déplacer) et chaque nœud peut être renommé, déplacé, désactivé ou supprimé.</p>
+<h3>Le panneau de configuration d'un nœud</h3>
+<p>Un double-clic sur un nœud ouvre son panneau de configuration, divisé en trois
+zones :</p>
+<ul>
+<li>à gauche, l'<strong>entrée</strong> (INPUT) : les données reçues du nœud précédent ;</li>
+<li>
+<p>au centre, les <strong>paramètres</strong> du nœud (onglet <em>Parameters</em>) et ses réglages
+  techniques (onglet <em>Settings</em> : réessais, temporisation, exécution unique…) ;</p>
+</li>
+<li>
+<p>à droite, la <strong>sortie</strong> (OUTPUT) : les données produites après exécution.</p>
+</li>
+</ul>
+<p>Chaque nœud embarque un lien vers sa <strong>documentation officielle</strong>, directement
+dans le panneau : inutile de quitter l'éditeur pour comprendre un paramètre.</p>
+<h3>L'onglet Settings d'un nœud</h3>
+<p>Derrière l'onglet <em>Settings</em> de chaque nœud se cachent des réglages d'exécution
+que les débutants ignorent et que les exploitants utilisent tous les jours :</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Réglage</th>
+<th>Effet</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Always Output Data</td>
+<td>Le nœud émet un item même quand son traitement ne produit rien — empêche l'arrêt silencieux d'une branche</td>
+</tr>
+<tr>
+<td>Retry On Fail</td>
+<td>Réessaie automatiquement en cas d'échec, avec nombre de tentatives et délai</td>
+</tr>
+<tr>
+<td>Notes</td>
+<td>Un commentaire libre attaché au nœud, visible au survol</td>
+</tr>
+<tr>
+<td>Node Color</td>
+<td>Une couleur de repérage sur le canevas</td>
+</tr>
+<tr>
+<td>Disabled</td>
+<td>Désactive le nœud sans le supprimer — les données le traversent sans traitement</td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>Always Output Data</strong> et <strong>Retry On Fail</strong>, en particulier, reviendront au
+chapitre 3 dans la boîte à outils de la fiabilisation : le premier rend visibles
+les cas « zéro résultat », le second absorbe les défaillances passagères des API.</p>
+<h3>Exécuter et inspecter</h3>
+<p>Deux boutons pilotent l'exécution en cours de construction :</p>
+<ul>
+<li>
+<p><strong>Test workflow</strong> (ou <em>Execute workflow</em>) : lance une exécution manuelle de
+  tout le flux ;</p>
+</li>
+<li>
+<p><strong>Test step</strong>, sur un nœud donné : n'exécute que ce nœud, en réutilisant les
+  données déjà présentes en amont.</p>
+</li>
+</ul>
+<p>Après exécution, chaque nœud arbore un indicateur vert (succès) ou rouge (erreur),
+et l'onglet OUTPUT affiche les données produites sous trois vues : <strong>Table</strong>
+(tabulaire), <strong>JSON</strong> (arborescence brute) et <strong>Schema</strong> (types des champs).</p>
+<h3>L'historique des exécutions</h3>
+<p>La page <strong>Executions</strong> liste chaque passage d'un workflow : date, durée, statut
+(succès, erreur, en cours), mode (manuel ou automatique). Ouvrir une exécution
+rejoue le flux tel qu'il s'est déroulé : pour chaque nœud, on relit les données
+d'entrée et de sortie telles qu'elles étaient <strong>à cet instant</strong> — c'est l'outil de
+diagnostic principal quand un flux actif se comporte de façon inattendue.</p>
+<p>Deux réglages, détaillés au chapitre 4, gouvernent cet historique : sa <strong>durée de
+rétention</strong> et le <strong>volume de données conservées</strong> par exécution. Sur une instance
+active, l'historique grandit vite : sa maîtrise fait partie de l'exploitation
+courante.</p>
+<h3>L'historique des versions</h3>
+<p>L'éditeur conserve l'historique des versions sauvegardées d'un workflow
+(<em>Workflow history</em>, selon l'édition). On y compare deux versions et on restaure
+un état antérieur après une modification malencontreuse. Cette fonction ne
+remplace pas une vraie sauvegarde externe — traitée au chapitre 4 — mais elle
+dépanne au quotidien.</p>
+<h3>Organiser ses workflows au fil de l'eau</h3>
+<p>Dès que l'instance compte plus d'une dizaine de flux, la liste Workflows devient
+illlisible sans méthode de rangement. Trois réflexes simples :</p>
+<ul>
+<li>
+<p>un <strong>préfixe de nommage</strong> par domaine — <code>RH - …</code>, <code>FIN - …</code>, <code>SUP - …</code> — qui
+  groupe visuellement les flux d'un même périmètre ;</p>
+</li>
+<li>
+<p>les <strong>étiquettes</strong> (tags), pour marquer un état (<code>à revoir</code>, <code>production</code>) ou
+  un service, et filtrer la liste ;</p>
+</li>
+<li>
+<p>les <strong>Projects</strong> quand l'édition le permet, pour séparer nettement les espaces
+  de plusieurs équipes et déléguer les droits.</p>
+</li>
+</ul>
+<p>Cette discipline, prise dès le deuxième workflow créé, évite la page d'accueil
+anarchique qui décourage la maintenance — et elle rend la recherche instantanée.</p>
+<h3>Raccourcis utiles</h3>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Raccourci (Windows/Linux)</th>
+<th>Raccourci (macOS)</th>
+<th>Effet</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>Ctrl + S</code></td>
+<td><code>Cmd + S</code></td>
+<td>Sauvegarder le workflow</td>
+</tr>
+<tr>
+<td><code>Ctrl + Entrée</code></td>
+<td><code>Cmd + Entrée</code></td>
+<td>Exécuter le workflow</td>
+</tr>
+<tr>
+<td><code>Ctrl + O</code></td>
+<td><code>Cmd + O</code></td>
+<td>Ouvrir un workflow existant</td>
+</tr>
+<tr>
+<td><code>Ctrl + Z</code></td>
+<td><code>Cmd + Z</code></td>
+<td>Annuler</td>
+</tr>
+<tr>
+<td><code>Ctrl + Maj + Z</code></td>
+<td><code>Cmd + Maj + Z</code></td>
+<td>Rétablir</td>
+</tr>
+</tbody>
+</table></div>
+<div class="callout tip"><div class="callout-title">Le réflexe sauvegarde</div><p>Un workflow modifié mais non sauvegardé porte une marque dans l'onglet. Une
+exécution de test s'appuie sur l'état courant de l'éditeur, mais un workflow
+<strong>actif</strong> n'exécute que sa dernière version sauvegardée : <code>Ctrl + S</code> avant de
+tester, <code>Ctrl + S</code> avant d'activer.</p></div>
+</div>
+
+<div id="tab-structure-d-un-workflow" class="tab-content">
+<h3>Trois ingrédients : nœuds, connexions, données</h3>
+<p>Un workflow n8n est un graphe orienté construit sur le canevas :</p>
+<ul>
+<li>
+<p>un <strong>nœud déclencheur</strong> (trigger) qui met le flux en marche — manuellement, sur
+  rendez-vous, ou sur événement extérieur ;</p>
+</li>
+<li>
+<p>des <strong>nœuds d'action</strong> qui lisent, transforment ou écrivent des données ;</p>
+</li>
+<li>des <strong>connexions</strong> qui relient les sorties aux entrées et imposent l'ordre de
+  passage.</li>
+</ul>
+<p><img alt="Anatomie d'un workflow n8n : déclencheur, nœuds d'action et sortie" src="../08-images/ch1-anatomie-workflow.svg" /></p>
+<p>Le schéma ci-dessus résume la règle d'or : les données <strong>circulent de gauche à
+droite</strong>, de nœud en nœud. Le déclencheur produit les premières données ; chaque
+nœud d'action reçoit le tableau produit par le précédent, le traite, puis émet son
+propre tableau, jusqu'à l'extrémité du flux.</p>
+<p>Un workflow comporte <strong>au moins un</strong> déclencheur ; il peut en contenir plusieurs
+(par exemple un déclencheur planifié <em>et</em> un webhook, qui alimentent le même
+traitement). À l'inverse, un flux sans déclencheur ne peut ni être exécuté en test
+ni être activé.</p>
+<h3>Travailler proprement sur le canevas</h3>
+<p>Un workflow se lit comme un plan : sa lisibilité conditionne sa maintenance. Trois
+habitudes à prendre dès le premier jour :</p>
+<ul>
+<li>
+<p><strong>renommer chaque nœud</strong> avec un verbe d'action — « Récupérer les commandes »
+  plutôt que « HTTP Request » : l'historique d'exécution et les expressions
+  citent les nœuds par leur nom ;</p>
+</li>
+<li>
+<p><strong>aligner et espacer</strong> les nœuds, en regroupant les zones fonctionnelles ;</p>
+</li>
+<li>documenter les zones délicates avec des <strong>notes autocollantes</strong> (sticky notes),
+  posées librement sur le canevas.</li>
+</ul>
+<h3>Un exemple lu de bout en bout</h3>
+<p>Pour fixer la lecture d'un graphe, voici un flux classique de synchronisation
+quotidienne, tel qu'on le construirait au chapitre 2 :</p>
+<ol>
+<li>un <strong>Schedule Trigger</strong> se réveille chaque nuit à 2 h ;</li>
+<li>un nœud <strong>Google Sheets</strong> lit les nouvelles lignes d'un tableur de prospects ;</li>
+<li>un nœud <strong>IF</strong> écarte les lignes dont le champ e-mail est vide ;</li>
+<li>un nœud <strong>Edit Fields</strong> normalise la casse des adresses ;</li>
+<li>un nœud <strong>CRM</strong> (HubSpot, Pipedrive…) crée ou met à jour le contact ;</li>
+<li>un nœud <strong>Slack</strong> prévient l'équipe commerciale du nombre de contacts traités.</li>
+</ol>
+<p>Chaque flèche du dessin correspond à une étape de cette liste ; chaque étape
+correspond à un nœud nommé par un verbe. Lire un workflow inconnu consiste
+exactement à produire cette liste à partir du canevas — compétence que les
+ateliers entraînent à chaque chapitre.</p>
+<h3>Branches parallèles</h3>
+<p>Un nœud peut alimenter <strong>plusieurs connexions sortantes</strong> : après la lecture des
+prospects, une branche alimente le CRM pendant qu'une autre archive les lignes
+brutes dans un dossier. n8n exécute alors les branches l'une après l'autre, dans
+l'ordre de leurs connexions, chacune partant de la même copie des données.</p>
+<p>Cette propriété permet de traiter des effets de bord indépendants — notifier,
+archiver, compter — sans dupliquer l'amont du flux. La <strong>fusion</strong> de branches
+(convergence vers un nœud commun) fait appel au nœud <strong>Merge</strong>, étudié au
+chapitre 3 avec les parcours conditionnels avancés.</p>
+<h3>Actif ou inactif : deux états bien distincts</h3>
+<p>Un workflow possède un interrupteur <strong>Active / Inactive</strong> en haut de l'éditeur :</p>
+<ul>
+<li><strong>inactif</strong>, il ne réagit à rien — seul le bouton de test peut l'exécuter ;</li>
+<li><strong>actif</strong>, ses déclencheurs sont branchés au réel : le déclencheur planifié se
+  met à l'heure, le webhook écoute son URL de production, les déclencheurs
+  d'applications interrogent leurs services.</li>
+</ul>
+<p>Toute modification d'un workflow actif exige une <strong>sauvegarde</strong> pour être prise en
+compte ; l'exécution automatique repart de la dernière version sauvegardée.</p>
+</div>
+
+<div id="tab-le-modele-de-donnees-les-items" class="tab-content">
+<h3>Un tableau d'objets JSON</h3>
+<p>Entre deux nœuds, les données voyagent dans un <strong>tableau d'items</strong>. Chaque item
+est un objet qui porte au minimum une clé <code>json</code>, contenant les données
+structurées, et éventuellement une clé <code>binary</code> pour les fichiers (pièce jointe,
+image, PDF).</p>
+<p><img alt="Le modèle de données n8n : un tableau d'items transmis de nœud en nœud" src="../08-images/ch1-modele-items.svg" /></p>
+<p>Le schéma ci-dessus illustre la mécanique fondamentale : un nœud qui reçoit un
+tableau de trois items <strong>s'exécute trois fois en interne</strong>, une fois par item,
+puis émet le tableau des trois résultats. Trois clients en entrée d'un nœud
+« Envoyer un e-mail » produisent trois e-mails, sans écrire la moindre boucle.</p>
+<p>Cette exécution implicitement répétée est l'un des concepts les plus puissants de
+n8n : on raisonne toujours sur <strong>un</strong> item — « prendre le champ <code>email</code> de l'item
+courant » — et le moteur applique la logique à tous.</p>
+<h3>Anatomie détaillée d'un item</h3>
+<p>Voici un item complet, tel qu'on le lirait dans la vue JSON d'une sortie de nœud :</p>
+<div class="code-block"><pre><code class="language-json">{
+  &quot;json&quot;: {
+    &quot;nom&quot;: &quot;Dupont&quot;,
+    &quot;email&quot;: &quot;a.dupont@exemple.fr&quot;,
+    &quot;commandes&quot;: 3,
+    &quot;actif&quot;: true
+  },
+  &quot;binary&quot;: {
+    &quot;piece_jointe&quot;: {
+      &quot;data&quot;: &quot;...&quot;,
+      &quot;mimeType&quot;: &quot;application/pdf&quot;,
+      &quot;fileName&quot;: &quot;contrat.pdf&quot;
+    }
+  },
+  &quot;pairedItem&quot;: { &quot;item&quot;: 0 }
+}
+</code></pre><button class="copy-btn" onclick="copyCode(this)">Copier</button></div>
+<p>Trois zones à reconnaître :</p>
+<ul>
+<li>
+<p><strong><code>json</code></strong> : les données structurées, un objet dont les champs sont libres —
+  c'est là que vivent 95 % des données manipulées dans cette formation ;</p>
+</li>
+<li>
+<p><strong><code>binary</code></strong> : zéro ou plusieurs fichiers, chacun identifié par une clé (ici
+  <code>piece_jointe</code>), avec son type MIME et son contenu encodé ;</p>
+</li>
+<li>
+<p><strong><code>pairedItem</code></strong> : la traçabilité interne de n8n — à quel item de la sortie
+  amont cet item correspond-il, ce qui permet à l'éditeur de suivre la ligne de
+  vie d'une donnée à travers les transformations.</p>
+</li>
+</ul>
+<h3>Inspecter les données dans l'éditeur</h3>
+<p>Après chaque exécution de test, l'onglet OUTPUT d'un nœud affiche son tableau
+d'items. Trois vues permettent de l'examiner :</p>
+<ul>
+<li>
+<p><strong>Table</strong> : chaque item est une ligne, chaque champ une colonne — la vue la
+  plus parlante pour des données homogènes ;</p>
+</li>
+<li>
+<p><strong>JSON</strong> : la structure brute, repliable, indispensable pour les données
+  imbriquées ;</p>
+</li>
+<li>
+<p><strong>Schema</strong> : la liste des champs et leurs types, pratique pour repérer un
+  champ mal orthographié.</p>
+</li>
+</ul>
+<p>En phase de construction, on exécute le flux nœud par nœud (<strong>Test step</strong>) et on
+vérifie à chaque étape que le tableau contient bien ce qu'on attend : nombre
+d'items, noms des champs, types.</p>
+<h3>Épingler des données pour travailler hors ligne</h3>
+<p>Tester un nœud en bout de chaîne oblige normalement à ré-exécuter tout l'amont —
+avec le risque d'appeler une API réelle à chaque essai. La fonction
+d'<strong>épinglage</strong> (pin) fige la sortie d'un nœud : aux exécutions suivantes, le
+nœud épinglé n'est plus appelé, ce sont ses données figées qui alimentent la
+suite. Un icône d'épingle dans le panneau de sortie active ce mode.</p>
+<div class="callout tip"><div class="callout-title">Épingler dès que l'amont est stable</div><p>Dès qu'un appel d'API retourne un jeu de données représentatif, on l'épingle.
+Les itérations sur les nœuds en aval deviennent instantanées, sans solliciter
+le service externe — et sans risque d'écrire dans un système réel pendant les
+essais. L'épingle se retire d'un clic avant l'activation.</p></div>
+<h3>Deux pièges classiques</h3>
+<div class="callout warn"><div class="callout-title">Un tableau vide arrête la branche</div><p>Si un nœud retourne <strong>zéro item</strong> — un filtre trop strict, une recherche sans
+résultat — les nœuds en aval ne s'exécutent pas du tout : il n'y a aucun item
+à traiter. Ce comportement, logique une fois compris, surprend : un workflow
+qui « ne fait rien » a souvent, en amont, un nœud qui a silencieusement vidé
+le tableau.</p></div>
+<div class="callout warn"><div class="callout-title">Les données binaires ne suivent pas toujours</div><p>Les fichiers (clé <code>binary</code>) ne traversent pas tous les nœuds automatiquement.
+Certains nœuds consomment ou produisent uniquement du JSON. Quand un fichier
+semble « disparaître » en cours de flux, on vérifie dans la sortie de chaque
+nœud la présence de l'onglet Binary.</p></div>
+</div>
+
+<div id="tab-les-declencheurs" class="tab-content">
+<h3>Quatre familles</h3>
+<p>Le déclencheur est le nœud qui met le flux en marche. n8n en propose quatre
+familles, couvrant tous les cas d'usage :</p>
+<p><img alt="Les quatre familles de déclencheurs : manuel, planifié, webhook et événement applicatif" src="../08-images/ch1-familles-declencheurs.svg" /></p>
+<ul>
+<li>
+<p>le <strong>déclencheur manuel</strong> (Manual Trigger) : il se déclenche au clic sur
+  « Test workflow » et sert à la construction et aux essais ;</p>
+</li>
+<li>
+<p>le <strong>déclencheur planifié</strong> (Schedule Trigger) : il lance le flux à intervalles
+  réguliers — toutes les heures, tous les lundis à 8 h, selon une expression
+  cron — et couvre les traitements de fond (rapports, synchronisations) ;</p>
+</li>
+<li>
+<p>le <strong>webhook</strong> : n8n expose une URL HTTP ; tout système capable d'émettre une
+  requête HTTP peut ainsi déclencher le flux en temps réel ;</p>
+</li>
+<li>
+<p>les <strong>déclencheurs d'applications</strong> (App Trigger : Gmail, Slack, GitHub…) :
+  ils réagissent à un événement dans un service précis — nouvel e-mail, nouveau
+  message, nouvelle demande.</p>
+</li>
+</ul>
+<h3>Polling ou push : deux façons d'être informé</h3>
+<p>Le schéma précédent distingue, sous les familles, deux mécanismes par lesquels un
+événement externe parvient à n8n :</p>
+<ul>
+<li>
+<p>l'<strong>interrogation</strong> (polling) : n8n interroge le service à intervalle régulier
+  — « y a-t-il du nouveau ? ». Simple à configurer, mais l'événement est détecté
+  au prochain passage, et chaque interrogation consomme un appel d'API ;</p>
+</li>
+<li>
+<p>la <strong>notification</strong> (push) : le service appelle immédiatement l'URL du webhook
+  n8n dès que l'événement se produit. Détection en temps réel, sans appels
+  inutiles, mais le service doit savoir émettre des webhooks.</p>
+</li>
+</ul>
+<p>Certains déclencheurs d'applications proposent les deux modes ; le choix se fait
+dans les paramètres du nœud, en fonction des capacités du service.</p>
+<h3>Le nœud Webhook en pratique</h3>
+<p>Le nœud Webhook expose deux URL, visibles dans son panneau de paramètres :</p>
+<ul>
+<li>
+<p>une <strong>URL de test</strong> (contenant <code>/webhook-test/</code>), active uniquement pendant
+  l'écoute de test — quand on clique « Listen for test event » dans l'éditeur ;</p>
+</li>
+<li>
+<p>une <strong>URL de production</strong> (contenant <code>/webhook/</code>), active dès que le workflow
+  est <strong>activé</strong>.</p>
+</li>
+</ul>
+<p>Ses paramètres principaux :</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Paramètre</th>
+<th>Rôle</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>HTTP Method</td>
+<td>GET, POST, PUT, DELETE… selon ce qu'émet l'appelant</td>
+</tr>
+<tr>
+<td>Path</td>
+<td>Le chemin de l'URL, unique par instance en production</td>
+</tr>
+<tr>
+<td>Respond</td>
+<td>Quand répondre à l'appelant : immédiatement, à la fin du flux, ou via un nœud dédié</td>
+</tr>
+<tr>
+<td>Authentication</td>
+<td>Aucune, en-tête, Basic Auth… pour restreindre l'accès</td>
+</tr>
+</tbody>
+</table></div>
+<p>Pendant l'écoute de test, un simple appel <code>curl</code> depuis un terminal suffit à
+vérifier la mécanique :</p>
+<div class="code-block"><pre><code class="language-bash">curl -X POST http://localhost:5678/webhook-test/mon-premier-test \
+  -H &quot;Content-Type: application/json&quot; \
+  -d '{&quot;evenement&quot;: &quot;essai&quot;, &quot;valeur&quot;: 42}'
+</code></pre><button class="copy-btn" onclick="copyCode(this)">Copier</button></div>
+<p>L'éditeur capture la requête et affiche son contenu dans la sortie du nœud : corps
+(<code>body</code>), en-têtes (<code>headers</code>), paramètres d'URL (<code>query</code>). C'est la façon la plus
+rapide de découvrir la structure exacte des données qu'enverra un vrai système —
+on pointe le service réel vers l'URL de test une première fois, on capture, puis
+on construit la suite du flux sur ces données réelles.</p>
+<h3>Planifier avec le Schedule Trigger</h3>
+<p>Le Schedule Trigger empile des <strong>règles</strong> de récurrence : tous les jours à 8 h,
+toutes les 15 minutes, le lundi de chaque semaine… Le mode « Custom (cron) »
+accepte une expression cron classique pour les planifications fines :</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Expression cron</th>
+<th>Signification</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>0 8 * * *</code></td>
+<td>Tous les jours à 8 h 00</td>
+</tr>
+<tr>
+<td><code>0 8 * * 1</code></td>
+<td>Chaque lundi à 8 h 00</td>
+</tr>
+<tr>
+<td><code>*/15 * * * *</code></td>
+<td>Toutes les 15 minutes</td>
+</tr>
+<tr>
+<td><code>0 2 1 * *</code></td>
+<td>Le 1er de chaque mois à 2 h 00</td>
+</tr>
+</tbody>
+</table></div>
+<p>L'heure s'entend dans le fuseau de l'instance (<code>GENERIC_TIMEZONE</code> à
+l'installation) — un point à vérifier systématiquement sur les serveurs, souvent
+réglés par défaut sur UTC.</p>
+<div class="callout warn"><div class="callout-title">L'URL de test n'écoute qu'une fois</div><p>En mode test, le webhook n'attend <strong>qu'une seule requête</strong>, le temps de
+capturer un exemple de données. Passer le workflow en production pour des
+essais répétés est une erreur fréquente : tant que le flux est en construction,
+on réécoute simplement avant chaque envoi de test.</p></div>
+<h3>Choisir le bon déclencheur</h3>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Situation</th>
+<th>Déclencheur adapté</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Construire et déboguer le flux</td>
+<td>Manuel</td>
+</tr>
+<tr>
+<td>Rapport quotidien, synchronisation nocturne</td>
+<td>Planifié</td>
+</tr>
+<tr>
+<td>Un système interne doit pousser un événement</td>
+<td>Webhook</td>
+</tr>
+<tr>
+<td>Réagir à un e-mail, un message, un ticket</td>
+<td>Déclencheur d'application</td>
+</tr>
+<tr>
+<td>Le service ne propose ni webhook ni nœud déclencheur</td>
+<td>Planifié + interrogation par HTTP Request</td>
+</tr>
+</tbody>
+</table></div>
+<h3>Deux questions à se poser avant de choisir</h3>
+<p>Le choix du déclencheur conditionne l'architecture du flux. Deux questions le
+tranchent presque toujours :</p>
+<ul>
+<li>
+<p><strong>qui décide du moment ?</strong> Si c'est un système extérieur (formulaire, boutique,
+  outil de ticketing), le déclencheur est un webhook ou un événement
+  d'application. Si c'est un calendrier (chaque nuit, chaque lundi), c'est le
+  déclencheur planifié ;</p>
+</li>
+<li>
+<p><strong>quel volume ?</strong> Un webhook qui reçoit une requête lance une exécution par
+  requête — mille appels, mille exécutions. Un déclencheur planifié qui lit un
+  fichier de mille lignes ne lance qu'une exécution, traitant mille items. Pour
+  les volumes importants, le traitement par lot planifié est souvent préférable :
+  une exécution, un journal, un point de contrôle.</p>
+</li>
+</ul>
+<div class="callout tip"><div class="callout-title">Un même traitement, plusieurs portes d'entrée</div><p>Rien n'empêche de poser un Schedule Trigger <strong>et</strong> un Webhook sur le même
+workflow : le traitement s'exécute alors à la fois chaque nuit (rattrapage) et
+à chaque événement (temps réel). C'est un motif courant pour les
+synchronisations qui doivent être rapides sans être bavardes.</p></div>
+</div>
+
+<div id="tab-premieres-transformations-de-donnees" class="tab-content">
+<h3>Le nœud Edit Fields (Set)</h3>
+<p>Le nœud <strong>Edit Fields</strong> — appelé <strong>Set</strong> dans les anciennes versions — est le
+couteau suisse de la transformation : il ajoute, modifie, renomme ou supprime des
+champs sur chaque item qui le traverse. Ses deux modes :</p>
+<ul>
+<li>
+<p><strong>Manual Mapping</strong> : on liste les champs à produire, avec pour chacun un nom,
+  un type (chaîne, nombre, booléen, tableau, objet) et une valeur — fixe ou
+  calculée par une expression ;</p>
+</li>
+<li>
+<p><strong>JSON Output</strong> : on décrit directement l'objet JSON résultant.</p>
+</li>
+</ul>
+<p>Une option clé, <strong>Include Input Fields</strong> (ou son pendant « Keep Only Set Fields »
+dans les anciennes versions), décide si les champs d'entrée sont conservés à
+l'identique ou si seuls les champs définis dans le nœud survivent.</p>
+<h3>Les expressions : la formule à la sauce n8n</h3>
+<p>Toute valeur de paramètre peut basculer en <strong>expression</strong> : une formule JavaScript
+encadrée d'accolades doubles, évaluée pour chaque item. Les expressions donnent
+accès aux données du flux :</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Expression</th>
+<th>Signification</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>{{ $json.email }}</code></td>
+<td>Le champ <code>email</code> de l'item courant</td>
+</tr>
+<tr>
+<td><code>{{ $json.address.city }}</code></td>
+<td>Un champ imbriqué</td>
+</tr>
+<tr>
+<td><code>{{ $json.email.toLowerCase() }}</code></td>
+<td>Une méthode JavaScript sur le champ</td>
+</tr>
+<tr>
+<td><code>{{ $node["HTTP Request"].json.total }}</code></td>
+<td>Un champ issu d'un nœud précédent nommé</td>
+</tr>
+<tr>
+<td><code>{{ $('Récupérer les commandes').item.json.id }}</code></td>
+<td>Syntaxe moderne équivalente</td>
+</tr>
+<tr>
+<td><code>{{ $now.toFormat('dd/MM/yyyy') }}</code></td>
+<td>La date du jour formatée</td>
+</tr>
+<tr>
+<td><code>{{ $workflow.name }}</code></td>
+<td>Le nom du workflow courant</td>
+</tr>
+</tbody>
+</table></div>
+<p>L'éditeur d'expressions propose l'<strong>autocomplétion</strong> et permet de <strong>glisser un
+champ</strong> depuis le panneau INPUT vers la formule : n8n écrit le chemin tout seul.
+C'est la méthode recommandée tant que la syntaxe n'est pas familière.</p>
+<h3>Les types de données dans les expressions</h3>
+<p>Les valeurs manipulées ont un type, et chaque type offre ses méthodes JavaScript :</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Type</th>
+<th>Exemple de valeur</th>
+<th>Expressions utiles</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Chaîne (string)</td>
+<td><code>"Dupont"</code></td>
+<td><code>.toUpperCase()</code>, <code>.toLowerCase()</code>, <code>.trim()</code>, <code>.split(",")</code>, <code>.includes("x")</code></td>
+</tr>
+<tr>
+<td>Nombre (number)</td>
+<td><code>42</code></td>
+<td>opérateurs <code>+ - * /</code>, <code>.toFixed(2)</code>, <code>Math.round(x)</code></td>
+</tr>
+<tr>
+<td>Booléen (boolean)</td>
+<td><code>true</code></td>
+<td><code>!</code>, <code>&amp;&amp;</code>, <code>||</code>, comparaisons <code>===</code>, <code>&gt;</code>, <code>&lt;</code></td>
+</tr>
+<tr>
+<td>Tableau (array)</td>
+<td><code>["a", "b"]</code></td>
+<td><code>.length</code>, <code>.join(", ")</code>, <code>.map()</code>, <code>.filter()</code></td>
+</tr>
+<tr>
+<td>Objet (object)</td>
+<td><code>{ "ville": "Lyon" }</code></td>
+<td>accès par <code>.ville</code> ou <code>["ville"]</code></td>
+</tr>
+<tr>
+<td>Date</td>
+<td><code>$now</code> (objet Luxon)</td>
+<td><code>.toFormat("dd/MM/yyyy")</code>, <code>.plus({days: 7})</code></td>
+</tr>
+</tbody>
+</table></div>
+<p>Les dates méritent une attention particulière : n8n les représente avec la
+bibliothèque Luxon. <code>$now</code> désigne l'instant présent, <code>$today</code> le jour courant à
+minuit, et les chaînes de dates reçues des API se convertissent avec
+<code>DateTime.fromISO(...)</code> quand un calcul est nécessaire — le nœud <strong>Date &amp; Time</strong>
+couvre les conversions courantes sans code.</p>
+<h3>Composer des valeurs : concaténation et gabarits</h3>
+<p>Une expression peut assembler plusieurs champs en une seule chaîne, à la manière
+d'un gabarit :</p>
+<div class="code-block"><pre><code class="language-text">{{ &quot;Commande n° &quot; + $json.id + &quot; — &quot; + $json.client.toUpperCase() }}
+</code></pre><button class="copy-btn" onclick="copyCode(this)">Copier</button></div>
+<p>ou avec la syntaxe des gabarits JavaScript :</p>
+<div class="code-block"><pre><code class="language-text">{{ `Commande n° ${$json.id} — ${$json.client.toUpperCase()}` }}
+</code></pre><button class="copy-btn" onclick="copyCode(this)">Copier</button></div>
+<p>C'est le mécanisme utilisé pour construire des sujets d'e-mails, des messages de
+notification ou des clés de rapprochement entre systèmes. Le chapitre 2
+s'appuiera sur cette technique pour formater des messages Slack et des corps de
+courriels complets.</p>
+<div class="callout tip"><div class="callout-title">Lire l'aperçu de l'expression avant de valider</div><p>L'éditeur d'expressions affiche, sous la formule, le <strong>résultat calculé sur
+l'item courant</strong>. Une expression qui affiche <code>undefined</code> ou une valeur
+inattendue dans cet aperçu produira la même chose à l'exécution : on corrige la
+formule tant que l'aperçu n'est pas conforme, au lieu de multiplier les
+exécutions de test.</p></div>
+<div class="callout danger"><div class="callout-title">Un champ inexistant renvoie undefined</div><p>Une faute de frappe dans un nom de champ ne produit pas toujours une erreur
+visible : l'expression retourne <code>undefined</code>, qui se propage silencieusement
+dans les étapes suivantes. Deux réflexes : vérifier la sortie de chaque nœud
+en vue Table, et protéger les accès incertains avec le chaînage optionnel
+(<code>{{ $json.address?.city }}</code>).</p></div>
+<h3>Au-delà de Edit Fields : la famille des transformations</h3>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Nœud</th>
+<th>Usage</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Edit Fields (Set)</td>
+<td>Ajouter, modifier, renommer, supprimer des champs</td>
+</tr>
+<tr>
+<td>Rename Keys</td>
+<td>Renommer des champs en masse</td>
+</tr>
+<tr>
+<td>Sort</td>
+<td>Trier les items sur un champ</td>
+</tr>
+<tr>
+<td>Limit</td>
+<td>Ne garder que les n premiers items</td>
+</tr>
+<tr>
+<td>Remove Duplicates</td>
+<td>Dédupliquer sur un ou plusieurs champs</td>
+</tr>
+<tr>
+<td>Split Out</td>
+<td>Éclater un tableau imbriqué en items séparés</td>
+</tr>
+<tr>
+<td>Aggregate</td>
+<td>Regrouper des items en un seul (concaténer, compter)</td>
+</tr>
+<tr>
+<td>Date &amp; Time</td>
+<td>Convertir et formater des dates</td>
+</tr>
+<tr>
+<td>IF</td>
+<td>Aiguiller les items selon une condition (chapitre 2)</td>
+</tr>
+<tr>
+<td>Code</td>
+<td>Transformation libre en JavaScript ou Python (chapitre 3)</td>
+</tr>
+</tbody>
+</table></div>
+<p>Le réflexe de construction reste identique pour tous : exécuter l'amont, observer
+l'entrée, configurer le nœud, contrôler la sortie en vue Table.</p>
+<h3>Tableaux imbriqués : le réflexe Split Out</h3>
+<p>Les API retournent rarement exactement le format souhaité. Deux situations :</p>
+<ul>
+<li>
+<p>la réponse est <strong>un tableau JSON au premier niveau</strong> — le nœud HTTP Request le
+  convertit automatiquement en items distincts ;</p>
+</li>
+<li>
+<p>le tableau est <strong>imbriqué</strong> dans un objet — par exemple
+  <code>{ "count": 120, "results": [ … ] }</code> : le champ <code>results</code> arrive comme un
+  tableau dans un seul item, et le nœud <strong>Split Out</strong> l'éclate alors en items
+  indépendants, un par élément du tableau.</p>
+</li>
+</ul>
+</div>
+
+<div id="tab-atelier-1-installation-et-decouverte-de-l-interface-n8n" class="tab-content">
+<div class="callout note"><div class="callout-title">Objectif de l'atelier</div><p>Disposer d'une instance n8n locale fonctionnelle, créer le compte propriétaire
+et prendre ses marques sur le canevas. Durée indicative : 1 h 30. Le formateur
+précise le mode d'installation retenu pour la salle (Docker ou npm).</p></div>
+<h3>Étape 1 — Lancer l'instance</h3>
+<ol>
+<li>
+<p>Vérifier le prérequis : <code>docker --version</code> ou <code>node --version</code> selon le mode
+   choisi.</p>
+</li>
+<li>
+<p>Lancer n8n avec la commande correspondante, vue dans la section Installation :</p>
+</li>
+</ol>
+<div class="code-block"><pre><code class="language-bash">docker volume create n8n_data
+docker run -it --rm --name n8n -p 5678:5678 \
+  -e GENERIC_TIMEZONE=&quot;Europe/Paris&quot; -e TZ=&quot;Europe/Paris&quot; \
+  -v n8n_data:/home/node/.n8n \
+  docker.n8n.io/n8nio/n8n
+</code></pre><button class="copy-btn" onclick="copyCode(this)">Copier</button></div>
+<ol>
+<li>Attendre le message <code>Editor is now accessible via: http://localhost:5678</code>.</li>
+</ol>
+<h3>Étape 2 — Créer le compte propriétaire</h3>
+<ol>
+<li>Ouvrir <code>http://localhost:5678</code> dans le navigateur.</li>
+<li>
+<p>Renseigner le formulaire de création du compte propriétaire (e-mail, prénom,
+   nom, mot de passe).</p>
+</li>
+<li>
+<p>Répondre au court questionnaire de personnalisation — il n'a aucun impact
+   technique.</p>
+</li>
+</ol>
+<h3>Étape 3 — Explorer l'interface</h3>
+<ol>
+<li>Parcourir la barre latérale : Workflows, Credentials, Executions, Templates.</li>
+<li>Créer un workflow vide (« Add workflow »), puis :</li>
+<li>ajouter un nœud <strong>Manual Trigger</strong> ;</li>
+<li>ajouter un nœud <strong>Edit Fields</strong> relié au premier ;</li>
+<li>définir dans Edit Fields un champ <code>message</code> de type chaîne, valeur <code>Bonjour</code>.</li>
+<li>Renommer les nœuds en verbes d'action, sauvegarder avec <code>Ctrl + S</code>.</li>
+<li>
+<p>Exécuter avec « Test workflow » et observer la sortie du nœud Edit Fields
+   dans les trois vues : Table, JSON, Schema.</p>
+</li>
+<li>
+<p>Modifier la valeur, ré-exécuter, comparer.</p>
+</li>
+</ol>
+<h3>Étape 4 — Vérifier la persistance</h3>
+<ol>
+<li>Arrêter le conteneur (<code>Ctrl + C</code> dans la console).</li>
+<li>Relancer la même commande <code>docker run</code>.</li>
+<li>Constater que le workflow créé est toujours présent — le volume <code>n8n_data</code> a
+   fait son office.</li>
+</ol>
+<div class="callout tip"><div class="callout-title">Résultat attendu</div><p>À l'issue de l'atelier, chaque stagiaire dispose d'une instance locale qui
+survit aux redémarrages, d'un compte propriétaire, et d'un premier workflow
+exécuté manuellement dont la sortie contient le champ <code>message</code>.</p></div>
+<h3>Points de validation</h3>
+<ul>
+<li>L'interface répond sur <code>http://localhost:5678</code>.</li>
+<li>Un workflow sauvegardé apparaît dans la liste Workflows.</li>
+<li>La sortie du nœud Edit Fields montre un item contenant <code>message</code>.</li>
+<li>Après redémarrage du conteneur, le travail est intact.</li>
+</ul>
+<h3>Dépannage de l'atelier 1</h3>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Symptôme</th>
+<th>Cause probable</th>
+<th>Remède</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>docker: command not found</code></td>
+<td>Docker non installé ou non démarré</td>
+<td>Installer/lancer Docker Desktop, puis rouvrir le terminal</td>
+</tr>
+<tr>
+<td>Port 5678 déjà utilisé</td>
+<td>Une autre instance tourne</td>
+<td><code>docker ps</code> puis <code>docker stop n8n</code>, ou changer le port gauche : <code>-p 5679:5678</code></td>
+</tr>
+<tr>
+<td>Page blanche sur localhost:5678</td>
+<td>n8n encore en démarrage</td>
+<td>Attendre le message <code>Editor is now accessible</code> dans les journaux</td>
+</tr>
+<tr>
+<td>Workflow disparu au redémarrage</td>
+<td>Conteneur lancé sans <code>-v n8n_data:...</code></td>
+<td>Reprendre la commande complète avec le volume</td>
+</tr>
+<tr>
+<td>Heures décalées dans les exécutions</td>
+<td>Fuseau par défaut (UTC)</td>
+<td>Ajouter <code>GENERIC_TIMEZONE</code> et <code>TZ</code> au lancement</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+
+<div id="tab-atelier-2-creation-d-un-premier-workflow-automatise" class="tab-content">
+<div class="callout note"><div class="callout-title">Objectif de l'atelier</div><p>Construire de bout en bout un flux complet et automatisé : récupérer des
+données sur une API publique, les transformer, filtrer celles qui présentent
+un intérêt, et planifier l'exécution quotidienne du tout. Durée indicative :
+2 h. Aucune clé d'API n'est nécessaire.</p></div>
+<h3>Le scénario</h3>
+<p>Le service informatique souhaite surveiller les comptes de démonstration d'une
+API publique : chaque matin, récupérer la liste des utilisateurs publiée par le
+service en ligne JSONPlaceholder, n'en extraire que les champs utiles, ne garder
+que les utilisateurs dont l'entreprise est basée dans une ville donnée, et tenir
+le flux prêt à être branché sur une alerte e-mail (traitée au chapitre 2).</p>
+<p>L'API utilisée est <code>https://jsonplaceholder.typicode.com/users</code> : elle retourne,
+sans authentification, un tableau de dix utilisateurs factices — parfait pour
+apprendre sans risque.</p>
+<h3>Étape 1 — Poser le déclencheur</h3>
+<ol>
+<li>Créer un workflow nommé <code>Surveillance quotidienne des utilisateurs</code>.</li>
+<li>Ajouter un nœud <strong>Manual Trigger</strong> pour la phase de construction ; il sera
+   remplacé par un déclencheur planifié à la dernière étape.</li>
+</ol>
+<h3>Étape 2 — Récupérer les données</h3>
+<ol>
+<li>
+<p>Ajouter un nœud <strong>HTTP Request</strong> relié au déclencheur, le renommer
+   <code>Récupérer les utilisateurs</code>.</p>
+</li>
+<li>
+<p>Configurer : méthode <code>GET</code>, URL <code>https://jsonplaceholder.typicode.com/users</code>.</p>
+</li>
+<li>Exécuter ce seul nœud (« Test step »).</li>
+<li>
+<p>Observer la sortie : la réponse étant un tableau JSON au premier niveau, le
+   nœud produit <strong>dix items</strong>, un par utilisateur.</p>
+</li>
+<li>
+<p>Épingler cette sortie (icône pin) pour travailler ensuite sans rappeler
+   l'API.</p>
+</li>
+</ol>
+<h3>Étape 3 — Transformer</h3>
+<ol>
+<li>Ajouter un nœud <strong>Edit Fields</strong>, renommé <code>Formater les utilisateurs</code>.</li>
+<li>En mode Manual Mapping, produire quatre champs par item :</li>
+<li><code>nom_complet</code> (chaîne) : expression <code>{{ $json.name }}</code> ;</li>
+<li><code>email</code> (chaîne) : expression <code>{{ $json.email.toLowerCase() }}</code> ;</li>
+<li><code>ville</code> (chaîne) : expression <code>{{ $json.address.city }}</code> ;</li>
+<li><code>societe</code> (chaîne) : expression <code>{{ $json.company.name }}</code>.</li>
+<li>Choisir de ne conserver <strong>que</strong> ces champs (champs d'entrée exclus).</li>
+<li>Exécuter et vérifier en vue Table : dix lignes, quatre colonnes propres.</li>
+</ol>
+<h3>Étape 4 — Filtrer</h3>
+<ol>
+<li>Ajouter un nœud <strong>IF</strong>, renommé <code>Filtrer par ville</code>.</li>
+<li>
+<p>Poser la condition : <code>ville</code> (chaîne) — <em>is equal</em> — <code>Gwenborough</code> (ou toute
+   ville présente dans les données épinglées).</p>
+</li>
+<li>
+<p>Exécuter : la sortie <strong>true</strong> ne contient que les utilisateurs de cette
+   ville ; la sortie <strong>false</strong> rassemble les autres.</p>
+</li>
+<li>
+<p>Observer le nombre d'items sur chaque branche, affiché au-dessus des
+   connecteurs de sortie.</p>
+</li>
+</ol>
+<h3>Étape 5 — Planifier et activer</h3>
+<ol>
+<li>
+<p>Remplacer le Manual Trigger par un <strong>Schedule Trigger</strong> : règle
+   « tous les jours », heure <code>08:00</code>.</p>
+</li>
+<li>
+<p>Vérifier le fuseau horaire de l'instance (<code>GENERIC_TIMEZONE</code>, vu à
+   l'installation) : l'heure de planification s'entend dans ce fuseau.</p>
+</li>
+<li>
+<p>Retirer l'épingle du nœud HTTP Request <strong>avant</strong> l'activation.</p>
+</li>
+<li>Sauvegarder, puis basculer le workflow sur <strong>Publish</strong>.</li>
+<li>Revenir sur <strong>Unpublish</strong> après vérification : en salle de formation, on ne publie
+   les flux que le temps de la démonstration.</li>
+</ol>
+<h3>Étape 6 — Relire l'exécution dans l'historique</h3>
+<ol>
+<li>Ouvrir la page <strong>Executions</strong> de l'interface Personal / Overview.</li>
+<li>Retrouver l'exécution manuelle de test du workflow, l'ouvrir.</li>
+<li>
+<p>Rejouer mentalement le flux : pour chaque nœud, comparer le nombre d'items en
+   entrée et en sortie (10 → 10 → 10 → quelques-uns sur la branche true).</p>
+</li>
+<li>
+<p>Identifier où le volume de données change, et pourquoi.</p>
+</li>
+</ol>
+<p>Ce réflexe de relecture — Executions, ouvrir, suivre les items — est celui qui
+servira à diagnostiquer chaque anomalie rencontrée dans les chapitres suivants.</p>
+<div class="callout warn"><div class="callout-title">Épingle et activation</div><p>Un nœud épinglé conserve ses données figées <strong>même en production</strong> : un
+workflow activé avec une épingle en place traiterait indéfiniment le même jeu
+d'essai. La liste de contrôle avant activation comporte toujours : aucune
+épingle, déclencheur correct, dernière version sauvegardée.</p></div>
+<div class="callout tip"><div class="callout-title">Résultat attendu</div><p>Le workflow final enchaîne cinq nœuds — planification, appel HTTP, formatage,
+filtre — et produit, sur la branche « true », un tableau restreint d'items
+propres. Chaque stagiaire sait expliquer le rôle de chaque nœud et lire le
+nombre d'items à chaque étape.</p></div>
+<h3>Extensions proposées par le formateur</h3>
+<ul>
+<li>Ajouter un nœud <strong>Sort</strong> pour trier les utilisateurs filtrés par nom.</li>
+<li>Ajouter un nœud <strong>Aggregate</strong> pour compter les utilisateurs retenus.</li>
+<li>
+<p>Remplacer l'API par <code>https://api.github.com/repos/n8n-io/n8n/releases/latest</code>
+  (objet unique, non tableau) et constater la différence de structure en sortie.</p>
+</li>
+<li>
+<p>Faire varier la ville du filtre et observer les changements de volumes sur
+  chaque branche.</p>
+</li>
+</ul>
+<h3>Dépannage de l'atelier 2</h3>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Symptôme</th>
+<th>Cause probable</th>
+<th>Remède</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Le HTTP Request retourne 1 seul item</td>
+<td>La réponse n'est pas un tableau de premier niveau</td>
+<td>Inspecter la sortie en vue JSON ; ajouter un nœud <strong>Split Out</strong> sur le champ tableau</td>
+</tr>
+<tr>
+<td>Erreur réseau sur l'appel HTTP</td>
+<td>Poste sans accès Internet ou proxy d'entreprise</td>
+<td>Vérifier l'accès sortant ; le formateur fournit un jeu de données de repli</td>
+</tr>
+<tr>
+<td><code>undefined</code> dans un champ formaté</td>
+<td>Faute de frappe dans le chemin (<code>address.city</code>)</td>
+<td>Glisser le champ depuis le panneau INPUT au lieu de le taper</td>
+</tr>
+<tr>
+<td>Le filtre ne laisse rien passer</td>
+<td>Ville absente des données ou casse différente</td>
+<td>Lire la vue Table amont ; comparer en minuscules avec <code>toLowerCase()</code> des deux côtés</td>
+</tr>
+<tr>
+<td>Le workflow actif ne s'est pas exécuté à l'heure dite</td>
+<td>Fuseau horaire de l'instance</td>
+<td>Vérifier <code>GENERIC_TIMEZONE</code> et l'heure affichée dans Executions</td>
+</tr>
+</tbody>
+</table></div>
+<h3>Points de validation</h3>
+<ul>
+<li>Le nœud HTTP Request produit dix items à partir du tableau de l'API.</li>
+<li>Le nœud Edit Fields ne laisse passer que quatre champs, nommés en français.</li>
+<li>Le nœud IF répartit correctement les items entre ses deux sorties.</li>
+<li>Le déclencheur planifié est configuré, et le stagiaire sait expliquer la
+  différence entre exécution de test et workflow actif.</li>
+</ul>
+</div>
+
+<div id="tab-quiz" class="tab-content">
+<div id="quiz-container">
+<div class="quiz-question" id="q1">
+  <h4>Question 1 — Quelle affirmation décrit le mieux l'orchestration de workflows ?</h4>
+  <div class="quiz-options">
+    <button class="quiz-option" onclick="answer(1,'a')">A) L'écriture de scripts Python exécutés à la main par un développeur</button>
+    <button class="quiz-option" onclick="answer(1,'b')">B) L'enchaînement automatisé d'étapes qui transportent et transforment des données entre plusieurs applications, piloté par un moteur central</button>
+    <button class="quiz-option" onclick="answer(1,'c')">C) La sauvegarde planifiée des bases de données de l'entreprise</button>
+    <button class="quiz-option" onclick="answer(1,'d')">D) La création de sites web sans écrire de HTML</button>
+  </div>
+  <div class="quiz-feedback" id="fb1"></div>
+</div>
+<div class="quiz-question" id="q2">
+  <h4>Question 2 — Où se situe n8n sur le spectre no-code / low-code / full-code ?</h4>
+  <div class="quiz-options">
+    <button class="quiz-option" onclick="answer(2,'a')">A) No-code pur : aucune ligne de code n'est possible dans n8n</button>
+    <button class="quiz-option" onclick="answer(2,'b')">B) Full-code : n8n est une bibliothèque JavaScript à importer dans un programme</button>
+    <button class="quiz-option" onclick="answer(2,'c')">C) Low-code : construction visuelle par nœuds, avec possibilité d'injecter expressions JavaScript et nœuds Code</button>
+    <button class="quiz-option" onclick="answer(2,'d')">D) Aucun des trois : n8n est un tableur</button>
+  </div>
+  <div class="quiz-feedback" id="fb2"></div>
+</div>
+<div class="quiz-question" id="q3">
+  <h4>Question 3 — Quel est le rôle du volume <code>n8n_data</code> dans l'installation Docker de n8n ?</h4>
+  <div class="quiz-options">
+    <button class="quiz-option" onclick="answer(3,'a')">A) Accélérer le démarrage du conteneur</button>
+    <button class="quiz-option" onclick="answer(3,'b')">B) Rendre l'éditeur accessible sur le port 5678</button>
+    <button class="quiz-option" onclick="answer(3,'c')">C) Conserver durablement workflows, credentials chiffrés et base SQLite hors du conteneur</button>
+    <button class="quiz-option" onclick="answer(3,'d')">D) Activer le tunnel de développement</button>
+  </div>
+  <div class="quiz-feedback" id="fb3"></div>
+</div>
+<div class="quiz-question" id="q4">
+  <h4>Question 4 — Sur quel port l'éditeur n8n est-il accessible par défaut après un démarrage local ?</h4>
+  <div class="quiz-options">
+    <button class="quiz-option" onclick="answer(4,'a')">A) 3000</button>
+    <button class="quiz-option" onclick="answer(4,'b')">B) 5678</button>
+    <button class="quiz-option" onclick="answer(4,'c')">C) 8080</button>
+    <button class="quiz-option" onclick="answer(4,'d')">D) 443</button>
+  </div>
+  <div class="quiz-feedback" id="fb4"></div>
+</div>
+<div class="quiz-question" id="q5">
+  <h4>Question 5 — Comment les données circulent-elles entre deux nœuds d'un workflow n8n ?</h4>
+  <div class="quiz-options">
+    <button class="quiz-option" onclick="answer(5,'a')">A) Sous forme d'un objet JSON unique, quel que soit le nombre d'enregistrements</button>
+    <button class="quiz-option" onclick="answer(5,'b')">B) Sous forme d'un tableau d'items, chaque item portant au minimum une clé <code>json</code></button>
+    <button class="quiz-option" onclick="answer(5,'c')">C) Sous forme d'un fichier CSV temporaire écrit sur le disque</button>
+    <button class="quiz-option" onclick="answer(5,'d')">D) Sous forme de variables globales nommées partagées par tous les nœuds</button>
+  </div>
+  <div class="quiz-feedback" id="fb5"></div>
+</div>
+<div class="quiz-question" id="q6">
+  <h4>Question 6 — Un nœud reçoit un tableau de 5 items. Combien de fois son traitement s'exécute-t-il ?</h4>
+  <div class="quiz-options">
+    <button class="quiz-option" onclick="answer(6,'a')">A) Une seule fois, sur le tableau complet</button>
+    <button class="quiz-option" onclick="answer(6,'b')">B) Cinq fois, une par item, puis n8n émet le tableau des cinq résultats</button>
+    <button class="quiz-option" onclick="answer(6,'c')">C) Une fois pour le premier item, les quatre autres sont ignorés</button>
+    <button class="quiz-option" onclick="answer(6,'d')">D) Cela dépend du nombre de connexions sortantes du nœud</button>
+  </div>
+  <div class="quiz-feedback" id="fb6"></div>
+</div>
+<div class="quiz-question" id="q7">
+  <h4>Question 7 — Quelle est la différence entre l'URL de test et l'URL de production d'un nœud Webhook ?</h4>
+  <div class="quiz-options">
+    <button class="quiz-option" onclick="answer(7,'a')">A) L'URL de test est chiffrée, l'URL de production ne l'est pas</button>
+    <button class="quiz-option" onclick="answer(7,'b')">B) L'URL de test ne fonctionne que pendant l'écoute de test dans l'éditeur ; l'URL de production devient active quand le workflow est activé</button>
+    <button class="quiz-option" onclick="answer(7,'c')">C) L'URL de test accepte uniquement du GET, l'URL de production uniquement du POST</button>
+    <button class="quiz-option" onclick="answer(7,'d')">D) Aucune différence, les deux URL sont interchangeables</button>
+  </div>
+  <div class="quiz-feedback" id="fb7"></div>
+</div>
+<div class="quiz-question" id="q8">
+  <h4>Question 8 — À quoi sert l'épinglage (pin) des données en sortie d'un nœud ?</h4>
+  <div class="quiz-options">
+    <button class="quiz-option" onclick="answer(8,'a')">A) À empêcher la suppression du nœud par un autre utilisateur</button>
+    <button class="quiz-option" onclick="answer(8,'b')">B) À publier le workflow en production</button>
+    <button class="quiz-option" onclick="answer(8,'c')">C) À figer la sortie du nœud pour que les exécutions de test suivantes réutilisent ces données sans rappeler le service amont</button>
+    <button class="quiz-option" onclick="answer(8,'d')">D) À chiffrer les données sensibles contenues dans l'item</button>
+  </div>
+  <div class="quiz-feedback" id="fb8"></div>
+</div>
+<div class="quiz-question" id="q9">
+  <h4>Question 9 — Que retourne l'expression <code>{{ $json.adresse.ville }}</code> si le champ <code>adresse</code> n'existe pas dans l'item courant ?</h4>
+  <div class="quiz-options">
+    <button class="quiz-option" onclick="answer(9,'a')">A) Une erreur qui arrête toujours le workflow</button>
+    <button class="quiz-option" onclick="answer(9,'b')">B) La chaîne <code>"null"</code></button>
+    <button class="quiz-option" onclick="answer(9,'c')">C) <code>undefined</code>, qui peut se propager silencieusement — d'où l'usage du chaînage optionnel <code>?.</code></button>
+    <button class="quiz-option" onclick="answer(9,'d')">D) La valeur du même champ dans le workflow précédent</button>
+  </div>
+  <div class="quiz-feedback" id="fb9"></div>
+</div>
+<div class="quiz-question" id="q10">
+  <h4>Question 10 — Un workflow n8n actif vient d'être modifié dans l'éditeur, sans être sauvegardé. Que s'exécute-t-il au prochain déclenchement automatique ?</h4>
+  <div class="quiz-options">
+    <button class="quiz-option" onclick="answer(10,'a')">A) La version modifiée affichée dans l'éditeur</button>
+    <button class="quiz-option" onclick="answer(10,'b')">B) La dernière version sauvegardée du workflow</button>
+    <button class="quiz-option" onclick="answer(10,'c')">C) Le workflow passe automatiquement en inactif par sécurité</button>
+    <button class="quiz-option" onclick="answer(10,'d')">D) Une fusion des deux versions</button>
+  </div>
+  <div class="quiz-feedback" id="fb10"></div>
+</div>
+</div>
+<div class="quiz-score" id="quiz-score">
+  <div class="score-num" id="score-display">0 / 10</div>
+  <p id="score-msg"></p>
+  <button class="btn-restart" onclick="restartQuiz()">Recommencer</button>
+</div>
+</div>
+  </div>
+</div>
+
+<script>
+// ─── THEME ──────────────────────────────────────────────────────────────────
+(function () {
+  const root = document.documentElement;
+  const stored = localStorage.getItem('dawan-theme');
+  if (stored) root.setAttribute('data-theme', stored);
+  updateToggleLabel();
+})();
+
+function updateToggleLabel() {
+  const current = document.documentElement.getAttribute('data-theme') ||
+    (window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark');
+  document.getElementById('theme-icon').textContent = current === 'dark' ? '🌙' : '☀️';
+  document.getElementById('theme-label').textContent = current === 'dark' ? 'Sombre' : 'Clair';
+}
+
+function toggleTheme() {
+  const root = document.documentElement;
+  const current = root.getAttribute('data-theme') ||
+    (window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark');
+  const next = current === 'dark' ? 'light' : 'dark';
+  root.setAttribute('data-theme', next);
+  localStorage.setItem('dawan-theme', next);
+  updateToggleLabel();
+}
+
+// ─── TABS ───────────────────────────────────────────────────────────────────
+function showTab(id) {
+  document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+  document.querySelectorAll('.side-nav button').forEach(el => el.classList.remove('active'));
+  document.getElementById('tab-' + id).classList.add('active');
+  event.target.classList.add('active');
+  document.querySelector('.content').scrollTo({ top: 0, behavior: 'instant' });
+}
+
+// ─── COPY CODE ──────────────────────────────────────────────────────────────
+function copyCode(btn) {
+  const pre = btn.previousElementSibling;
+  navigator.clipboard.writeText(pre.textContent).then(() => {
+    btn.textContent = 'Copié !'; btn.classList.add('copied');
+    setTimeout(() => { btn.textContent = 'Copier'; btn.classList.remove('copied'); }, 2000);
+  });
+}
+
+// ─── QUIZ ────────────────────────────────────────────────────────────────────
+const answers = { 1:'b', 2:'c', 3:'c', 4:'b', 5:'b', 6:'b', 7:'b', 8:'c', 9:'c', 10:'b' };
+const feedbacks = {
+  1: { b: "Exact ! L'orchestration désigne précisément la coordination d'étapes franchissant plusieurs applications, avec journalisation et gestion d'erreurs assurées par un moteur central ; les scripts manuels n'offrent ni cette vision centralisée ni ces mécanismes standard.", wrong: "Non. La bonne réponse est B) L'enchaînement automatisé d'étapes qui transportent et transforment des données entre plusieurs applications, piloté par un moteur central — L'orchestration désigne précisément la coordination d'étapes franchissant plusieurs applications, avec journalisation et gestion d'erreurs assurées par un moteur central ; les scripts manuels n'offrent ni cette vision centralisée ni ces mécanismes standard." },
+  2: { c: "Exact ! n8n se construit par glisser-déposer sur un canevas (visuel), mais autorise du code ponctuel — expressions <code>{{ }}</code> et nœud Code en JavaScript ou Python — dès qu'un cas sort des blocs standard.", wrong: "Non. La bonne réponse est C) Low-code : construction visuelle par nœuds, avec possibilité d'injecter expressions JavaScript et nœuds Code — n8n se construit par glisser-déposer sur un canevas (visuel), mais autorise du code ponctuel — expressions <code>{{ }}</code> et nœud Code en JavaScript ou Python — dès qu'un cas sort des blocs standard." },
+  3: { c: "Exact ! Le conteneur est jetable (<code>--rm</code>), le volume <code>n8n_data</code> monté sur <code>/home/node/.n8n</code> survit aux redémarrages et contient tout le travail : workflows, credentials et historique. Sans ce montage, chaque redémarrage repart d'une instance vierge.", wrong: "Non. La bonne réponse est C) Conserver durablement workflows, credentials chiffrés et base SQLite hors du conteneur — Le conteneur est jetable (<code>--rm</code>), le volume <code>n8n_data</code> monté sur <code>/home/node/.n8n</code> survit aux redémarrages et contient tout le travail : workflows, credentials et historique. Sans ce montage, chaque redémarrage repart d'une instance vierge." },
+  4: { b: "Exact ! L'éditeur n8n écoute par défaut sur le port 5678, exposé côté hôte par <code>-p 5678:5678</code> en Docker ; l'URL locale est <code>http://localhost:5678</code>.", wrong: "Non. La bonne réponse est B) 5678 — L'éditeur n8n écoute par défaut sur le port 5678, exposé côté hôte par <code>-p 5678:5678</code> en Docker ; l'URL locale est <code>http://localhost:5678</code>." },
+  5: { b: "Exact ! Le modèle de données de n8n est un tableau d'items ; chaque item contient une clé <code>json</code> (données structurées) et éventuellement une clé <code>binary</code> (fichiers) plus la traçabilité <code>pairedItem</code>.", wrong: "Non. La bonne réponse est B) Sous forme d'un tableau d'items, chaque item portant au minimum une clé <code>json</code> — Le modèle de données de n8n est un tableau d'items ; chaque item contient une clé <code>json</code> (données structurées) et éventuellement une clé <code>binary</code> (fichiers) plus la traçabilité <code>pairedItem</code>." },
+  6: { b: "Exact ! L'exécution par item est la mécanique fondamentale : on écrit la logique pour un item, le moteur l'applique à tous ; cinq clients en entrée d'un nœud d'envoi produisent cinq e-mails sans écrire de boucle.", wrong: "Non. La bonne réponse est B) Cinq fois, une par item, puis n8n émet le tableau des cinq résultats — L'exécution par item est la mécanique fondamentale : on écrit la logique pour un item, le moteur l'applique à tous ; cinq clients en entrée d'un nœud d'envoi produisent cinq e-mails sans écrire de boucle." },
+  7: { b: "Exact ! L'URL de test (contenant <code>/webhook-test/</code>) n'écoute qu'une requête pendant que l'éditeur est en mode « Listen for test event » ; l'URL de production (<code>/webhook/</code>) ne répond qu'une fois le workflow activé.", wrong: "Non. La bonne réponse est B) L'URL de test ne fonctionne que pendant l'écoute de test dans l'éditeur ; l'URL de production devient active quand le workflow est activé — L'URL de test (contenant <code>/webhook-test/</code>) n'écoute qu'une requête pendant que l'éditeur est en mode « Listen for test event » ; l'URL de production (<code>/webhook/</code>) ne répond qu'une fois le workflow activé." },
+  8: { c: "Exact ! L'épingle court-circuite l'exécution réelle du nœud en phase de construction : itérations instantanées en aval, sans solliciter l'API externe. Elle se retire impérativement avant l'activation.", wrong: "Non. La bonne réponse est C) À figer la sortie du nœud pour que les exécutions de test suivantes réutilisent ces données sans rappeler le service amont — L'épingle court-circuite l'exécution réelle du nœud en phase de construction : itérations instantanées en aval, sans solliciter l'API externe. Elle se retire impérativement avant l'activation." },
+  9: { c: "Exact ! Un champ inexistant ne déclenche pas d'erreur visible en première intention : l'expression retourne <code>undefined</code>. Le chaînage optionnel (<code>{{ $json.adresse?.ville }}</code>) et la vue Table de la sortie sont les deux garde-fous.", wrong: "Non. La bonne réponse est C) <code>undefined</code>, qui peut se propager silencieusement — d'où l'usage du chaînage optionnel <code>?.</code> — Un champ inexistant ne déclenche pas d'erreur visible en première intention : l'expression retourne <code>undefined</code>. Le chaînage optionnel (<code>{{ $json.adresse?.ville }}</code>) et la vue Table de la sortie sont les deux garde-fous." },
+  10: { b: "Exact ! Les exécutions automatiques (déclencheurs d'un workflow actif) s'appuient toujours sur la dernière version sauvegardée ; les modifications non sauvegardées dans l'éditeur ne sont prises en compte qu'aux exécutions de test.", wrong: "Non. La bonne réponse est B) La dernière version sauvegardée du workflow — Les exécutions automatiques (déclencheurs d'un workflow actif) s'appuient toujours sur la dernière version sauvegardée ; les modifications non sauvegardées dans l'éditeur ne sont prises en compte qu'aux exécutions de test." }
+};
+const QUIZ_TOTAL = 10;
+let score = 0;
+let answered = {};
+
+function answer(qNum, choice) {
+  if (answered[qNum]) return;
+  answered[qNum] = true;
+  score += (choice === answers[qNum]) ? 1 : 0;
+  const qEl = document.getElementById('q' + qNum);
+  qEl.querySelectorAll('.quiz-option').forEach(btn => {
+    btn.disabled = true;
+    const ltr = btn.textContent.trim()[0].toLowerCase();
+    if (ltr === answers[qNum]) btn.classList.add('correct');
+    else if (ltr === choice) btn.classList.add('wrong');
+  });
+  const fb = feedbacks[qNum];
+  document.getElementById('fb' + qNum).textContent = (choice === answers[qNum]) ? fb[answers[qNum]] : fb.wrong;
+  if (Object.keys(answered).length === QUIZ_TOTAL) showScore();
+}
+
+function showScore() {
+  const el = document.getElementById('quiz-score');
+  el.style.display = 'block';
+  document.getElementById('score-display').textContent = score + ' / ' + QUIZ_TOTAL;
+  const ratio = score / QUIZ_TOTAL;
+  let msg;
+  if (ratio === 1) msg = 'Parfait ! Toutes les réponses sont correctes.';
+  else if (ratio >= .8) msg = 'Très bien ! Vous maîtrisez l\'essentiel.';
+  else if (ratio >= .6) msg = 'Pas mal ! Relisez les points manqués.';
+  else if (ratio >= .4) msg = 'Quelques notions à revoir.';
+  else msg = 'Revoyez le cours avant de continuer.';
+  document.getElementById('score-msg').textContent = msg;
+}
+
+function restartQuiz() {
+  score = 0; answered = {};
+  document.getElementById('quiz-score').style.display = 'none';
+  document.querySelectorAll('.quiz-option').forEach(btn => {
+    btn.disabled = false;
+    btn.classList.remove('correct','wrong');
+  });
+  document.querySelectorAll('.quiz-feedback').forEach(fb => fb.textContent = '');
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,2052 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="Support interactif de formation Automatisation No-Code avec n8n — Initiation + Approfondissement : 03 — Workflows avancés et gestion des erreurs">
+<title>03 — Workflows avancés et gestion des erreurs</title>
+<style>
+:root {
+  --bg: #0d1117; --surface: #161b22; --surface2: #1c2128; --border: #30363d;
+  --primary: #f0883e; --primary2: #ffa657;
+  --success: #3fb950; --warning: #d29922; --danger: #f85149;
+  --text: #e6edf3; --text-muted: #8b949e; --code-bg: #010409; --radius: 10px;
+  --topbar-h: 3.25rem;
+}
+:root[data-theme="light"] {
+  --bg: #ffffff; --surface: #f6f8fa; --surface2: #eaeef2; --border: #d0d7de;
+  --primary: #bc4c00; --primary2: #953800;
+  --success: #1a7f37; --warning: #9a6700; --danger: #cf222e;
+  --text: #1f2328; --text-muted: #656d76; --code-bg: #f6f8fa;
+}
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme="dark"]) {
+    --bg: #ffffff; --surface: #f6f8fa; --surface2: #eaeef2; --border: #d0d7de;
+    --primary: #bc4c00; --primary2: #953800;
+    --success: #1a7f37; --warning: #9a6700; --danger: #cf222e;
+    --text: #1f2328; --text-muted: #656d76; --code-bg: #f6f8fa;
+  }
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body { background: var(--bg); color: var(--text); font-family: system-ui, -apple-system, "Segoe UI", sans-serif; font-size: 15px; line-height: 1.7; transition: background .2s, color .2s; }
+
+/* TOPBAR — fixe, ne bouge jamais au scroll */
+.topbar {
+  position: sticky; top: 0; z-index: 200; height: var(--topbar-h);
+  background: var(--surface); border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; gap: .9rem; padding: 0 1rem;
+}
+.topbar .badge {
+  flex: 0 0 auto; background: var(--primary); color: #0d1117;
+  font-size: 10px; font-weight: 700; letter-spacing: .07em; text-transform: uppercase;
+  padding: 3px 9px; border-radius: 20px; white-space: nowrap;
+}
+.topbar a.chapter-title {
+  flex: 1 1 auto; min-width: 0; display: flex; align-items: baseline; gap: .5rem;
+  text-decoration: none; color: var(--text); font-weight: 700; font-size: .92rem;
+  overflow: hidden;
+}
+.topbar a.chapter-title:hover { color: var(--primary); }
+.topbar a.chapter-title .num { color: var(--primary); flex: 0 0 auto; }
+.topbar a.chapter-title .txt { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.topbar-links { flex: 0 0 auto; display: flex; align-items: center; gap: .5rem; }
+.topbar-link {
+  white-space: nowrap; padding: .4rem .8rem; border: 1px solid var(--border); border-radius: 20px;
+  font-size: .8rem; font-weight: 600; color: var(--text-muted); text-decoration: none; transition: all .2s;
+}
+.topbar-link:hover { color: var(--primary); border-color: var(--primary); }
+.theme-toggle {
+  flex: 0 0 auto; background: var(--surface2); border: 1px solid var(--border); color: var(--text);
+  padding: .4rem .7rem; border-radius: 20px; font-size: .8rem; cursor: pointer;
+  display: inline-flex; align-items: center; gap: .35rem;
+}
+.theme-toggle:hover { border-color: var(--primary); }
+
+/* LAYOUT — sidebar gauche + contenu */
+.layout { display: flex; align-items: flex-start; }
+.sidebar {
+  flex: 0 0 280px; width: 280px;
+  position: sticky; top: var(--topbar-h);
+  height: calc(100vh - var(--topbar-h));
+  overflow-y: auto; border-right: 1px solid var(--border); background: var(--surface);
+  padding: 1.25rem 1rem 2rem;
+}
+.objectifs {
+  background: var(--surface2); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: .8rem 1rem; margin-bottom: 1.25rem;
+}
+.objectifs-label { font-size: .7rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--primary); }
+.objectifs ul { margin: .4rem 0 0 1.1rem; }
+.objectifs li { font-size: .82rem; color: var(--text-muted); margin-bottom: .3rem; line-height: 1.4; }
+.side-nav { display: flex; flex-direction: column; gap: .1rem; }
+.side-nav button {
+  text-align: left; background: none; border: none; border-left: 3px solid transparent;
+  color: var(--text-muted); padding: .55rem .7rem; font-size: .87rem; font-weight: 500;
+  cursor: pointer; border-radius: 0 6px 6px 0; transition: all .15s;
+}
+.side-nav button:hover { color: var(--text); background: var(--surface2); }
+.side-nav button.active { color: var(--primary); border-left-color: var(--primary); background: var(--surface2); font-weight: 600; }
+.side-nav-sep { height: 1px; background: var(--border); margin: .6rem 0; }
+
+.content { flex: 1 1 auto; min-width: 0; }
+.tab-content { display: none; padding: 2rem 2.5rem 4rem; max-width: 1100px; margin: 0 auto; }
+.tab-content.active { display: block; }
+
+/* SECTIONS */
+h2 { font-size: 1.25rem; color: var(--primary2); margin: 1.8rem 0 .8rem; border-left: 3px solid var(--primary); padding-left: .75rem; }
+h3 { font-size: 1.05rem; color: var(--text); margin: 1.4rem 0 .6rem; }
+p { margin-bottom: .9rem; }
+ul, ol { padding-left: 1.4rem; margin-bottom: .9rem; }
+li { margin-bottom: .35rem; }
+
+/* RESSOURCES — liste sous forme de cartes plutôt que de puces */
+#tab-ressources ul { list-style: none; padding-left: 0; display: flex; flex-direction: column; gap: .5rem; }
+#tab-ressources li {
+  background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
+  padding: .75rem 1rem; margin-bottom: 0;
+}
+#tab-ressources li a { color: var(--primary2); font-weight: 600; text-decoration: none; }
+#tab-ressources li a:hover { text-decoration: underline; }
+
+/* AIDE — divulgation progressive pas-à-pas */
+details.aide { margin-top: 1.5rem; border: 1px solid var(--border); border-radius: var(--radius); background: var(--surface); }
+details.aide summary {
+  cursor: pointer; padding: .8rem 1.1rem; font-weight: 600; color: var(--primary);
+  list-style: none; display: flex; align-items: center; gap: .5rem;
+}
+details.aide summary::-webkit-details-marker { display: none; }
+details.aide summary::before { content: "▶"; font-size: .7rem; transition: transform .15s; }
+details.aide[open] summary::before { transform: rotate(90deg); }
+details.aide .aide-body { padding: 0 1.1rem 1.1rem; border-top: 1px solid var(--border); margin-top: .2rem; padding-top: 1rem; }
+img { max-width: 100%; height: auto; display: block; margin: 1rem auto; }
+
+/* EXERCICE — un bloc par atelier, avec son aide pas-à-pas attachée juste en dessous */
+.exercice { padding: 1.3rem 0; border-top: 1px solid var(--border); }
+.exercice:first-of-type { border-top: none; padding-top: 0; }
+.exercice h3 { margin: 0 0 .8rem; color: var(--primary2); }
+
+/* CALLOUTS */
+.callout { border-radius: var(--radius); padding: .9rem 1.1rem; margin: 1.2rem 0; border-left: 4px solid; background: var(--surface2); }
+.callout.note   { border-color: var(--primary); }
+.callout.tip    { border-color: var(--success); }
+.callout.warn   { border-color: var(--warning); }
+.callout.danger { border-color: var(--danger); }
+.callout p:last-child { margin-bottom: 0; }
+.callout-title { font-weight: 700; font-size: .82rem; text-transform: uppercase; letter-spacing: .07em; margin-bottom: .4rem; }
+.callout.note   .callout-title { color: var(--primary); }
+.callout.tip    .callout-title { color: var(--success); }
+.callout.warn   .callout-title { color: var(--warning); }
+.callout.danger .callout-title { color: var(--danger); }
+
+/* TABLES */
+.table-wrap { overflow-x: auto; margin: 1rem 0; }
+table { width: 100%; border-collapse: collapse; font-size: .9rem; }
+th { background: var(--surface2); color: var(--primary2); text-align: left; padding: .6rem .9rem; font-weight: 600; border: 1px solid var(--border); }
+td { padding: .55rem .9rem; border: 1px solid var(--border); vertical-align: top; }
+tr:hover td { background: var(--surface2); }
+
+/* CODE */
+.code-block { position: relative; margin: 1rem 0; }
+pre { background: var(--code-bg); border: 1px solid var(--border); border-radius: var(--radius); padding: 1rem 1rem 1rem 1.2rem; overflow-x: auto; }
+code { font-family: 'Consolas', 'Cascadia Code', monospace; font-size: .88rem; color: var(--primary2); }
+p code, li code, td code { background: var(--code-bg); border: 1px solid var(--border); border-radius: 5px; padding: .05rem .35rem; }
+.copy-btn {
+  position: absolute; top: .5rem; right: .5rem;
+  background: var(--surface2); border: 1px solid var(--border); color: var(--text-muted);
+  padding: .25rem .6rem; font-size: .75rem; border-radius: 5px; cursor: pointer; transition: all .2s;
+}
+.copy-btn:hover { background: var(--primary); color: #0d1117; }
+.copy-btn.copied { background: var(--success); color: #0d1117; }
+
+/* QUIZ */
+.quiz-question { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 1.2rem; margin-bottom: 1.2rem; }
+.quiz-question h4 { color: var(--primary2); margin-bottom: .9rem; font-size: .98rem; }
+.quiz-options { display: flex; flex-direction: column; gap: .5rem; }
+.quiz-option {
+  background: var(--surface2); border: 1px solid var(--border);
+  border-radius: 8px; padding: .6rem .9rem; cursor: pointer;
+  font-size: .9rem; transition: all .2s; text-align: left; color: var(--text);
+}
+.quiz-option:hover:not(:disabled) { border-color: var(--primary); }
+.quiz-option.correct { border-color: var(--success); color: var(--success); }
+.quiz-option.wrong   { border-color: var(--danger);  color: var(--danger);  }
+.quiz-option:disabled { cursor: default; }
+.quiz-feedback { margin-top: .6rem; font-size: .87rem; color: var(--text-muted); font-style: italic; }
+.quiz-score {
+  background: var(--surface2); border: 1px solid var(--primary);
+  border-radius: var(--radius); padding: 1.5rem; text-align: center; margin-top: 1.5rem; display: none;
+}
+.quiz-score .score-num { font-size: 2.5rem; font-weight: 700; color: var(--primary); }
+.quiz-score p { color: var(--text-muted); margin-top: .4rem; }
+.btn-restart { background: var(--primary); color: #0d1117; border: none; padding: .6rem 1.4rem; border-radius: 8px; font-weight: 700; cursor: pointer; margin-top: 1rem; font-size: .9rem; }
+.btn-restart:hover { background: var(--primary2); }
+
+/* RESPONSIVE — sidebar devient une barre horizontale sous 900px */
+@media (max-width: 900px) {
+  .layout { flex-direction: column; }
+  .sidebar {
+    position: static; width: 100%; height: auto; max-height: 40vh;
+    border-right: none; border-bottom: 1px solid var(--border);
+  }
+  .side-nav { flex-direction: row; flex-wrap: nowrap; overflow-x: auto; gap: .3rem; }
+  .side-nav button { border-left: none; border-bottom: 3px solid transparent; white-space: nowrap; border-radius: 6px 6px 0 0; }
+  .side-nav button.active { border-left-color: transparent; border-bottom-color: var(--primary); }
+  .side-nav-sep { display: none; }
+  .tab-content { padding: 1.5rem 1.2rem 3rem; }
+  .topbar a.chapter-title { font-size: .82rem; }
+}
+</style>
+<link rel="stylesheet" href="assets/course-common.css">
+<script src="assets/course-common.js" defer></script>
+</head>
+<body>
+
+<div class="topbar">
+  <span class="badge">Automatisation No-Code avec n8n — Initiation + Approfondissement</span>
+  <a class="chapter-title" href="index.html" title="Retour à l'accueil de la formation">
+    <span class="num">03</span><span class="txt">Workflows avancés et gestion des erreurs</span>
+  </a>
+  <div class="topbar-links">
+    <a href="annexes.html" class="topbar-link">Annexes ↗</a>
+    <a class="topbar-link" href="index.html">Sommaire</a>
+    <button class="theme-toggle" id="theme-toggle" onclick="toggleTheme()" aria-label="Basculer entre thème clair et sombre">
+      <span id="theme-icon">🌙</span> <span id="theme-label">Sombre</span>
+    </button>
+  </div>
+</div>
+
+<div class="layout">
+  <aside class="sidebar">
+    <div class="objectifs"><span class="objectifs-label">Objectifs</span><ul><li>Concevoir des workflows complexes et robustes avec n8n</li><li>Gérer les conditions, boucles et traitements avancés</li><li>Mettre en place une gestion fiable des erreurs et des exceptions</li><li>Exploiter les logs, le suivi d&#x27;exécution et les alertes</li></ul></div>
+    <nav class="side-nav" id="main-nav">
+      <button class="active" onclick="showTab('des-flux-simples-aux-flux-avances')">Des flux simples aux flux avancés</button>
+  <button class="" onclick="showTab('conditions-et-branches-avancees')">Conditions et branches avancées</button>
+  <button class="" onclick="showTab('boucles-et-traitements-par-lots')">Boucles et traitements par lots</button>
+  <button class="" onclick="showTab('parallelisation-et-fusion-de-branches')">Parallélisation et fusion de branches</button>
+  <button class="" onclick="showTab('expressions-avancees')">Expressions avancées</button>
+  <button class="" onclick="showTab('le-nud-code')">Le nœud Code</button>
+  <button class="" onclick="showTab('les-types-d-erreurs')">Les types d&#x27;erreurs</button>
+  <button class="" onclick="showTab('les-mecanismes-de-gestion-des-erreurs')">Les mécanismes de gestion des erreurs</button>
+  <button class="" onclick="showTab('logs-suivi-d-execution-et-alertes')">Logs, suivi d&#x27;exécution et alertes</button>
+  <button class="" onclick="showTab('atelier-5-construire-un-workflow-complexe-avec-conditions-et-boucles')">Atelier 5 — Construire un workflow complexe avec conditions et boucles</button>
+  <button class="" onclick="showTab('atelier-6-fiabiliser-le-fil-rouge-avec-la-gestion-avancee-des-erreurs')">Atelier 6 — Fiabiliser le fil rouge avec la gestion avancée des erreurs</button>
+  <button class="" onclick="showTab('quiz')">Quiz</button>
+    </nav>
+  </aside>
+  <div class="content">
+    <div id="tab-des-flux-simples-aux-flux-avances" class="tab-content active">
+<h3>Ce qui change quand un workflow grandit</h3>
+<p>Les deux premières journées ont produit des flux linéaires ou simplement
+embranchés : un déclencheur, quelques transformations, une condition. Les
+processus réels de l'entreprise ajoutent trois exigences qui changent la donne :</p>
+<ul>
+<li>
+<p>les <strong>volumes</strong> : pas dix items de test, mais trois mille lignes à traiter sans
+  saturer l'API cible ;</p>
+</li>
+<li>
+<p>les <strong>cas particuliers</strong> : la règle principale couvre 80 % des dossiers, les
+  20 % restants exigent des chemins différents — et personne ne peut se permettre
+  de les perdre ;</p>
+</li>
+<li>
+<p>les <strong>pannes</strong> : une API injoignable à 3 h du matin ne doit ni stopper le flux
+  définitivement, ni passer inaperçue.</p>
+</li>
+</ul>
+<p>Cette journée répond à ces trois exigences : le matin avec les constructions
+avancées (boucles, fusions, code), l'après-midi avec la fiabilité (erreurs, logs,
+alertes). Le fil rouge de l'atelier 4 — le routage des demandes — servira de
+terrain d'application : il fonctionne, il va maintenant devenir robuste.</p>
+<h3>La règle d'escalade de la complexité</h3>
+<p>n8n offre quatre niveaux de logique, du plus lisible au plus puissant :</p>
+<ol>
+<li>les <strong>nœuds dédiés</strong> (IF, Switch, Filter, Merge, Loop Over Items) ;</li>
+<li>les <strong>expressions</strong> courtes dans les paramètres ;</li>
+<li>
+<p>le <strong>nœud Code</strong> pour les traitements que ni les nœuds ni les expressions
+   n'expriment lisiblement ;</p>
+</li>
+<li>
+<p>le <strong>découpage en sous-workflows</strong> quand le graphe dépasse la douzaine de
+   nœuds significatifs.</p>
+</li>
+</ol>
+<p>On ne monte d'un niveau que lorsque le niveau inférieur montre ses limites. Un
+nœud Code qui fait ce qu'un Edit Fields fait nativement est une dette de
+maintenance ; un canevas de quarante nœuds qui refuserait un sous-workflow est
+une bombe à retardement.</p>
+<h3>Cartographie des constructions du jour</h3>
+<p>Pour s'y retrouver dans la journée, chaque construction répond à un besoin
+précis — le tableau sert de pense-bête en atelier :</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Besoin</th>
+<th>Construction</th>
+<th>Section</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Question à deux réponses</td>
+<td>IF (conditions typées)</td>
+<td>Conditions</td>
+</tr>
+<tr>
+<td>Aiguillage nommé à N sorties</td>
+<td>Switch (règles, fallback)</td>
+<td>Conditions</td>
+</tr>
+<tr>
+<td>Traiter par paquets espacés</td>
+<td>Loop Over Items + Wait</td>
+<td>Boucles</td>
+</tr>
+<tr>
+<td>Répéter jusqu'à une condition</td>
+<td>Boucle retour + IF borné</td>
+<td>Boucles</td>
+</tr>
+<tr>
+<td>Joindre deux sources sur une clé</td>
+<td>Merge, Matching Fields</td>
+<td>Fusion</td>
+</tr>
+<tr>
+<td>Différencier deux états d'un stock</td>
+<td>Compare Datasets</td>
+<td>Fusion</td>
+</tr>
+<tr>
+<td>Calcul multi-étapes</td>
+<td>Nœud Code (deux modes)</td>
+<td>Code</td>
+</tr>
+<tr>
+<td>Absorber une panne passagère</td>
+<td>Retry On Fail</td>
+<td>Erreurs</td>
+</tr>
+<tr>
+<td>Isoler un item fautif</td>
+<td>Continue On Fail + branche</td>
+<td>Erreurs</td>
+</tr>
+<tr>
+<td>Alerter sur tout échec</td>
+<td>Workflow d'erreur</td>
+<td>Erreurs</td>
+</tr>
+<tr>
+<td>Retrouver une exécution métier</td>
+<td>Données personnalisées</td>
+<td>Logs</td>
+</tr>
+</tbody>
+</table></div>
+<h3>Lire un workflow complexe sans s'y perdre</h3>
+<p>Les ateliers de cette journée commencent souvent par l'ouverture d'un flux
+existant. La méthode de lecture, en quatre passages :</p>
+<ol>
+<li>
+<p><strong>les déclencheurs d'abord</strong> : qu'est-ce qui met ce flux en marche, et à
+   quelle fréquence ? C'est écrit à gauche du canevas ;</p>
+</li>
+<li>
+<p><strong>les sorties ensuite</strong> : qu'est-ce que ce flux produit — écritures,
+   notifications, fichiers ? On part des extrémités droites ;</p>
+</li>
+<li>
+<p><strong>les nœuds de logique enfin</strong> : IF, Switch, Merge, boucles — ce sont eux
+   qui racontent les règles métier ; chacun doit pouvoir être lu comme une
+   question et ses réponses ;</p>
+</li>
+<li>
+<p><strong>l'historique pour vérifier</strong> : une exécution réelle ouverte dans
+   Executions confirme ou corrige la lecture du canevas.</p>
+</li>
+</ol>
+<p>Un flux qui résiste à cette lecture en quatre passages a un problème de
+structure — et le remède est presque toujours le découpage en sous-workflows.</p>
+</div>
+
+<div id="tab-conditions-et-branches-avancees" class="tab-content">
+<h3>Au-delà du IF simple</h3>
+<p>Le chapitre 2 a posé les bases : IF pour une question binaire, Switch pour
+l'aiguillage multiple, Filter pour réduire. Trois motifs complétent la panoplie
+des flux avancés :</p>
+<ul>
+<li>
+<p>les <strong>conditions composées</strong> : plusieurs critères combinés en ET/OU dans un
+  même nœud — par exemple « priorité haute ET (catégorie technique OU
+  facturation) » ; attention, l'éditeur de conditions n8n combine les conditions
+  avec un seul combinateur global : des mélanges ET/OU complexes se décomposent
+  en deux nœuds successifs ou s'expriment dans une expression booléenne ;</p>
+</li>
+<li>
+<p>la <strong>condition calculée</strong> : une expression booléenne unique qui résume une
+  logique touffue, lisible si elle reste courte :
+  <code>{{ $json.montant &gt; 1000 &amp;&amp; $json.client.fidele === true }}</code> ;</p>
+</li>
+<li>
+<p>le <strong>Switch en mode Expression</strong> : une expression qui calcule le numéro de
+  sortie (<code>0</code>, <code>1</code>, <code>2</code>…) — utile quand l'aiguillage dépend d'un score calculé
+  plutôt que d'une égalité de champs.</p>
+</li>
+</ul>
+<div class="callout warn"><div class="callout-title">L'ordre des branches change le résultat</div><p>Dans un Switch en mode règles, la première règle qui correspond l'emporte (sauf
+option « all matching outputs »). Deux règles qui se recouvrent — <code>montant &gt;
+100</code> puis <code>montant &gt; 1000</code> — n'ont pas le même effet selon leur ordre. La
+règle la plus spécifique se place en premier, et le fallback capture le reste.</p></div>
+<h3>Le motif du routeur à deux étages</h3>
+<p>Quand l'aiguillage dépend de deux dimensions indépendantes — l'urgence <strong>et</strong> la
+catégorie — la tentation est de croiser toutes les combinaisons dans un Switch à
+six règles. Le motif plus lisible empile deux questions simples :</p>
+<ol>
+<li>
+<p>un premier nœud (IF) répond à la question qui change tout : « urgent ? » —
+   les urgences partent vers leur chemin court ;</p>
+</li>
+<li>
+<p>un Switch ne s'occupe que des non-urgents : catégorie technique,
+   facturation, autre.</p>
+</li>
+</ol>
+<p>Le graphe reste lisible en diagonale, chaque nœud porte une seule question, et
+l'historique d'exécution raconte le raisonnement étape par étape. La règle
+générale : <strong>une dimension de décision par nœud</strong>.</p>
+<h3>Tester les branches : la discipline des jeux de données</h3>
+<p>Un aiguillage n'est livré que lorsque <strong>chaque sortie</strong> a été exercée avec un
+jeu de test réaliste :</p>
+<ul>
+<li>
+<p>la liste des cas de test se déduit des règles : un item par sortie attendue,
+  plus un item « improbable » pour le fallback ;</p>
+</li>
+<li>
+<p>en phase de construction, on épingle un tableau d'entrée qui contient tous
+  ces cas, puis on vérifie les volumes affichés sur chaque connecteur de
+  sortie ;</p>
+</li>
+<li>
+<p>les cas limites (champ vide, valeur zéro, date égale au seuil exact) font
+  partie du jeu — c'est là que vivent les erreurs de comparaison.</p>
+</li>
+</ul>
+<p>Cette discipline, appliquée à l'atelier 5 puis au fil rouge, est ce qui permet
+d'activer un workflow le vendredi soir sans crainte.</p>
+<h3>Le Switch en mode Expression : un exemple guidé</h3>
+<p>Le mode Expression du Switch calcule le numéro de sortie au lieu d'évaluer des
+règles. Cas typique : un score de priorité calculé en amont pilote l'aiguillage.</p>
+<div class="code-block"><pre><code class="language-text">{{ $json.score &gt;= 80 ? 0 : $json.score &gt;= 50 ? 1 : 2 }}
+</code></pre><button class="copy-btn" onclick="copyCode(this)">Copier</button></div>
+<p>Chaque valeur retournée (0, 1, 2) correspond à une sortie du nœud, dans l'ordre
+d'affichage. Deux précautions rendent ce mode supportable :</p>
+<ul>
+<li>
+<p>une <strong>note</strong> sur le nœud documente la correspondance chiffre → destination
+  (<code>0 = prioritaires, 1 = standard, 2 = différé</code>) ;</p>
+</li>
+<li>
+<p>le <strong>Fallback</strong> reste configuré : une expression qui retourne une valeur hors
+  plage sans fallback perd l'item sans trace.</p>
+</li>
+</ul>
+<p>Quand le calcul tient en une ligne comme ici, le mode Expression est plus lisible
+que trois règles ; dès qu'il s'étoffe, les règles reprennent l'avantage.</p>
+<h3>L'ordre d'exécution des branches</h3>
+<p>Quand un flux se divise en plusieurs branches, n8n ne les exécute pas toutes en
+parallèle : il traite les branches <strong>l'une après l'autre</strong>, en commençant par la
+branche attachée à la connexion la plus anciennement créée (concrètement, celle
+dont le premier nœud a été connecté en premier). Chaque branche est menée à son
+terme — ou jusqu'à ce qu'elle n'ait plus d'items — avant que la suivante ne
+démarre.</p>
+<p>Deux conséquences pratiques :</p>
+<ul>
+<li>
+<p>une branche lente retarde les suivantes ; ce n'est pas du parallélisme réel —
+  la section sur la fusion montrera comment resynchroniser ;</p>
+</li>
+<li>
+<p>l'ordre de création des connexions a un sens : pour le contrôler, on supprime
+  et recrée une connexion, ou on accepte simplement que l'ordre soit
+  transparent dans les logs d'exécution.</p>
+</li>
+</ul>
+</div>
+
+<div id="tab-boucles-et-traitements-par-lots" class="tab-content">
+<h3>La boucle implicite : le défaut n8n</h3>
+<p>Le chapitre 1 l'a posé : chaque nœud traite les items <strong>un par un</strong>, sans boucle
+explicite. Cent contacts en entrée d'un nœud d'envoi produisent cent envois.
+Cette boucle implicite couvre la majorité des besoins — et elle a deux réglages
+méconnus :</p>
+<ul>
+<li>
+<p><strong>Execute Once</strong> (onglet Settings d'un nœud) : le nœud ne s'exécute que pour
+  le <strong>premier</strong> item — utile pour un nœud de notification qui ne doit pas
+  envoyer cent messages ;</p>
+</li>
+<li>
+<p>certains nœuds listent dans leur documentation des opérations qui ne bouclent
+  pas (inserts en masse de certaines bases, nœud Code en mode « tous les
+  items »…) : leur comportement prime sur la règle générale.</p>
+</li>
+</ul>
+<h3>Boucle implicite ou explicite : décider en dix secondes</h3>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Situation</th>
+<th>Réponse</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Traiter chaque item indépendamment, API qui encaisse</td>
+<td>Boucle implicite (défaut)</td>
+</tr>
+<tr>
+<td>Même chose, mais API à quota strict</td>
+<td>Option Batching du nœud, ou Loop Over Items + Wait</td>
+</tr>
+<tr>
+<td>Le traitement d'un lot dépend du résultat du lot précédent</td>
+<td>Boucle conditionnelle (retour arrière + IF)</td>
+</tr>
+<tr>
+<td>Pagination manuelle à curseur</td>
+<td>Boucle conditionnelle bornée par un compteur</td>
+</tr>
+<tr>
+<td>Un seul appel global quel que soit le nombre d'items</td>
+<td>Execute Once dans les Settings du nœud</td>
+</tr>
+</tbody>
+</table></div>
+<h3>La boucle explicite : Loop Over Items</h3>
+<p>Trois situations exigent une vraie boucle construite :</p>
+<ul>
+<li><strong>respecter un quota d'API</strong> : traiter les items par paquets espacés ;</li>
+<li>
+<p><strong>appeler une API qui n'accepte qu'un élément par requête</strong> tout en gardant le
+  contrôle du rythme ;</p>
+</li>
+<li>
+<p><strong>récupérer un résultat par étape</strong> avant de passer à la suivante.</p>
+</li>
+</ul>
+<p>Le nœud <strong>Loop Over Items</strong> (ancien <em>Split In Batches</em>) découpe le tableau
+d'entrée en lots de taille paramétrable (<strong>Batch Size</strong>) et présente deux
+sorties : « loop », qui émet le lot courant vers le traitement, et « done »,
+empruntée quand tous les lots sont écoulés.</p>
+<p><img alt="Le motif boucle par lots : Loop Over Items découpe le tableau, le traitement revient au lot suivant via Wait" src="../08-images/ch3-boucle-par-lots.svg" /></p>
+<p>Le schéma montre le motif canonique documenté : le tableau entre dans Loop Over
+Items ; chaque lot part vers le traitement (ici un appel API) ; un nœud <strong>Wait</strong>
+marque une pause ; la sortie du traitement <strong>revient à l'entrée</strong> de Loop Over
+Items, qui émet alors le lot suivant. La boucle s'arrête d'elle-même — aucun IF
+de fin n'est nécessaire — et la sortie « done » alimente la suite du flux.</p>
+<div class="callout tip"><div class="callout-title">L'alternative sans boucle : l'option Batching</div><p>Pour le seul cas « appeler une API item par item en douceur », l'option
+<strong>Batching</strong> du nœud HTTP Request (chapitre 2 : <em>Items per Batch</em> +
+<em>Batch Interval</em>) produit le même effet sans construire la boucle. Le motif
+Loop Over Items + Wait reste nécessaire quand le traitement du lot dépasse un
+seul appel, ou quand le nœud cible n'a pas d'option Batching.</p></div>
+<h3>La boucle conditionnelle : relier une sortie à l'amont</h3>
+<p>Pour répéter un traitement <strong>jusqu'à</strong> une condition — pagination manuelle,
+sondage d'un statut — on connecte la sortie d'un nœud à l'entrée d'un nœud
+<strong>précédent</strong> du flux, et un IF dans la boucle décide de la poursuite ou de la
+sortie.</p>
+<p>Exemple classique, la pagination à curseur :</p>
+<ol>
+<li>HTTP Request appelle la page courante ;</li>
+<li>un Edit Fields extrait le curseur <code>next</code> de la réponse ;</li>
+<li>un IF teste « le curseur existe-t-il ? » ;</li>
+<li><strong>true</strong> → retour au HTTP Request avec le nouveau curseur ; <strong>false</strong> →
+   sortie de boucle vers la suite.</li>
+</ol>
+<div class="callout danger"><div class="callout-title">Toujours borner une boucle conditionnelle</div><p>Une boucle dont la condition de sortie ne se produit jamais tourne
+indéfiniment — et chaque tour appelle l'API réelle. On ajoute toujours un
+compteur de tours (un champ incrémenté dans la boucle) et une condition
+supplémentaire « nombre de tours &lt; 100 » combinée en ET avec la condition
+métier. Une boucle infinie sur un workflow actif est un incident.</p></div>
+<h3>Le compteur de boucle, pas à pas</h3>
+<p>Concrètement, le garde-fou d'une boucle conditionnelle tient en trois lignes de
+logique :</p>
+<ol>
+<li><strong>avant la boucle</strong>, un Edit Fields initialise <code>tours = 0</code> ;</li>
+<li><strong>dans la boucle</strong>, un Edit Fields calcule <code>tours = {{ Number($json.tours) + 1 }}</code> ;</li>
+<li><strong>l'IF de sortie</strong> combine : condition métier vraie <strong>ET</strong> <code>tours</code> <em>is less
+   than</em> <code>100</code>.</li>
+</ol>
+<p>Le jour où l'API change de format et ne renvoie plus le curseur attendu, la
+boucle s'arrête au centième tour au lieu de frapper le service jusqu'à
+l'épuisement du quota — et le workflow d'erreur reçoit l'échec du centième appel,
+parfaitement identifiable.</p>
+<h3>Agréger après la boucle</h3>
+<p>La boucle émet les résultats par lots ; la suite du flux reçoit souvent besoin
+du tableau complet. Deux nœuds reconstituent l'ensemble :</p>
+<ul>
+<li>
+<p><strong>Aggregate</strong> : regroupe tous les items reçus en un seul (liste, concaténation,
+  comptage) ;</p>
+</li>
+<li>
+<p><strong>Merge en mode Append</strong> ou le nœud Code en mode « tous les items », quand il
+  faut fusionner les lots avec une logique fine.</p>
+</li>
+</ul>
+<p>Le nœud <strong>Summarize</strong>, cousin d'Aggregate, produit les statistiques usuelles
+(somme, moyenne, comptage par catégorie) sans écrire de code.</p>
+<h3>Boucles imbriquées : la limite à ne pas franchir</h3>
+<p>Techniquement, rien n'interdit une boucle dans une boucle — parcourir des
+commandes, et pour chacune, boucler sur ses lignes. En pratique, la lisibilité
+du canevas s'effondre : les retours arrière se croisent, les volumes de chaque
+tour deviennent indécidables, et le moindre dépannage tourne à l'enquête.</p>
+<p>L'alternative qui vieillit bien : la <strong>boucle interne part dans un
+sous-workflow</strong> appelé par Execute Workflow depuis la boucle externe. Chaque
+niveau garde son propre journal d'exécution, se teste isolément, et le canevas
+principal reste dégagé. C'est la même règle que celle du chapitre 2 : une zone
+qui mérite un titre mérite son workflow.</p>
+<h3>Summarize : les statistiques sans code</h3>
+<p>Le nœud Summarize mérite un arrêt : il concentre les quatre opérations de
+reporting les plus demandées :</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Opération</th>
+<th>Résultat</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Count</td>
+<td>Nombre d'items, globalement ou par catégorie</td>
+</tr>
+<tr>
+<td>Sum / Average</td>
+<td>Total ou moyenne d'un champ numérique</td>
+</tr>
+<tr>
+<td>Min / Max</td>
+<td>Les extrêmes d'un champ (dates, montants)</td>
+</tr>
+<tr>
+<td>Concatenate</td>
+<td>La liste des valeurs d'un champ en une chaîne</td>
+</tr>
+</tbody>
+</table></div>
+<p>Combiné à un Split Out préalable sur la catégorie de regroupement, il produit
+en deux nœuds le tableau de bord que beaucoup écriraient en cinquante lignes de
+code — le rapport de l'atelier 5 s'appuie exactement sur cette combinaison.</p>
+</div>
+
+<div id="tab-parallelisation-et-fusion-de-branches" class="tab-content">
+<h3>Branches parallèles : un rappel</h3>
+<p>Le chapitre 1 a montré qu'un nœud peut alimenter plusieurs branches, chacune
+partant d'une copie des mêmes items. Les branches s'exécutent séquentiellement
+mais sont <strong>logiquement parallèles</strong> : chacune voit les données d'entrée, aucune
+ne voit le résultat des autres.</p>
+<p>Ce motif répond à des besoins quotidiens : envoyer un e-mail <strong>et</strong> écrire dans
+le CRM <strong>et</strong> archiver — trois effets de bord indépendants du même événement.</p>
+<div class="callout warn"><div class="callout-title">Le Merge qui attend éternellement</div><p>Le nœud Merge attend la fin de <strong>toutes</strong> ses entrées. Si l'une des branches
+amont se retrouve avec zéro item — un Filter trop strict, une condition qui
+n'a rien laissé passer — cette branche ne s'exécute pas, et le Merge reste
+muet : le flux semble « s'arrêter avant la fin ». La parade est le réglage
+<em>Always Output Data</em> sur le dernier nœud de la branche concernée, ou le choix
+d'un mode de fusion tolérant l'absence. Ce comportement est la première chose
+à vérifier quand un workflow « s'arrête au milieu ».</p></div>
+<h3>Resynchroniser : le nœud Merge</h3>
+<p>Quand les branches doivent se rejoindre — comparer leurs résultats, construire
+une réponse qui agrège les deux — le nœud <strong>Merge</strong> attend que <strong>toutes</strong> ses
+entrées aient terminé, puis combine leurs items selon le mode choisi :</p>
+<p><img alt="Les modes du nœud Merge : Append, jointures par champs, position, et Compare Datasets" src="../08-images/ch3-modes-merge.svg" /></p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Mode</th>
+<th>Effet</th>
+<th>Cas d'usage</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Append</td>
+<td>Concatene les items des entrées, l'une après l'autre</td>
+<td>Deux sources de prospects à traiter ensemble</td>
+</tr>
+<tr>
+<td>Combine — Matching Fields</td>
+<td>Jointure sur la valeur d'un champ : Keep Matches (interne), Keep Everything (externe), Enrich Input 1/2 (gauche/droite), Keep Non-Matches</td>
+<td>Enrichir des commandes avec les fiches clients</td>
+</tr>
+<tr>
+<td>Combine — Position</td>
+<td>Apparie les items par leur rang (0 avec 0, 1 avec 1…)</td>
+<td>Deux listes alignées produites par le même découpage</td>
+</tr>
+<tr>
+<td>Combine — All Possible Combinations</td>
+<td>Produit cartesien des deux entrées</td>
+<td>Générer toutes les variantes (produit × déclinaison)</td>
+</tr>
+<tr>
+<td>SQL Query</td>
+<td>Jointure libre exprimée en SQL (mode avancé)</td>
+<td>Requêtes multi-conditions sur les deux flux</td>
+</tr>
+</tbody>
+</table></div>
+<div class="callout warn"><div class="callout-title">La jointure par position est fragile</div><p>Apparier les items par rang suppose que les deux entrées ont le même nombre
+d'items, dans le même ordre. Un tri différent ou un item filtré en amont
+décale tous les couples suivants. La jointure par <strong>champ correspondant</strong>
+(Matching Fields) est presque toujours la bonne réponse — la position se
+réserve aux cas où aucune clé commune n'existe et où l'ordre est garanti.</p></div>
+<h3>Exemple complet : enrichir des commandes avec leurs clients</h3>
+<p>Le cas d'école de la jointure, pas à pas. La boutique livre des commandes avec
+un <code>client_id</code> ; le CRM livre des fiches clients avec un <code>identifiant</code>. Objectif
+: les commandes enrichies du nom et de l'e-mail du client.</p>
+<ol>
+<li>
+<p>les deux sources sont lues en parallèle (deux branches depuis le
+   déclencheur) ;</p>
+</li>
+<li>
+<p>chaque branche normalise sa clé : un Edit Fields côté boutique produit
+   <code>cle_client = {{ $json.client_id }}</code>, un Edit Fields côté CRM produit
+   <code>cle_client = {{ $json.identifiant }}</code> — la jointure exige des champs <strong>de
+   même nom</strong> dans les deux entrées ;</p>
+</li>
+<li>
+<p>le nœud Merge en mode <em>Combine — Matching Fields</em>, option <strong>Enrich Input 1</strong>,
+   champ <code>cle_client</code>, garde toutes les commandes et y ajoute les données
+   clients correspondantes ;</p>
+</li>
+<li>
+<p>les commandes sans client correspondant traversent quand même (c'est le sens
+   de « Enrich » par rapport à « Keep Matches »), avec des champs clients vides
+   — qu'un IF en aval détecte et route vers la file d'exceptions.</p>
+</li>
+</ol>
+<p>Ce motif — normaliser les clés, puis jointure — est la moitié des
+synchronisations réelles. L'autre moitié est Compare Datasets.</p>
+<h3>Comparer avant de fusionner : Compare Datasets</h3>
+<p>Pour les synchronisations, la question n'est pas « fusionner » mais « qu'est-ce
+qui a changé ? ». Le nœud <strong>Compare Datasets</strong> reçoit deux flux — typiquement
+« état de la source » et « état de la cible » — et produit jusqu'à quatre
+sorties : items <strong>identiques</strong>, items <strong>différents</strong>, items <strong>seulement dans
+A</strong>, items <strong>seulement dans B</strong>.</p>
+<p>Chaque sortie alimente son traitement : les différents partent en mise à jour,
+les « seulement dans A » en création, les « seulement dans B » en suppression ou
+archivage. C'est le squelette standard d'une synchronisation incrémentale, bien
+plus sûr que l'écrasement systématique.</p>
+</div>
+
+<div id="tab-expressions-avancees" class="tab-content">
+<h3>Au-delà de la lecture de champ</h3>
+<p>Le chapitre 1 a posé la syntaxe (<code>{{ $json.champ }}</code>) ; les flux avancés
+demandent des expressions qui calculent. Le référentiel complet vit dans la
+documentation officielle (annexe Ressources) ; voici les formes qui couvrent
+l'essentiel des besoins.</p>
+<h3>L'opérateur ternaire : le IF d'une ligne</h3>
+<div class="code-block"><pre><code class="language-text">{{ $json.montant &gt; 1000 ? &quot;Grand compte&quot; : &quot;Standard&quot; }}
+</code></pre><button class="copy-btn" onclick="copyCode(this)">Copier</button></div>
+<p>Il remplace un nœud IF quand la condition ne sert qu'à produire une <strong>valeur</strong>,
+pas à aiguiller le flux. Au-delà d'une imbrication, on préfère le Switch ou le
+nœud Code — la lisibilité prime.</p>
+<h3>Les méthodes de tableaux : map, filter, reduce</h3>
+<p>Les trois méthodes JavaScript qui transforment les données en profondeur :</p>
+<div class="code-block"><pre><code class="language-text">{{ $json.lignes.map(l =&gt; l.prix * l.quantite) }}
+</code></pre><button class="copy-btn" onclick="copyCode(this)">Copier</button></div>
+<p>produit le tableau des montants par ligne de commande ;</p>
+<div class="code-block"><pre><code class="language-text">{{ $json.lignes.filter(l =&gt; l.stock &gt; 0).map(l =&gt; l.reference) }}
+</code></pre><button class="copy-btn" onclick="copyCode(this)">Copier</button></div>
+<p>enchaîne filtrage et projection — d'abord les lignes en stock, puis leurs
+références ;</p>
+<div class="code-block"><pre><code class="language-text">{{ $json.lignes.reduce((total, l) =&gt; total + l.prix * l.quantite, 0) }}
+</code></pre><button class="copy-btn" onclick="copyCode(this)">Copier</button></div>
+<p>cumule un total. Le dernier argument (<code>0</code>) est la valeur initiale : l'oublier
+sur un tableau vide lève une erreur — piège classique.</p>
+<h3>Interroger le JSON avec JMESPath</h3>
+<p>Pour les structures profondément imbriquées, n8n embarque la bibliothèque
+<strong>JMESPath</strong> via la méthode <code>$jmespath()</code> :</p>
+<div class="code-block"><pre><code class="language-text">{{ $jmespath($json, &quot;items[?prix &gt; `100`].reference&quot;) }}
+</code></pre><button class="copy-btn" onclick="copyCode(this)">Copier</button></div>
+<p>extrait en une expression les références des articles dont le prix dépasse 100.
+JMESPath exprime en une chaîne ce qui demanderait une chaîne
+<code>filter().map()</code> — pratique pour les réponses d'API volumineuses, au prix d'une
+syntaxe spécifique à apprendre.</p>
+<h3>Les dates avec Luxon</h3>
+<p>Les dates manipulées par <code>$now</code> et <code>$today</code> sont des objets <strong>Luxon</strong>, la
+bibliothèque de dates de n8n. Les opérations courantes :</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Besoin</th>
+<th>Expression</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Formater</td>
+<td><code>{{ $now.toFormat('dd/MM/yyyy HH:mm') }}</code></td>
+</tr>
+<tr>
+<td>Ajouter 7 jours</td>
+<td><code>{{ $now.plus({ days: 7 }) }}</code></td>
+</tr>
+<tr>
+<td>Début du mois</td>
+<td><code>{{ $now.startOf('month') }}</code></td>
+</tr>
+<tr>
+<td>Comparer</td>
+<td><code>{{ $json.echeance &lt; $now }}</code></td>
+</tr>
+<tr>
+<td>Parser une chaîne ISO</td>
+<td><code>{{ $json.date.toISO() }}</code> après conversion Date &amp; Time</td>
+</tr>
+</tbody>
+</table></div>
+<div class="callout warn"><div class="callout-title">Chaîne ou date ? Le piège des comparaisons</div><p>Une date reçue d'une API est une <strong>chaîne de caractères</strong> (<code>"2026-03-12"</code>),
+pas un objet date. La comparer directement à <code>$now</code> compare une chaîne à un
+objet — résultat faux ou imprévisible. On convertit d'abord, avec le nœud
+Date &amp; Time ou <code>DateTime.fromISO()</code> dans une expression.</p></div>
+<h3>Références inter-nœuds : pêcher dans l'amont</h3>
+<p>Le chapitre 1 a introduit <code>$node["Nom"].json.champ</code> ; les flux ramifiés exigent
+des formes plus précises :</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Expression</th>
+<th>Contenu</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>{{ $('Récupérer les commandes').item.json }}</code></td>
+<td>L'item lié au courant, produit par un nœud nommé en amont</td>
+</tr>
+<tr>
+<td><code>{{ $('Webhook').first().json.body }}</code></td>
+<td>Le premier item d'un nœud amont, quelle que soit la position</td>
+</tr>
+<tr>
+<td><code>{{ $('Webhook').last().json }}</code></td>
+<td>Le dernier item de ce nœud</td>
+</tr>
+<tr>
+<td><code>{{ $('Liste complète').all() }}</code></td>
+<td>Tous les items d'un nœud amont (tableau)</td>
+</tr>
+<tr>
+<td><code>{{ $items('Nom du nœud') }}</code></td>
+<td>Variante fonctionnelle équivalente</td>
+</tr>
+</tbody>
+</table></div>
+<p>La référence par nom est la façon propre de <strong>reprendre une donnée d'amont après
+un détour</strong> : après un Merge qui a perdu un champ, après une branche qui a
+transformé la structure. Le prix à payer : l'expression casse si le nœud est
+renommé — d'où la règle du chapitre 1, nommer les nœuds tôt et ne plus y
+toucher.</p>
+<h3>Garder les expressions courtes</h3>
+<p>Une expression tient sur une ligne et se lit à voix haute. Au-delà, le nœud
+Code reprend la main. Ce n'est pas une question de possibilité technique —
+l'expression accepterait dix lignes — mais de relecture : l'expression est
+cachée dans un paramètre, le code du nœud Code a droit à un écran entier, des
+commentaires et des <code>console.log</code>.</p>
+<h3>Construire des objets à la volée</h3>
+<p>Les expressions produisent aussi des structures complètes, utiles pour composer
+un corps de requête ou normaliser un item :</p>
+<div class="code-block"><pre><code class="language-text">{{ { &quot;client&quot;: { &quot;nom&quot;: $json.nom, &quot;email&quot;: $json.email.toLowerCase() }, &quot;meta&quot;: { &quot;source&quot;: &quot;boutique&quot;, &quot;importe_le&quot;: $now.toISO() } } }}
+</code></pre><button class="copy-btn" onclick="copyCode(this)">Copier</button></div>
+<p>Trois syntaxes de construction à reconnaître :</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Forme</th>
+<th>Rôle</th>
+<th>Exemple</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Objet littéral</td>
+<td>Structurer des champs</td>
+<td><code>{{ { cle: $json.id } }}</code></td>
+</tr>
+<tr>
+<td>Tableau littéral</td>
+<td>Assembler une liste</td>
+<td><code>{{ [$json.a, $json.b] }}</code></td>
+</tr>
+<tr>
+<td>Décomposition (spread)</td>
+<td>Copier un objet en le modifiant</td>
+<td><code>{{ { ...$json, traite: true } }}</code></td>
+</tr>
+</tbody>
+</table></div>
+<p>Le spread <code>{ ...$json, traite: true }</code> est le motif le plus utile : il conserve
+tous les champs existants et en ajoute un — l'équivalent expression d'un Edit
+Fields en mode « conserver les champs d'entrée ».</p>
+</div>
+
+<div id="tab-le-nud-code" class="tab-content">
+<h3>La porte de sortie du tout-visuel</h3>
+<p>Le nœud <strong>Code</strong> exécute du JavaScript (ou du Python, selon la version et la
+configuration de l'instance) comme une étape du flux. C'est la réponse aux
+traitements que les nœuds dédiés n'expriment pas : restructuration fine d'un
+JSON, déduplication à clé composée, calcul métier touffu.</p>
+<p><img alt="Les deux modes du nœud Code : une exécution pour tous les items, ou une par item" src="../08-images/ch3-code-modes.svg" /></p>
+<h3>Les deux modes, le même contrat</h3>
+<ul>
+<li>
+<p><strong>Run Once for All Items</strong> (défaut) : le code tourne une fois, avec accès au
+  tableau complet via <code>$input.all()</code> — pour agréger, trier, restructurer ;</p>
+</li>
+<li>
+<p><strong>Run Once for Each Item</strong> : le code tourne une fois par item, avec accès à
+  l'item courant via <code>$json</code> — pour transformer chaque item isolement.</p>
+</li>
+</ul>
+<p>Dans les deux cas, la sortie obéit au contrat n8n : un <strong>tableau d'objets
+portant chacun une clé <code>json</code></strong> :</p>
+<div class="code-block"><pre><code class="language-javascript">// Mode &quot;Run Once for All Items&quot; : garder les clients actifs et calculer leur CA
+const clients = $input.all();
+
+return clients
+  .filter(item =&gt; item.json.actif === true)
+  .map(item =&gt; ({
+    json: {
+      nom: item.json.nom,
+      ca: item.json.commandes.reduce((t, c) =&gt; t + c.montant, 0)
+    }
+  }));
+</code></pre><button class="copy-btn" onclick="copyCode(this)">Copier</button></div>
+<p>En mode « Each Item », le retour est l'objet de l'item lui-même
+(<code>return { json: { ... } }</code>), n8n l'enveloppe dans le tableau.</p>
+<div class="callout danger"><div class="callout-title">L'oubli du format de sortie</div><p>Retourner un objet brut, une chaîne ou un tableau d'objets sans clé <code>json</code>
+déclenche l'erreur « items must be returned as an array of objects » — la
+plus fréquente des erreurs de nœud Code. Le contrat est absolu : un tableau,
+des objets, une clé <code>json</code> sur chacun.</p></div>
+<h3>Ce que le nœud Code ne fait pas</h3>
+<p>Le bac à sable d'exécution interdit deux choses : l'accès au <strong>système de
+fichiers</strong> et les <strong>appels réseau</strong> directs. Lire un fichier se fait avec le
+nœud Read/Write Files from Disk ; appeler une API, avec le nœud HTTP Request.
+Sur instance auto-hébergée, l'import de modules npm externes est possible après
+activation explicite (variable d'environnement dédiée) — une décision
+d'exploitation, pas un réflexe de développement.</p>
+<h3>Item linking : préserver la traçabilité</h3>
+<p>Quand le nombre d'items change entre l'entrée et la sortie du nœud Code —
+regroupement, éclatement — n8n ne peut plus deviner quel item de sortie descend
+de quel item d'entrée. Cette information, le <strong>lien d'item</strong> (pairedItem),
+alimente la navigation visuelle dans les exécutions et les références
+<code>$('Nœud').item</code>.</p>
+<p>Le nœud Code permet de le maintenir explicitement :</p>
+<div class="code-block"><pre><code class="language-javascript">// Mode Each Item : la correspondance est automatique
+return { json: { ...$json, traite: true } };
+
+// Mode All Items, éclatement : on déclare la parenté
+return lignes.map(l =&gt; ({
+  json: l,
+  pairedItem: { item: indexDeLItemParent }
+}));
+</code></pre><button class="copy-btn" onclick="copyCode(this)">Copier</button></div>
+<p>Sans cette déclaration, le flux fonctionne — mais le suivi visuel « cet item
+vient de celui-là » est perdu, et <code>$('Nœud amont').item</code> ne sait plus quelle
+ligne choisir. Sur les nœuds Code qui regroupent ou éclatent, cinq secondes de
+<code>pairedItem</code> économisent des heures de diagnostic.</p>
+<h3>Code ou expression : la frontière</h3>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Situation</th>
+<th>Outil</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Lire ou formater un champ</td>
+<td>Expression courte</td>
+</tr>
+<tr>
+<td>Composer 2-3 champs, un ternaire simple</td>
+<td>Expression</td>
+</tr>
+<tr>
+<td>Transformer un tableau imbriqué</td>
+<td>Expression <code>map</code>/<code>filter</code> ou JMESPath</td>
+</tr>
+<tr>
+<td>Logique multi-étapes, boucles, conditions imbriquées</td>
+<td>Nœud Code</td>
+</tr>
+<tr>
+<td>Agrégation du tableau complet (totaux, dédoublonnage fin)</td>
+<td>Nœud Code, mode All Items</td>
+</tr>
+</tbody>
+</table></div>
+<h3>Déboguer le nœud Code</h3>
+<p><code>console.log()</code> écrit dans la <strong>console du navigateur</strong> lors des exécutions
+manuelles — l'outil de mise au point par excellence pendant l'atelier. En
+production, les logs passent côté serveur ; la supervision des exécutions, vue
+plus loin, prend le relais.</p>
+<h3>Un exemple complet, commenté ligne à ligne</h3>
+<p>Le besoin : une liste de commandes arrive avec des doublons possibles sur la
+référence ; on veut un item par référence, avec le montant cumulé et la liste
+des lignes concernées.</p>
+<div class="code-block"><pre><code class="language-javascript">// Mode : Run Once for All Items
+const commandes = $input.all();            // le tableau complet d'entrée
+const parReference = {};                   // accumulateur : référence -&gt; agrégat
+
+for (const item of commandes) {
+  const ref = item.json.reference;         // la clé de regroupement
+  if (!parReference[ref]) {
+    parReference[ref] = {                  // première occurrence : on initialise
+      reference: ref,
+      total: 0,
+      lignes: []
+    };
+  }
+  parReference[ref].total += Number(item.json.montant);   // cumul
+  parReference[ref].lignes.push(item.json.ligne);         // trace
+}
+
+// Contrat de sortie : tableau d'objets avec une clé json
+return Object.values(parReference).map(c =&gt; ({ json: c }));
+</code></pre><button class="copy-btn" onclick="copyCode(this)">Copier</button></div>
+<p>Trois points à relire dans ce code : l'entrée se prend avec <code>$input.all()</code> ; le
+regroupement vit dans un objet indexé par la clé ; la sortie respecte le contrat
+<code>{ json: ... }</code>. C'est le squelette de 80 % des nœuds Code d'agrégation.</p>
+<h3>Les variables et méthodes intégrées utiles</h3>
+<p>Au-delà de <code>$input</code> et <code>$json</code>, le nœud Code expose l'essentiel du contexte :</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Variable / méthode</th>
+<th>Contenu</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>$input.all()</code> / <code>$input.item</code></td>
+<td>Les items d'entrée (mode All) / l'item courant (mode Each)</td>
+</tr>
+<tr>
+<td><code>$('Nom du nœud').all()</code></td>
+<td>Les items produits par un nœud amont</td>
+</tr>
+<tr>
+<td><code>$workflow.name</code>, <code>$workflow.id</code></td>
+<td>Identité du workflow courant</td>
+</tr>
+<tr>
+<td><code>$execution.id</code></td>
+<td>L'identifiant de l'exécution — utile pour les traces</td>
+</tr>
+<tr>
+<td><code>$now</code>, <code>$today</code></td>
+<td>Les objets date Luxon</td>
+</tr>
+<tr>
+<td><code>$vars.nom_variable</code></td>
+<td>Les variables personnalisées de l'instance (selon édition)</td>
+</tr>
+<tr>
+<td><code>$jmespath(data, "requête")</code></td>
+<td>Une requête JMESPath sur une structure JSON</td>
+</tr>
+<tr>
+<td><code>console.log(...)</code></td>
+<td>Trace dans la console du navigateur (exécution manuelle)</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+
+<div id="tab-les-types-d-erreurs" class="tab-content">
+<h3>Quatre familles de pannes</h3>
+<p>Avant de fiabiliser, il faut nommer ce qui échoue. Les erreurs d'un workflow n8n
+tombent dans quatre familles, qui n'appellent pas la même réponse :</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Famille</th>
+<th>Exemple</th>
+<th>Bonne réponse</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Erreur de <strong>configuration</strong></td>
+<td>Credential expiré, champ obligatoire vide</td>
+<td>Corriger une fois, définitivement — aucune relance automatique ne réparera</td>
+</tr>
+<tr>
+<td>Erreur <strong>transitoire</strong></td>
+<td>API injoignable, <code>429</code>, <code>503</code>, timeout</td>
+<td>Réessayer après une pause (Retry On Fail)</td>
+</tr>
+<tr>
+<td>Erreur de <strong>données</strong></td>
+<td>Champ manquant, format inattendu</td>
+<td>Valider en amont, aiguiller vers une file d'exceptions</td>
+</tr>
+<tr>
+<td>Erreur <strong>métier</strong></td>
+<td>Commande sans client connu, montant négatif</td>
+<td>Stop and Error explicite ou branche de rejet tracée</td>
+</tr>
+</tbody>
+</table></div>
+<h3>Où les erreurs se manifestent</h3>
+<p>Une exécution en échec est visible à trois endroits : le nœud fautif passe au
+<strong>rouge</strong> sur le canevas (en test), l'exécution est marquée <strong>Error</strong> dans
+l'historique, et le workflow d'erreur — s'il est configuré — se déclenche.</p>
+<p>La lecture d'une erreur suit un rituel : ouvrir l'exécution, identifier le
+<strong>dernier nœud exécuté</strong>, lire le message d'erreur dans sa sortie, et remonter
+la chaîne des données si la cause est en amont (un champ absent trois nœuds plus
+tôt).</p>
+<h3>Lire un message d'erreur sans paniquer</h3>
+<p>Les messages d'erreur n8n empilent trois informations, dans l'ordre :</p>
+<ol>
+<li>
+<p><strong>ce qui a échoué</strong> — le type d'erreur (<code>NodeApiError</code>, <code>NodeOperationError</code>,
+   erreur JavaScript brute du nœud Code) ;</p>
+</li>
+<li>
+<p><strong>pourquoi</strong> — le message remonté par le service ou par le nœud
+   (<code>401 Unauthorized</code>, <code>Cannot read properties of undefined</code>) ;</p>
+</li>
+<li>
+<p><strong>où</strong> — le nœud fautif et, pour les appels HTTP, le code de statut.</p>
+</li>
+</ol>
+<p>Quelques traductions immédiates :</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Message</th>
+<th>Signification réelle</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>Cannot read properties of undefined (reading 'x')</code></td>
+<td>Un champ parent (<code>x</code>) n'existe pas dans les données — expression écrite pour une structure différente</td>
+</tr>
+<tr>
+<td><code>401 Unauthorized</code></td>
+<td>Credential absente, expirée, ou mal préfixée (<code>Bearer</code> oublié)</td>
+</tr>
+<tr>
+<td><code>403 Forbidden</code></td>
+<td>Authentifié mais sans la permission — scope OAuth2 manquant</td>
+</tr>
+<tr>
+<td><code>429 Too Many Requests</code></td>
+<td>Quota de l'API atteint — tempo ou batching à régler</td>
+</tr>
+<tr>
+<td><code>ETIMEDOUT</code> / <code>ECONNREFUSED</code></td>
+<td>Le service est injoignable : panne, mauvaise URL, ou flux sortant bloqué par le réseau</td>
+</tr>
+<tr>
+<td><code>JSON parameter needs to be valid JSON</code></td>
+<td>Le corps d'une requête contient une expression qui a produit du texte non JSON</td>
+</tr>
+</tbody>
+</table></div>
+<h3>Le cas particulier des erreurs de déclencheur</h3>
+<p>Une erreur survenue <strong>dans le déclencheur</strong> — credential morte au moment où le
+déclencheur d'application interroge son service — empêche l'exécution de
+commencer : elle n'apparaît pas dans l'historique des exécutions du workflow.
+Le workflow d'erreur la reçoit néanmoins, avec une structure de données
+différente (un objet <code>trigger</code> au lieu de l'objet <code>execution</code> détaillé). Les
+alertes construites à l'atelier tiendront compte des deux formes.</p>
+<h3>Les erreurs de ressources : mémoire et temps</h3>
+<p>Deux échecs ne viennent ni des API ni des données, mais de l'instance elle-même :</p>
+<ul>
+<li>
+<p>le <strong>dépassement de mémoire</strong> : un tableau de dizaines de milliers d'items
+  avec des champs volumineux (textes longs, images encodées) épuise la mémoire
+  du processus ; la parade est le traitement par lots — la boucle de ce
+  chapitre — et le stockage externe des binaires, vu au chapitre 4 ;</p>
+</li>
+<li>
+<p>le <strong>timeout d'exécution</strong> : une exécution qui dépasse la durée maximale
+  configurée est interrompue ; les workflows de masse se conçoivent pour tenir
+  dans cette enveloppe, ou se découpent en sous-traitements chaînés.</p>
+</li>
+</ul>
+<p>Ces erreurs se diagnostiquent dans les journaux de l'instance autant que dans
+l'historique — le chapitre 4 y reviendra avec le dimensionnement.</p>
+</div>
+
+<div id="tab-les-mecanismes-de-gestion-des-erreurs" class="tab-content">
+<h3>Premier niveau : le nœud qui encaisse</h3>
+<p>Chaque nœud possède, dans son onglet <strong>Settings</strong>, deux amortisseurs :</p>
+<ul>
+<li>
+<p><strong>Retry On Fail</strong> : réessaie automatiquement — nombre de tentatives et
+  intervalle paramétrables. La réponse juste aux erreurs transitoires (<code>429</code>,
+  <code>503</code>, timeout réseau) ;</p>
+</li>
+<li>
+<p><strong>Continue On Fail</strong> : au lieu de faire échouer l'exécution, le nœud émet un
+  item d'erreur et le flux continue. Le nœud offre trois comportements : la
+  sortie d'erreur dans le flux principal, la <strong>sortie d'erreur dédiée</strong> (une
+  branche rouge séparée sur le canevas), ou l'arrêt classique.</p>
+</li>
+</ul>
+<p>La sortie d'erreur dédiée mérite d'être connue : elle transforme le nœud en
+aiguillage succès/échec, la branche d'échec recevant l'item fautif avec le
+message d'erreur — parfait pour alimenter une file d'exceptions sans stopper
+les 299 autres items.</p>
+<div class="callout warn"><div class="callout-title">Continue On Fail n'efface pas l'erreur, il la déplace</div><p>Un nœud en Continue On Fail qui n'est suivi d'aucun traitement de son item
+d'erreur produit un flux « vert » qui n'a rien fait : la pire configuration
+possible. Continue On Fail s'accompagne toujours d'une branche ou d'un test
+qui traite le cas d'échec — log, alerte, mise de côté.</p></div>
+<h3>Deuxième niveau : le workflow d'erreur</h3>
+<p>Pour les échecs qui doivent stopper le flux — et être signalés — n8n affecte à
+chaque workflow un <strong>workflow d'erreur</strong>, déclaré dans ses Settings. Ce workflow
+commence obligatoirement par un nœud <strong>Error Trigger</strong> et s'exécute à chaque
+échec de l'exécution principale.</p>
+<h3>Construire le workflow d'erreur, pas à pas</h3>
+<p>La mise en place tient en cinq gestes, reproduits à l'atelier :</p>
+<ol>
+<li>créer un nouveau workflow dont le <strong>premier nœud est Error Trigger</strong> ;</li>
+<li>
+<p>le nommer clairement — <code>SYS - Alertes erreurs</code> — et le sauvegarder (il peut
+   rester inactif : c'est son rôle de workflow d'erreur qui le déclenche) ;</p>
+</li>
+<li>
+<p>construire la chaîne d'alerte : formatage du message, puis notification
+   (e-mail, messagerie d'équipe, ticket) ;</p>
+</li>
+<li>
+<p>dans <strong>chaque</strong> workflow métier, ouvrir <em>Settings → Error workflow</em> et
+   sélectionner ce workflow d'alerte ;</p>
+</li>
+<li>
+<p>provoquer un échec de test (URL invalide, Stop and Error) et vérifier la
+   réception de l'alerte.</p>
+</li>
+</ol>
+<p>Le point 4 est celui que tout le monde oublie la première fois : le workflow
+d'erreur n'est pas magiquement global, il est <strong>rattaché workflow par
+workflow</strong> — d'où l'intérêt d'en faire une ligne de la liste de contrôle
+d'activation du chapitre 2.</p>
+<p><img alt="L'architecture de gestion des erreurs : un workflow d'erreur centralisé reçoit les échecs de tous les flux métier" src="../08-images/ch3-workflow-erreur.svg" /></p>
+<p>Le schéma illustre l'architecture recommandée : <strong>un seul</strong> workflow d'erreur
+partagé par tous les flux métier de l'instance. L'Error Trigger y reçoit le
+contexte complet :</p>
+<div class="code-block"><pre><code class="language-json">{
+  &quot;execution&quot;: {
+    &quot;id&quot;: &quot;231&quot;,
+    &quot;url&quot;: &quot;https://n8n.exemple.fr/execution/231&quot;,
+    &quot;error&quot;: { &quot;message&quot;: &quot;...&quot;, &quot;stack&quot;: &quot;...&quot; },
+    &quot;lastNodeExecuted&quot;: &quot;Envoyer le résumé&quot;,
+    &quot;mode&quot;: &quot;trigger&quot;
+  },
+  &quot;workflow&quot;: { &quot;id&quot;: &quot;12&quot;, &quot;name&quot;: &quot;ACC - Routage des demandes&quot; }
+}
+</code></pre><button class="copy-btn" onclick="copyCode(this)">Copier</button></div>
+<p>Un Edit Fields y formate l'alerte (nom du workflow, nœud fautif, message, lien
+direct vers l'exécution grâce à <code>execution.url</code>), puis un nœud de notification
+l'envoie — e-mail, Slack, ouverture de ticket. Un même workflow d'erreur sert à
+tous les flux : c'est le point unique de supervision de l'instance.</p>
+<h3>Troisième niveau : l'échec volontaire avec Stop and Error</h3>
+<p>Certaines situations doivent échouer <strong>délibérément</strong> : une donnée critique
+absente, une incohérence métier. Le nœud <strong>Stop and Error</strong> fait échouer
+l'exécution avec un message choisi — qui remonte au workflow d'erreur comme
+n'importe quelle panne, mais avec un message explicite : « Commande CMD-0481
+sans client connu — intervention requise » plutôt qu'une erreur technique
+sibylline trois nœuds plus loin.</p>
+<h3>Ce que le workflow d'erreur ne doit jamais faire</h3>
+<p>Le workflow d'erreur est lui-même un workflow : il peut échouer. Trois règles le
+gardent fiable :</p>
+<ul>
+<li>
+<p>il reste <strong>minimal</strong> : formatage + notification, jamais de logique métier —
+  un workflow d'erreur qui appelle trois API fragiles devient une source
+  d'erreurs au carré ;</p>
+</li>
+<li>
+<p>il ne dépend <strong>d'aucun service non critique</strong> : si la messagerie est en panne
+  en même temps que le workflow métier, l'alerte tombe dans le vide — prévoir
+  un second canal sobre (écriture dans un fichier/tableur local) en dernier
+  ressort ;</p>
+</li>
+<li>
+<p>il n'a <strong>pas lui-même de workflow d'erreur</strong> qui le rappelle : une boucle
+  d'alertes auto-entretenue est le pire des réveils nocturnes.</p>
+</li>
+</ul>
+<div class="callout tip"><div class="callout-title">La hiérarchie des défenses</div><p>Une automatisation fiable empile les trois niveaux dans l'ordre : Retry On
+Fail absorbe le transitoire, les branches d'erreur (Continue On Fail) isolent
+les échecs d'items sans stopper le lot, et le workflow d'erreur signale tout
+ce qui passe au travers. Stop and Error, enfin, rend les échecs métier
+visibles au lieu de les laisser pourrir les données en silence.</p></div>
+<h3>Matrice de décision : quelle défense pour quelle erreur</h3>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Situation détectée</th>
+<th>Mécanisme</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>API injoignable par intermittence</td>
+<td>Retry On Fail (3 tentatives espacées)</td>
+</tr>
+<tr>
+<td>Un item sur 300 est malformé</td>
+<td>Continue On Fail + branche d'exception</td>
+</tr>
+<tr>
+<td>La panne doit stopper le flux et alerter</td>
+<td>Défaut (échec) + workflow d'erreur</td>
+</tr>
+<tr>
+<td>Une donnée critique est absente</td>
+<td>Stop and Error avec message explicite</td>
+</tr>
+<tr>
+<td>L'erreur est attendue et sans conséquence</td>
+<td>Continue On Fail + filtre silencieux</td>
+</tr>
+<tr>
+<td>Le déclencheur lui-même peut tomber</td>
+<td>Workflow d'erreur (structure <code>trigger</code> gérée)</td>
+</tr>
+</tbody>
+</table></div>
+<p>La question à se poser pour chaque nœud à risque est toujours la même : « si ce
+nœud échoue à 3 h du matin, que doit-il se passer ? » — réessayer, contourner,
+arrêter en alertant. Ne rien régler, c'est choisir « arrêter sans alerter ».</p>
+</div>
+
+<div id="tab-logs-suivi-d-execution-et-alertes" class="tab-content">
+<p>Jusqu'ici dans la journée, les erreurs ont été subies ; cette section les met en
+régime. Trois outils se complètent : l'historique qui raconte ce qui s'est
+passé, les journaux de l'instance qui racontent ce qui se passe, et les alertes
+qui préviennent avant que quelqu'un ne s'en aperçoive. La fiabilité d'une
+automatisation ne se mesure pas à l'absence de pannes — il y en aura — mais au
+délai entre la panne et sa prise en charge.</p>
+<h3>L'historique des exécutions, outil de diagnostic central</h3>
+<p>Le chapitre 1 a présenté la page Executions ; en exploitation, elle devient le
+tableau de bord quotidien. Trois gestes de diagnostic :</p>
+<ul>
+<li>
+<p><strong>filtrer</strong> par statut (Error) et par workflow pour isoler les échecs de la
+  nuit ;</p>
+</li>
+<li>
+<p><strong>ouvrir</strong> l'exécution fautive et parcourir les nœuds : chacun montre ses
+  données d'entrée et de sortie figées au moment de l'exécution ;</p>
+</li>
+<li>
+<p><strong>recharger</strong> les données d'une exécution passée dans l'éditeur (<em>debug
+  execution</em>) pour reproduire le problème en mode test, sans rejouer le
+  déclencheur réel.</p>
+</li>
+</ul>
+<h3>Lire une exécution pas à pas</h3>
+<p>Face à une exécution en échec, la procédure qui ne rate pas :</p>
+<ol>
+<li>
+<p>repérer le <strong>premier</strong> nœud rouge — les suivants ne sont souvent que des
+   victimes collatérales ;</p>
+</li>
+<li>
+<p>lire son message d'erreur, puis sa <strong>vue INPUT</strong> : la cause est souvent dans
+   les données reçues, pas dans le nœud ;</p>
+</li>
+<li>
+<p>remonter le chaînage des items (paired items) jusqu'à l'origine de la donnée
+   fautive ;</p>
+</li>
+<li>
+<p>décider : correction des données (cas isolé), correction du flux (cas
+   récurrent), ou renforcement d'une validation amont (cas structurel).</p>
+</li>
+</ol>
+<p>Ce dernier tri — corriger la donnée, le flux, ou le contrat d'entrée — est la
+compétence qui distingue un dépannage d'un emplâtrement : corriger la donnée à
+la main laisse le défaut se reproduire demain.</p>
+<h3>Rendre les exécutions cherchables : les données personnalisées</h3>
+<p>Le nœud <strong>Execution Data</strong> (ou l'écriture de données personnalisées depuis le
+nœud Code) attache des étiquettes métier à l'exécution — numéro de commande,
+identifiant client. L'historique peut alors être filtré sur ces valeurs :
+retrouver « l'exécution de la commande CMD-0481 » parmi dix mille devient
+immédiat. C'est la différence entre un historique technique et un outil de
+support.</p>
+<h3>Du journal interne à la supervision externe</h3>
+<p>L'instance produit par ailleurs ses propres journaux techniques (logs du
+conteneur, niveau configurable par variable d'environnement) et peut exposer
+des <strong>métriques</strong> (endpoint Prometheus) ou diffuser ses <strong>journaux d'événements</strong>
+vers un système externe (log streaming). Ces mécanismes d'exploitation seront
+branchés au chapitre 4, dans la partie déploiement ; l'essentiel au quotidien
+reste le couple historique d'exécutions + workflow d'erreur.</p>
+<h3>Concevoir une alerte utile</h3>
+<p>Une alerte qui se contente de dire « erreur » fait pire que son absence : elle
+habitue à ne pas lire. Une alerte utile contient toujours :</p>
+<ul>
+<li>le <strong>workflow</strong> concerné et le <strong>nœud</strong> fautif ;</li>
+<li>le <strong>message</strong> d'erreur brut ;</li>
+<li>la <strong>donnée</strong> en cause (identifiant métier) ;</li>
+<li>le <strong>lien</strong> direct vers l'exécution (<code>execution.url</code>) ;</li>
+<li>une <strong>gravité</strong> : transitoire absorbée par retry (information) ou échec
+  définitif (action requise).</li>
+</ul>
+<h3>La rétention des exécutions : le ménage à prévoir</h3>
+<p>Chaque exécution enregistre les données de chaque nœud : sur une instance active,
+l'historique gonfle vite — et avec lui la base de données. L'instance se
+configure pour purger automatiquement au-delà d'une durée ou d'un volume (les
+réglages exacts, variables d'environnement <code>EXECUTIONS_DATA_*</code>, sont détaillés au
+chapitre 4). Trois principes suffisent pour ce chapitre :</p>
+<ul>
+<li>
+<p>l'historique sert au <strong>diagnostic récent</strong>, pas à l'audit : ce qui doit être
+  conservé durablement part vers un vrai stockage (base, tableur d'audit) ;</p>
+</li>
+<li>
+<p>les workflows qui brassent des <strong>données sensibles</strong> méritent une rétention
+  courte, voire l'exclusion de leurs données d'exécution de la sauvegarde ;</p>
+</li>
+<li>
+<p>une instance qui ralentit sans raison apparente a souvent simplement un
+  historique jamais purgé.</p>
+</li>
+</ul>
+<h3>Ce qui change entre le test et la production</h3>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Aspect</th>
+<th>Exécution manuelle (test)</th>
+<th>Exécution automatique (workflow actif)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Déclenchement</td>
+<td>Bouton de l'éditeur</td>
+<td>Déclencheurs réels</td>
+</tr>
+<tr>
+<td>Données visibles</td>
+<td>Toujours, dans l'éditeur</td>
+<td>Dans l'historique Executions</td>
+</tr>
+<tr>
+<td>Workflow d'erreur</td>
+<td>Ne se déclenche pas par défaut en test manuel</td>
+<td>Se déclenche à chaque échec</td>
+</tr>
+<tr>
+<td>Impact sur les quotas d'API</td>
+<td>Réel (les appels partent vraiment)</td>
+<td>Réel</td>
+</tr>
+</tbody>
+</table></div>
+<p>La dernière ligne mérite d'être relue : un test d'écriture part bel et bien vers
+le service réel — d'où l'écho httpbin utilisé dans tous les ateliers.</p>
+</div>
+
+<div id="tab-atelier-5-construire-un-workflow-complexe-avec-conditions-et-boucles" class="tab-content">
+<div class="callout note"><div class="callout-title">Objectif de l'atelier</div><p>Construire la synchronisation complète « utilisateurs et publications » d'une
+API publique : boucle par lots avec tempo, enrichissement par jointure,
+aiguillage multi-critères, agrégation finale. Durée indicative : 2 h 30.
+L'atelier réutilise JSONPlaceholder (aucune authentification) et les données
+épinglées dès que possible.</p></div>
+<h3>Étape 0 — Préparer le terrain</h3>
+<ol>
+<li>
+<p>Vérifier l'accès à l'API de test depuis un navigateur :
+   <code>https://jsonplaceholder.typicode.com/users</code> doit afficher dix objets JSON.</p>
+</li>
+<li>
+<p>Créer le workflow vide et poser immédiatement la sticky note d'en-tête :
+   objectif, sources, décisions d'aiguillage attendues.</p>
+</li>
+<li>
+<p>Convenir en binôme du nommage des nœuds avant de poser le premier.</p>
+</li>
+</ol>
+<h3>Le scénario</h3>
+<p>Le service marketing veut un rapport quotidien sur les auteurs de démonstration :
+pour chaque utilisateur de l'API, compter ses publications, classer les auteurs
+en trois catégories d'activité, et produire un résumé agrégé. Les appels à
+l'API doivent être espacés pour respecter son quota.</p>
+<h3>Étape 1 — Préparer les deux sources</h3>
+<ol>
+<li>Créer le workflow <code>MKT - Rapport d'activité des auteurs</code>.</li>
+<li>
+<p>Nœud HTTP Request <code>Listar les auteurs</code> : GET
+   <code>https://jsonplaceholder.typicode.com/users</code> — 10 items attendus. Épingler.</p>
+</li>
+<li>
+<p>Nœud HTTP Request <code>Lister les publications</code> : GET
+   <code>https://jsonplaceholder.typicode.com/posts</code> — 100 items attendus. Épingler.</p>
+</li>
+</ol>
+<h3>Étape 2 — Boucler avec tempo sur les auteurs</h3>
+<ol>
+<li>Ajouter <strong>Loop Over Items</strong> après <code>Listar les auteurs</code>, Batch Size = 3.</li>
+<li>
+<p>Dans la boucle, ajouter un nœud <strong>Edit Fields</strong> <code>Annoter le lot</code> qui ajoute
+   un champ <code>lot</code> avec un compteur incrémenté (variable portée par les items).</p>
+</li>
+<li>
+<p>Ajouter un nœud <strong>Wait</strong> (2 secondes) après le traitement, et connecter sa
+   sortie à l'entrée de Loop Over Items.</p>
+</li>
+<li>
+<p>Exécuter : observer dans l'historique les quatre passages (10 auteurs par
+   lots de 3) et la sortie « done » en fin de boucle.</p>
+</li>
+</ol>
+<div class="callout tip"><div class="callout-title">Voir la boucle dans l'historique</div><p>Dans le détail de l'exécution, le nœud Loop Over Items affiche ses passages
+successifs : chaque entrée « loop » correspond à un lot. C'est la façon la
+plus directe de vérifier que le découpage est conforme — et de repérer une
+boucle qui tournerait un lot de trop.</p></div>
+<h3>Étape 3 — Enrichir par jointure</h3>
+<ol>
+<li>
+<p>Connecter la sortie « done » et <code>Lister les publications</code> à un nœud <strong>Merge</strong>
+   en mode <strong>Combine — Matching Fields</strong> : champ commun <code>id</code> (auteur) côté
+   entrée 1, <code>userId</code> côté entrée 2, option <strong>Enrich Input 1</strong>.</p>
+</li>
+<li>
+<p>Constater : chaque auteur ressort enrichi des données de ses publications.</p>
+</li>
+<li>
+<p>Vérifier deux points en vue Table : le nombre d'items en sortie (identique
+   au nombre d'auteurs) et la présence des champs issus des publications.</p>
+</li>
+<li>
+<p>Chercher volontairement l'auteur sans publication : ses champs enrichis sont
+   vides — c'est le comportement « Enrich » (jointure gauche), à comparer avec
+   « Keep Matches » qui l'aurait écarté.</p>
+</li>
+</ol>
+<div class="callout warn"><div class="callout-title">Les champs de correspondance doivent porter le même nom</div><p>Le mode Matching Fields compare des champs <strong>de même nom</strong> dans les deux
+entrées. <code>id</code> côté auteurs et <code>userId</code> côté publications ne se rencontrent
+jamais : un Edit Fields amont harmonise les deux en <code>id_auteur</code> avant le
+Merge. C'est l'erreur n° 1 de cette étape — vérifier la vue Schema des deux
+entrées avant de chercher ailleurs.</p></div>
+<h3>Étape 4 — Classer avec un Switch multi-règles</h3>
+<ol>
+<li>
+<p>Nœud Code court (mode All Items) pour compter les publications par auteur
+   dans un champ <code>nb_posts</code> — ou Aggregate avant le Merge, selon l'approche
+   choisie avec le formateur.</p>
+</li>
+<li>
+<p>Nœud <strong>Switch</strong> <code>Classer l'activité</code> : sortie <code>actif</code> (nb_posts &gt; 10),
+   sortie <code>moyen</code> (entre 5 et 10), Fallback <code>discret</code>.</p>
+</li>
+<li>
+<p>Jouer l'exécution et vérifier le volume de chaque sortie.</p>
+</li>
+</ol>
+<h3>Étape 5 — Agréger le rapport</h3>
+<ol>
+<li>Sur chaque sortie du Switch, un nœud <strong>Aggregate</strong> compte les auteurs.</li>
+<li>Un Edit Fields final compose le résumé :</li>
+</ol>
+<div class="code-block"><pre><code class="language-text">{{ `Rapport du ${$now.toFormat('dd/MM/yyyy')} : ${$json.actifs} actifs, ${$json.moyens} moyens, ${$json.discrets} discrets.` }}
+</code></pre><button class="copy-btn" onclick="copyCode(this)">Copier</button></div>
+<ol>
+<li>Brancher la notification finale sur httpbin (écho POST) comme au chapitre 2.</li>
+</ol>
+<div class="callout tip"><div class="callout-title">Résultat attendu</div><p>Le flux combine boucle à tempo, jointure de deux sources, aiguillage à
+fallback et agrégation — les quatre constructions du matin. Chaque stagiaire
+sait expliquer pourquoi « done » et non « loop » alimente le Merge, et
+pourquoi le Fallback du Switch est indispensable.</p></div>
+<h3>Extensions proposées par le formateur</h3>
+<ul>
+<li>
+<p>Remplacer le comptage par nœud Code par un <strong>Aggregate</strong> suivi d'un Merge :
+  comparer les deux approches en lisibilité.</p>
+</li>
+<li>
+<p>Ajouter un <strong>Summarize</strong> qui produit la moyenne de publications par catégorie.</p>
+</li>
+<li>
+<p>Inverser la jointure (<strong>Enrich Input 2</strong>) et décrire ce qui change dans le
+  résultat.</p>
+</li>
+<li>
+<p>Faire passer la boucle à Batch Size = 1 et mesurer l'écart de durée totale —
+  discussion sur le compromis quota/latence.</p>
+</li>
+</ul>
+<h3>Points de validation de l'atelier 5</h3>
+<ul>
+<li>
+<p>La boucle traite les dix auteurs en quatre lots observables dans
+  l'historique, puis la sortie « done » prend le relais.</p>
+</li>
+<li>
+<p>Le Merge enrichit chaque auteur de ses publications sans perdre les auteurs
+  sans publication.</p>
+</li>
+<li>
+<p>Le Switch classe tous les items et son fallback n'est pas vide par accident.</p>
+</li>
+<li>Le rapport final est un texte unique, daté, qui résume les trois catégories.</li>
+</ul>
+<h3>Dépannage de l'atelier 5</h3>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Symptôme</th>
+<th>Cause probable</th>
+<th>Remède</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>La boucle ne traite que 3 items</td>
+<td>Sortie de fin non reliée à Loop Over Items</td>
+<td>Connecter la sortie du Wait à l'entrée du nœud de boucle</td>
+</tr>
+<tr>
+<td>Le Merge n'émet rien</td>
+<td>Une de ses entrées n'a pas terminé</td>
+<td>Vérifier que les deux entrées sont connectées et exécutées</td>
+</tr>
+<tr>
+<td>La jointure produit des items vides</td>
+<td>Mauvais champs de correspondance</td>
+<td><code>id</code> côté users, <code>userId</code> côté posts — vérifier en vue Schema</td>
+</tr>
+<tr>
+<td>Switch : tout part en <code>discret</code></td>
+<td>Comparaison sur une chaîne au lieu d'un nombre</td>
+<td>Vérifier le type de <code>nb_posts</code> ; convertir avec <code>Number()</code></td>
+</tr>
+<tr>
+<td>Boucle sans fin</td>
+<td>Réintroduction du tableau complet dans la boucle</td>
+<td>La boucle doit réinjecter sa propre sortie, pas la source initiale</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+
+<div id="tab-atelier-6-fiabiliser-le-fil-rouge-avec-la-gestion-avancee-des-erreurs" class="tab-content">
+<div class="callout note"><div class="callout-title">Objectif de l'atelier</div><p>Reprendre le workflow de routage des demandes (atelier 4, chapitre 2) et le
+rendre robuste : retries sur l'appel externe, branche d'exception par item,
+échec volontaire sur donnée invalide, et workflow d'erreur centralisé qui
+alerte. Durée indicative : 2 h. Les binômes partent de leur propre flux ou du
+corrigé de référence fourni par le formateur.</p></div>
+<h3>Pourquoi repartir d'un flux qui marche</h3>
+<p>Fiabiliser ne se démontre que sur un flux fonctionnel : chaque défense ajoutée
+doit être <strong>provoquée</strong> (panne simulée, donnée pourrie) pour vérifier qu'elle
+joue son rôle. L'atelier alterne donc systématiquement deux gestes : ajouter une
+protection, puis casser volontairement ce qu'elle doit encaisser.</p>
+<h3>Étape 1 — Provoquer et observer une panne</h3>
+<ol>
+<li>Réactiver le workflow <code>ACC - Routage des demandes</code> du chapitre 2.</li>
+<li>
+<p>Modifier l'URL du nœud d'envoi vers <code>https://httpbin.org/status/503</code> —
+   un service qui répond toujours en erreur.</p>
+</li>
+<li>
+<p>Exécuter : constater l'exécution en échec, le nœud rouge, l'entrée Error
+   dans l'historique.</p>
+</li>
+</ol>
+<h3>Étape 2 — Absorber le transitoire</h3>
+<ol>
+<li>
+<p>Sur le nœud d'envoi, onglet Settings : activer <strong>Retry On Fail</strong> — 3
+   tentatives, 5 secondes d'intervalle.</p>
+</li>
+<li>
+<p>Rétablir l'URL normale, puis tester à nouveau avec <code>/status/503</code> : observer
+   les trois tentatives dans le détail de l'exécution avant l'échec final.</p>
+</li>
+</ol>
+<h3>Étape 3 — Isoler les échecs d'items</h3>
+<ol>
+<li>
+<p>Basculer le nœud d'envoi en <strong>Continue On Fail</strong> avec sortie d'erreur
+   dédiée.</p>
+</li>
+<li>
+<p>Brancher la sortie d'erreur sur un nœud Edit Fields <code>Tracer l'exception</code> qui
+   formate : e-mail du demandeur, type, message d'erreur, horodatage.</p>
+</li>
+<li>
+<p>Envoyer trois demandes de test dont une malformée : constater que les deux
+   valides aboutissent et que la troisième part sur la branche d'exception.</p>
+</li>
+</ol>
+<h3>Étape 4 — Rendre les échecs métier explicites</h3>
+<ol>
+<li>
+<p>Après le Filter de validation, ajouter un IF « Données critiques
+   présentes ? » : <code>nom</code> <em>is not empty</em> AND <code>message</code> <em>is not empty</em>.</p>
+</li>
+<li>
+<p>Sur la sortie false, poser un nœud <strong>Stop and Error</strong> avec le message :
+   <code>Demande reçue sans nom ni message exploitable</code>.</p>
+</li>
+<li>
+<p>Tester avec une demande à <code>nom</code> vide : l'exécution échoue volontairement.</p>
+</li>
+</ol>
+<h3>Étape 5 — Brancher le workflow d'erreur centralisé</h3>
+<ol>
+<li>
+<p>Créer le workflow <code>SYS - Alertes erreurs</code> avec un <strong>Error Trigger</strong> en
+   premier nœud.</p>
+</li>
+<li>
+<p>Ajouter un Edit Fields qui formate l'alerte depuis le contexte reçu :</p>
+</li>
+</ol>
+<div class="code-block"><pre><code class="language-text">{{ `[${$json.workflow.name}] échec sur « ${$json.execution.lastNodeExecuted} » : ${$json.execution.error?.message ?? $json.trigger?.error?.message}` }}
+</code></pre><button class="copy-btn" onclick="copyCode(this)">Copier</button></div>
+<ol>
+<li>
+<p>Ajouter la notification (POST écho vers httpbin, en attendant la messagerie
+   du chapitre 4) et sauvegarder.</p>
+</li>
+<li>
+<p>Dans les Settings du workflow de routage : champ <strong>Error workflow</strong> →
+   <code>SYS - Alertes erreurs</code>.</p>
+</li>
+<li>
+<p>Reproduire l'échec de l'étape 4 : l'alerte formatée arrive, avec le lien
+   d'exécution.</p>
+</li>
+</ol>
+<h3>Étape 6 — Mesurer la couverture de la protection</h3>
+<ol>
+<li>
+<p>Relever sur le canevas chaque nœud qui appelle l'extérieur (HTTP, services) ;
+   pour chacun, répondre à voix haute : « que se passe-t-il s'il échoue ? ».</p>
+</li>
+<li>
+<p>Cocher mentalement la défense choisie : retry, branche d'exception, échec
+   alerté — et l'inscrire dans la note du nœud.</p>
+</li>
+<li>
+<p>Comparer avec le binôme voisin : toute divergence est discutée avec le
+   formateur — c'est le cœur de la compétence du jour.</p>
+</li>
+</ol>
+<div class="callout tip"><div class="callout-title">Résultat attendu</div><p>Le fil rouge encaisse désormais les pannes : le transitoire est réessayé, les
+items fautifs sont mis de côté sans stopper les autres, les incohérences
+métier échouent avec un message clair, et tout échec définitif déclenche une
+alerte formatée. Le flux est prêt pour la mise en production du chapitre 4 —
+qui lui ajoutera un vrai environnement, des secrets proprement gérés et une
+place dans le système d'information.</p></div>
+<h3>Extensions proposées par le formateur</h3>
+<ul>
+<li>
+<p>Ajouter au workflow d'erreur un <strong>Switch</strong> sur <code>execution.mode</code> pour ne pas
+  alerter sur les échecs de test manuels.</p>
+</li>
+<li>
+<p>Faire écrire les exceptions de l'étape 3 dans un workflow <code>SYS - File
+  d'exceptions</code> appelé par <strong>Execute Workflow</strong> : première mutualisation d'un
+  traitement d'erreur entre plusieurs flux.</p>
+</li>
+<li>
+<p>Rejouer une exception stockée : depuis l'historique, recharger les données
+  dans l'éditeur (<em>debug execution</em>), corriger, et constater la reprise.</p>
+</li>
+</ul>
+<h3>Debrief collectif de la journée</h3>
+<p>Le formateur anime un passage en revue : chaque binôme présente son workflow
+d'erreur en deux minutes — ce qui est intercepté, ce qui est signalé, ce qui
+est laissé fatal. L'écart entre les choix des groupes est le sujet de la
+discussion : il n'existe pas une seule bonne réponse, mais des arbitrages
+cohérents avec le métier servi.</p>
+<h3>Dépannage de l'atelier 6</h3>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Symptôme</th>
+<th>Cause probable</th>
+<th>Remède</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Le workflow d'erreur ne se déclenche pas</td>
+<td>Non déclaré dans les Settings, ou non sauvegardé</td>
+<td>Settings → Error workflow → sauvegarder les deux flux</td>
+</tr>
+<tr>
+<td>L'alerte affiche <code>undefined</code></td>
+<td>Erreur de déclencheur (structure <code>trigger</code>)</td>
+<td>Gérer les deux formes avec <code>??</code> comme dans l'expression fournie</td>
+</tr>
+<tr>
+<td>Le retry ne se voit pas</td>
+<td>Intervalle trop court pour l'œil</td>
+<td>Ouvrir le détail du nœud dans l'exécution : les tentatives y sont horodatées</td>
+</tr>
+<tr>
+<td>L'item fautif stoppe quand même le flux</td>
+<td>Continue On Fail mal activé (mauvais onglet)</td>
+<td>Settings du nœud, pas les paramètres</td>
+</tr>
+<tr>
+<td>Stop and Error ne remonte pas</td>
+<td>Nœud placé sur une branche jamais atteinte</td>
+<td>Vérifier l'aiguillage amont avec un jeu de test des deux côtés</td>
+</tr>
+</tbody>
+</table></div>
+<h3>Points de validation de la journée</h3>
+<ul>
+<li>Le stagiaire justifie le choix Loop Over Items vs Batching sur un cas donné.</li>
+<li>Il construit une jointure Merge et explique la différence inner/outer/left.</li>
+<li>Il écrit un nœud Code conforme au contrat de sortie dans les deux modes.</li>
+<li>Il distingue les quatre familles d'erreurs et leur associe le bon mécanisme.</li>
+<li>Le fil rouge dispose de ses trois niveaux de défense et d'une alerte lisible.</li>
+</ul>
+<h3>Ce que la journée a changé</h3>
+<p>Le flux de l'atelier 4 savait router des demandes ; celui de l'atelier 6 sait
+aussi encaisser les pannes, isoler les mauvaises données et appeler au secours
+avec un message exploitable. C'est la différence entre une démonstration et un
+outil de production — et c'est exactement le niveau d'exigence que le chapitre 4
+complétera par le déploiement, la sécurisation et l'intégration au système
+d'information. Le quiz qui accompagne ce chapitre revient sur chacun de ces
+mécanismes ; l'annexe Cheat-sheet les résume en une page à garder sous la main,
+et l'annexe Glossaire fixe le vocabulaire rencontré aujourd'hui.</p>
+</div>
+
+<div id="tab-quiz" class="tab-content">
+<div id="quiz-container">
+<div class="quiz-question" id="q1">
+  <h4>Question 1 — Pourquoi le nœud Loop Over Items est-il préférable à une boucle construite à la main pour traiter 300 contacts par lots de 10 ?</h4>
+  <div class="quiz-options">
+    <button class="quiz-option" onclick="answer(1,'a')">A) Il est le seul nœud capable de boucler dans n8n</button>
+    <button class="quiz-option" onclick="answer(1,'b')">B) Il découpe le tableau en lots, émet chaque lot par sa sortie « loop », s'arrête seul une fois tous les lots écoulés, et libère la suite par sa sortie « done »</button>
+    <button class="quiz-option" onclick="answer(1,'c')">C) Il appelle l'API plus rapidement que les autres nœuds</button>
+    <button class="quiz-option" onclick="answer(1,'d')">D) Il supprime automatiquement les doublons dans le tableau</button>
+  </div>
+  <div class="quiz-feedback" id="fb1"></div>
+</div>
+<div class="quiz-question" id="q2">
+  <h4>Question 2 — Une boucle conditionnelle de pagination (retour vers un nœud amont avec un IF) doit toujours comporter :</h4>
+  <div class="quiz-options">
+    <button class="quiz-option" onclick="answer(2,'a')">A) Un nœud Wait de 60 secondes minimum</button>
+    <button class="quiz-option" onclick="answer(2,'b')">B) Un compteur de tours borné (ex. « tours &lt; 100 ») combiné à la condition métier, pour éviter la boucle infinie</button>
+    <button class="quiz-option" onclick="answer(2,'c')">C) Un credential OAuth2 de type PKCE</button>
+    <button class="quiz-option" onclick="answer(2,'d')">D) Un nœud Merge en mode Append</button>
+  </div>
+  <div class="quiz-feedback" id="fb2"></div>
+</div>
+<div class="quiz-question" id="q3">
+  <h4>Question 3 — Quelle différence entre Merge « Combine — Matching Fields / Keep Matches » et « Enrich Input 1 » ?</h4>
+  <div class="quiz-options">
+    <button class="quiz-option" onclick="answer(3,'a')">A) Aucune, ce sont deux noms du même mode</button>
+    <button class="quiz-option" onclick="answer(3,'b')">B) Keep Matches ne garde que les items présents des deux côtés (jointure interne) ; Enrich Input 1 garde tous les items de l'entrée 1 et y ajoute les correspondances de l'entrée 2 (jointure gauche)</button>
+    <button class="quiz-option" onclick="answer(3,'c')">C) Enrich Input 1 est plus rapide car il ne compare pas les champs</button>
+    <button class="quiz-option" onclick="answer(3,'d')">D) Keep Matches fonctionne sans clé commune, Enrich Input 1 en exige une</button>
+  </div>
+  <div class="quiz-feedback" id="fb3"></div>
+</div>
+<div class="quiz-question" id="q4">
+  <h4>Question 4 — Que doit retourner le code d'un nœud Code en mode « Run Once for All Items » ?</h4>
+  <div class="quiz-options">
+    <button class="quiz-option" onclick="answer(4,'a')">A) Un objet JSON unique contenant tous les résultats</button>
+    <button class="quiz-option" onclick="answer(4,'b')">B) Une chaîne de caractères sérialisée en JSON</button>
+    <button class="quiz-option" onclick="answer(4,'c')">C) Un tableau d'objets portant chacun une clé <code>json</code></button>
+    <button class="quiz-option" onclick="answer(4,'d')">D) La variable <code>$input.all()</code> modifiée en place</button>
+  </div>
+  <div class="quiz-feedback" id="fb4"></div>
+</div>
+<div class="quiz-question" id="q5">
+  <h4>Question 5 — Un nœud HTTP Request interroge une API parfois indisponible (erreurs 503 passagères). Quelle est la première défense à activer ?</h4>
+  <div class="quiz-options">
+    <button class="quiz-option" onclick="answer(5,'a')">A) Un workflow d'erreur qui envoie un e-mail</button>
+    <button class="quiz-option" onclick="answer(5,'b')">B) Continue On Fail avec branche d'exception</button>
+    <button class="quiz-option" onclick="answer(5,'c')">C) Retry On Fail dans l'onglet Settings du nœud (tentatives espacées)</button>
+    <button class="quiz-option" onclick="answer(5,'d')">D) Stop and Error en amont du nœud</button>
+  </div>
+  <div class="quiz-feedback" id="fb5"></div>
+</div>
+<div class="quiz-question" id="q6">
+  <h4>Question 6 — Quel nœud doit obligatoirement ouvrir un workflow d'erreur n8n ?</h4>
+  <div class="quiz-options">
+    <button class="quiz-option" onclick="answer(6,'a')">A) Manual Trigger</button>
+    <button class="quiz-option" onclick="answer(6,'b')">B) Error Trigger</button>
+    <button class="quiz-option" onclick="answer(6,'c')">C) Webhook</button>
+    <button class="quiz-option" onclick="answer(6,'d')">D) Stop and Error</button>
+  </div>
+  <div class="quiz-feedback" id="fb6"></div>
+</div>
+<div class="quiz-question" id="q7">
+  <h4>Question 7 — Où déclare-t-on qu'un workflow métier doit appeler un workflow d'erreur en cas d'échec ?</h4>
+  <div class="quiz-options">
+    <button class="quiz-option" onclick="answer(7,'a')">A) Dans le nœud Error Trigger du workflow d'erreur</button>
+    <button class="quiz-option" onclick="answer(7,'b')">B) Dans les Settings du workflow métier, champ « Error workflow »</button>
+    <button class="quiz-option" onclick="answer(7,'c')">C) Dans les variables d'environnement de l'instance</button>
+    <button class="quiz-option" onclick="answer(7,'d')">D) C'est automatique dès qu'un workflow d'erreur existe</button>
+  </div>
+  <div class="quiz-feedback" id="fb7"></div>
+</div>
+<div class="quiz-question" id="q8">
+  <h4>Question 8 — Que contient le contexte reçu par l'Error Trigger dans un workflow d'erreur ?</h4>
+  <div class="quiz-options">
+    <button class="quiz-option" onclick="answer(8,'a')">A) Uniquement le message d'erreur, sans contexte</button>
+    <button class="quiz-option" onclick="answer(8,'b')">B) Le nom du workflow, l'exécution (id, url, mode), le dernier nœud exécuté et l'erreur (message, stack) — avec une structure <code>trigger</code> différente si l'échec vient du déclencheur</button>
+    <button class="quiz-option" onclick="answer(8,'c')">C) La liste complète des workflows actifs de l'instance</button>
+    <button class="quiz-option" onclick="answer(8,'d')">D) Les credentials du nœud fautif pour permettre leur réparation</button>
+  </div>
+  <div class="quiz-feedback" id="fb8"></div>
+</div>
+<div class="quiz-question" id="q9">
+  <h4>Question 9 — Quel est le danger d'activer Continue On Fail sans traiter la sortie d'erreur ?</h4>
+  <div class="quiz-options">
+    <button class="quiz-option" onclick="answer(9,'a')">A) Le nœud refuse de s'exécuter</button>
+    <button class="quiz-option" onclick="answer(9,'b')">B) L'exécution apparaît en succès alors que des items ont échoué en silence — le flux « vert » n'a rien fait</button>
+    <button class="quiz-option" onclick="answer(9,'c')">C) La base de données de l'instance se corrompt</button>
+    <button class="quiz-option" onclick="answer(9,'d')">D) Les credentials du nœud sont révoqués automatiquement</button>
+  </div>
+  <div class="quiz-feedback" id="fb9"></div>
+</div>
+<div class="quiz-question" id="q10">
+  <h4>Question 10 — À quoi sert le nœud Stop and Error ?</h4>
+  <div class="quiz-options">
+    <button class="quiz-option" onclick="answer(10,'a')">A) À arrêter proprement l'instance n8n</button>
+    <button class="quiz-option" onclick="answer(10,'b')">B) À faire échouer volontairement l'exécution avec un message explicite, remonté au workflow d'erreur — pour les incohérences métier qui exigent une intervention</button>
+    <button class="quiz-option" onclick="answer(10,'c')">C) À désactiver un workflow actif à distance</button>
+    <button class="quiz-option" onclick="answer(10,'d')">D) À interrompre une boucle Loop Over Items avant la fin</button>
+  </div>
+  <div class="quiz-feedback" id="fb10"></div>
+</div>
+</div>
+<div class="quiz-score" id="quiz-score">
+  <div class="score-num" id="score-display">0 / 10</div>
+  <p id="score-msg"></p>
+  <button class="btn-restart" onclick="restartQuiz()">Recommencer</button>
+</div>
+</div>
+  </div>
+</div>
+
+<script>
+// ─── THEME ──────────────────────────────────────────────────────────────────
+(function () {
+  const root = document.documentElement;
+  const stored = localStorage.getItem('dawan-theme');
+  if (stored) root.setAttribute('data-theme', stored);
+  updateToggleLabel();
+})();
+
+function updateToggleLabel() {
+  const current = document.documentElement.getAttribute('data-theme') ||
+    (window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark');
+  document.getElementById('theme-icon').textContent = current === 'dark' ? '🌙' : '☀️';
+  document.getElementById('theme-label').textContent = current === 'dark' ? 'Sombre' : 'Clair';
+}
+
+function toggleTheme() {
+  const root = document.documentElement;
+  const current = root.getAttribute('data-theme') ||
+    (window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark');
+  const next = current === 'dark' ? 'light' : 'dark';
+  root.setAttribute('data-theme', next);
+  localStorage.setItem('dawan-theme', next);
+  updateToggleLabel();
+}
+
+// ─── TABS ───────────────────────────────────────────────────────────────────
+function showTab(id) {
+  document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+  document.querySelectorAll('.side-nav button').forEach(el => el.classList.remove('active'));
+  document.getElementById('tab-' + id).classList.add('active');
+  event.target.classList.add('active');
+  document.querySelector('.content').scrollTo({ top: 0, behavior: 'instant' });
+}
+
+// ─── COPY CODE ──────────────────────────────────────────────────────────────
+function copyCode(btn) {
+  const pre = btn.previousElementSibling;
+  navigator.clipboard.writeText(pre.textContent).then(() => {
+    btn.textContent = 'Copié !'; btn.classList.add('copied');
+    setTimeout(() => { btn.textContent = 'Copier'; btn.classList.remove('copied'); }, 2000);
+  });
+}
+
+// ─── QUIZ ────────────────────────────────────────────────────────────────────
+const answers = { 1:'b', 2:'b', 3:'b', 4:'c', 5:'c', 6:'b', 7:'b', 8:'b', 9:'b', 10:'b' };
+const feedbacks = {
+  1: { b: "Exact ! Le nœud gère le comptage et la fin de boucle nativement ; contrairement à une boucle à retour arrière, aucun IF de terminaison n'est nécessaire, et la suite du flux attend proprement la sortie « done ».", wrong: "Non. La bonne réponse est B) Il découpe le tableau en lots, émet chaque lot par sa sortie « loop », s'arrête seul une fois tous les lots écoulés, et libère la suite par sa sortie « done » — Le nœud gère le comptage et la fin de boucle nativement ; contrairement à une boucle à retour arrière, aucun IF de terminaison n'est nécessaire, et la suite du flux attend proprement la sortie « done »." },
+  2: { b: "Exact ! Une boucle conditionnelle dont la condition de sortie ne se produit jamais (API qui change de format, curseur absent) tourne indéfiniment et frappe le service réel à chaque tour ; le compteur borné est le garde-fou non négociable.", wrong: "Non. La bonne réponse est B) Un compteur de tours borné (ex. « tours &lt; 100 ») combiné à la condition métier, pour éviter la boucle infinie — Une boucle conditionnelle dont la condition de sortie ne se produit jamais (API qui change de format, curseur absent) tourne indéfiniment et frappe le service réel à chaque tour ; le compteur borné est le garde-fou non négociable." },
+  3: { b: "Exact ! C'est la même sémantique que les jointures SQL INNER et LEFT : le choix dépend de ce qu'on fait des items sans correspondance (écarter ou conserver avec des champs vides).", wrong: "Non. La bonne réponse est B) Keep Matches ne garde que les items présents des deux côtés (jointure interne) ; Enrich Input 1 garde tous les items de l'entrée 1 et y ajoute les correspondances de l'entrée 2 (jointure gauche) — C'est la même sémantique que les jointures SQL INNER et LEFT : le choix dépend de ce qu'on fait des items sans correspondance (écarter ou conserver avec des champs vides)." },
+  4: { c: "Exact ! C'est le contrat de sortie du nœud Code dans tous les modes ; retourner autre chose déclenche l'erreur « items must be returned as an array of objects ». En mode Each Item, on retourne l'objet <code>{ json: ... }</code> de l'item courant.", wrong: "Non. La bonne réponse est C) Un tableau d'objets portant chacun une clé <code>json</code> — C'est le contrat de sortie du nœud Code dans tous les modes ; retourner autre chose déclenche l'erreur « items must be returned as an array of objects ». En mode Each Item, on retourne l'objet <code>{ json: ... }</code> de l'item courant." },
+  5: { c: "Exact ! Une indisponibilité passagère est transitoire par définition : le retry absorbant l'erreur avant toute alerte, c'est le premier niveau de la hiérarchie des défenses. L'alerte n'intervient que si les tentatives échouent toutes.", wrong: "Non. La bonne réponse est C) Retry On Fail dans l'onglet Settings du nœud (tentatives espacées) — Une indisponibilité passagère est transitoire par définition : le retry absorbant l'erreur avant toute alerte, c'est le premier niveau de la hiérarchie des défenses. L'alerte n'intervient que si les tentatives échouent toutes." },
+  6: { b: "Exact ! Le workflow d'erreur commence obligatoirement par un nœud Error Trigger, qui reçoit le contexte de l'échec (workflow, exécution, dernier nœud, message) et alimente la chaîne d'alerte.", wrong: "Non. La bonne réponse est B) Error Trigger — Le workflow d'erreur commence obligatoirement par un nœud Error Trigger, qui reçoit le contexte de l'échec (workflow, exécution, dernier nœud, message) et alimente la chaîne d'alerte." },
+  7: { b: "Exact ! Le rattachement se déclare workflow par workflow (Options → Settings → Error workflow) ; le même workflow d'erreur peut servir à tous les flux de l'instance, mais chacun doit le référencer explicitement.", wrong: "Non. La bonne réponse est B) Dans les Settings du workflow métier, champ « Error workflow » — Le rattachement se déclare workflow par workflow (Options → Settings → Error workflow) ; le même workflow d'erreur peut servir à tous les flux de l'instance, mais chacun doit le référencer explicitement." },
+  8: { b: "Exact ! C'est ce contexte qui permet de formater une alerte exploitable (avec le lien <code>execution.url</code>) ; les erreurs de déclencheur, sans exécution créée, arrivent sous une forme réduite à anticiper dans le formatage.", wrong: "Non. La bonne réponse est B) Le nom du workflow, l'exécution (id, url, mode), le dernier nœud exécuté et l'erreur (message, stack) — avec une structure <code>trigger</code> différente si l'échec vient du déclencheur — C'est ce contexte qui permet de formater une alerte exploitable (avec le lien <code>execution.url</code>) ; les erreurs de déclencheur, sans exécution créée, arrivent sous une forme réduite à anticiper dans le formatage." },
+  9: { b: "Exact ! Continue On Fail transforme l'échec en item d'erreur qui poursuit le flux ; sans branche d'exception qui le traite (log, alerte, mise de côté), la panne devient invisible, ce qui est pire qu'un arrêt franc.", wrong: "Non. La bonne réponse est B) L'exécution apparaît en succès alors que des items ont échoué en silence — le flux « vert » n'a rien fait — Continue On Fail transforme l'échec en item d'erreur qui poursuit le flux ; sans branche d'exception qui le traite (log, alerte, mise de côté), la panne devient invisible, ce qui est pire qu'un arrêt franc." },
+  10: { b: "Exact ! Stop and Error rend visibles les échecs métier (« commande sans client connu ») avec un message clair, au lieu de laisser une erreur technique obscure surgir trois nœuds plus loin ou, pire, corrompre les données en silence.", wrong: "Non. La bonne réponse est B) À faire échouer volontairement l'exécution avec un message explicite, remonté au workflow d'erreur — pour les incohérences métier qui exigent une intervention — Stop and Error rend visibles les échecs métier (« commande sans client connu ») avec un message clair, au lieu de laisser une erreur technique obscure surgir trois nœuds plus loin ou, pire, corrompre les données en silence." }
+};
+const QUIZ_TOTAL = 10;
+let score = 0;
+let answered = {};
+
+function answer(qNum, choice) {
+  if (answered[qNum]) return;
+  answered[qNum] = true;
+  score += (choice === answers[qNum]) ? 1 : 0;
+  const qEl = document.getElementById('q' + qNum);
+  qEl.querySelectorAll('.quiz-option').forEach(btn => {
+    btn.disabled = true;
+    const ltr = btn.textContent.trim()[0].toLowerCase();
+    if (ltr === answers[qNum]) btn.classList.add('correct');
+    else if (ltr === choice) btn.classList.add('wrong');
+  });
+  const fb = feedbacks[qNum];
+  document.getElementById('fb' + qNum).textContent = (choice === answers[qNum]) ? fb[answers[qNum]] : fb.wrong;
+  if (Object.keys(answered).length === QUIZ_TOTAL) showScore();
+}
+
+function showScore() {
+  const el = document.getElementById('quiz-score');
+  el.style.display = 'block';
+  document.getElementById('score-display').textContent = score + ' / ' + QUIZ_TOTAL;
+  const ratio = score / QUIZ_TOTAL;
+  let msg;
+  if (ratio === 1) msg = 'Parfait ! Toutes les réponses sont correctes.';
+  else if (ratio >= .8) msg = 'Très bien ! Vous maîtrisez l\'essentiel.';
+  else if (ratio >= .6) msg = 'Pas mal ! Relisez les points manqués.';
+  else if (ratio >= .4) msg = 'Quelques notions à revoir.';
+  else msg = 'Revoyez le cours avant de continuer.';
+  document.getElementById('score-msg').textContent = msg;
+}
+
+function restartQuiz() {
+  score = 0; answered = {};
+  document.getElementById('quiz-score').style.display = 'none';
+  document.querySelectorAll('.quiz-option').forEach(btn => {
+    btn.disabled = false;
+    btn.classList.remove('correct','wrong');
+  });
+  document.querySelectorAll('.quiz-feedback').forEach(fb => fb.textContent = '');
+}
+</script>
+</body>
+</html>
