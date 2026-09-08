@@ -1,0 +1,201 @@
+{
+  "name": "Veille des versions n8n",
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -224,
+        48
+      ],
+      "id": "6a6e3f17-5259-40e3-aaca-5c2c67f5f183",
+      "name": "When clicking ‘Execute workflow’"
+    },
+    {
+      "parameters": {
+        "url": "https://api.github.com/repos/n8n-io/n8n/releases",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "githubApi",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "per_page",
+              "value": "5"
+            }
+          ]
+        },
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Accept",
+              "value": "application/vnd.github+json"
+            }
+          ]
+        },
+        "options": {
+          "pagination": {
+            "pagination": {
+              "parameters": {
+                "parameters": [
+                  {
+                    "name": "page",
+                    "value": "={{ $pageCount }}"
+                  }
+                ]
+              },
+              "limitPagesFetched": true,
+              "maxRequests": 3,
+              "requestInterval": 200
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.5,
+      "position": [
+        0,
+        48
+      ],
+      "id": "10f85562-4ee0-4b86-9074-c22bef02ed77",
+      "name": "Créer le résumé",
+      "credentials": {
+        "githubApi": {
+          "id": "VehHhZSlbG3EAb4K",
+          "name": "GitHub account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "e253fb7e-1b6b-46e5-ace4-b2aed40ceb6f",
+              "name": "version",
+              "value": "={{ $json.tag_name }}",
+              "type": "string"
+            },
+            {
+              "id": "4bb0c543-f8d5-4e0a-bc36-77287bed7268",
+              "name": "publie_le",
+              "value": "={{ $json.published_at }}",
+              "type": "string"
+            },
+            {
+              "id": "f36cf830-b6f3-447c-a10e-e719d74668ab",
+              "name": "lien",
+              "value": "={{ $json.html_url }}",
+              "type": "string"
+            },
+            {
+              "id": "725cdb6f-b7dd-431d-8801-b9233ef233b9",
+              "name": "resume",
+              "value": "={{ \"version \" + $json.tag_name + \" publie_le \" + $json.published_at }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.5,
+      "position": [
+        192,
+        48
+      ],
+      "id": "82fb6f96-888d-48bc-b203-fd8a8a8f898f",
+      "name": "Créer le résumé1"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://httpbin.org/post",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "=resume",
+              "value": "={{ $json.resume }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.5,
+      "position": [
+        400,
+        48
+      ],
+      "id": "0a3b45c4-e2c4-4ba4-87da-bf483fb8f2b6",
+      "name": "Chager le résumé "
+    },
+    {
+      "parameters": {
+        "content": "## règlage de pagination\n- **options** -> **pagination**\n- trouver comment fonctionne la pagination du serveur distant\n- où est le paramètre (dans l'url ou dans le corps de la requête, voire les entêtes)\n- trouver le nom du paramètre\n- dynamiser la valeur et la limite des pages `{{ $PageCount }}`\n- interval entre appels ~200ms pour éviter les erreurs 429 Too Many Requests",
+        "height": 240,
+        "width": 592,
+        "color": 3
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        0,
+        -240
+      ],
+      "typeVersion": 1,
+      "id": "fb7df872-8511-444b-bfd3-13dcb751505b",
+      "name": "Sticky Note"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When clicking ‘Execute workflow’": {
+      "main": [
+        [
+          {
+            "node": "Créer le résumé",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Créer le résumé": {
+      "main": [
+        [
+          {
+            "node": "Créer le résumé1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Créer le résumé1": {
+      "main": [
+        [
+          {
+            "node": "Chager le résumé ",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "0bbd729f-fe81-4c7a-a484-1ebebb01f08d",
+  "meta": {
+    "instanceId": "12046d944e444fc96f92cc95f8324099ad51cfba58a892439d0a35f9d751b52a"
+  },
+  "nodeGroups": [],
+  "id": "hf5SBvReBlg098eZ",
+  "tags": []
+}
