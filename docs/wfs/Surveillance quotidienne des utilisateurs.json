@@ -1,0 +1,233 @@
+{
+  "name": "Surveillance quotidienne des utilisateurs",
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -336,
+        -224
+      ],
+      "id": "9ea225b8-bf2b-4c30-8090-f33e7bf6b9e2",
+      "name": "When clicking ‘Execute workflow’",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "url": "https://jsonplaceholder.typicode.com/users",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.5,
+      "position": [
+        -64,
+        -32
+      ],
+      "id": "5a39c5d8-b039-499e-adeb-d70cca0a7872",
+      "name": "Récupérer les utilisateurs",
+      "retryOnFail": false
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "0a4ce398-e423-473e-a84e-deddd295b8de",
+              "name": "nom_complet",
+              "value": "={{ $json.name }}",
+              "type": "string"
+            },
+            {
+              "id": "95bd7944-d044-4f96-8557-bd806008ff26",
+              "name": "email",
+              "value": "={{ $json.email.toLowerCase() }}",
+              "type": "string"
+            },
+            {
+              "id": "aff6965a-aa4d-4c5e-af45-3af9163ddf5b",
+              "name": "ville",
+              "value": "={{ $json.address.city }}",
+              "type": "string"
+            },
+            {
+              "id": "bb1a9425-9579-491d-93a4-8f11d5e0dc20",
+              "name": "societe",
+              "value": "={{ $json.company.name }}",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "include": "selected",
+        "includeFields": "website",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.5,
+      "position": [
+        144,
+        -32
+      ],
+      "id": "d207bd82-90e7-4910-9a8a-875e039c3e41",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "content": "## mapping avec n8n\n### 1. mapping manuel avec d&d pour\n  + renommer et injecter des champs en Javascript ` {{ $json.<field> }} `\n  + transformer les  valeurs en Javascript ` {{ $json.<field>.<function()> }} `\n\n### 2. mapping en JSON\n```jsonc\n{\n   // ...\n  \"field\": \"{{ $json.<field> }}\"\n}\n```\n\n### 3. mapping auto  \n   + pour les champs dont le nom et la valeur ne changent pas\n   + enclencher l'option **include other fields ...**  tous, selection (d&d), ou exclusions (d&d)",
+        "height": 464,
+        "width": 624,
+        "color": 5
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -16,
+        -528
+      ],
+      "typeVersion": 1,
+      "id": "e120077e-99b7-4d14-8c85-ee66f84fadb1",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "50cd4e23-232b-4e81-96ed-c8575adb975f",
+              "leftValue": "={{ $json.ville }}",
+              "rightValue": "Gwenborough",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        576,
+        -32
+      ],
+      "id": "3767a385-49fc-479b-afd2-5ac7f09bc9b0",
+      "name": "If",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "a161e1d1-50d0-4add-9e4c-299e7625692d",
+              "leftValue": "={{ $json.ville }}",
+              "rightValue": "Gwenborough",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.filter",
+      "typeVersion": 2.3,
+      "position": [
+        336,
+        -32
+      ],
+      "id": "982c3d04-7532-452f-88cc-bf05d2e82048",
+      "name": "Filter"
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "minutes",
+              "minutesInterval": 1
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.4,
+      "position": [
+        -288,
+        -32
+      ],
+      "id": "4fb08662-78f1-46b4-8f9c-1b37d93f6510",
+      "name": "Schedule Trigger"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When clicking ‘Execute workflow’": {
+      "main": [
+        []
+      ]
+    },
+    "Récupérer les utilisateurs": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "Filter",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "Récupérer les utilisateurs",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "d4e759d2-b422-48b7-a824-75827e905e8a",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "12046d944e444fc96f92cc95f8324099ad51cfba58a892439d0a35f9d751b52a"
+  },
+  "nodeGroups": [],
+  "id": "i7oULWRQB72HTWdV",
+  "tags": []
+}
