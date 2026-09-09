@@ -37,7 +37,7 @@
     },
     {
       "parameters": {
-        "content": "## points importants\n\n### 1. webhook\n\n- ne pas oublier la façon dont le serveur va répondre aux requête\n   * \"immediately\" quand on développe le flux\n   * \"use a respond to webhook\" node à la fin du développement\n- ne pas oublier de basculer le webhook en production quand les tests sont bons\n\n### 2. switch\n\n> ne pas oublier que les REGLES sont évaluées dans l'ordre\n> chaque règle créer une sortie et aussi le \" Fallback en mode extra output \"\n> on peut exprimer un switch en javascript en enchainant des **opérateurs ternaires** *condition ? oui : non*\n\n### 3. edit set\n\n- utilisation des templates javascript\n```javascript\n{{ `blablab blabla ${ $json.xxxxxx.yyyy() } ... ${ ... } ` }}\n``` \n\n### 4. send mail\n\n[ documentation pour utiliser le SMTP GMAIL avec 0Auth2](https://docs.n8n.io/integrations/builtin/credentials/send-email/gmail)\n\n### 5. respond to the webhook\n\n- on peut répondre le flux entrant (tout ou le permier ou le dernier item) ou un objet JSON arbitraire ...\n",
+        "content": "## points importants\n\n### 1. webhook\n\n- ne pas oublier la façon dont le serveur va répondre aux requête\n   * \"immediately\" quand on développe le flux\n   * \"use a respond to webhook\" node à la fin du développement\n- ne pas oublier de basculer le webhook en production quand les tests sont bons\n\n### 2. switch\n\n> ne pas oublier que les REGLES sont évaluées dans l'ordre\n> chaque règle créer une sortie et aussi le \" Fallback en mode extra output \"\n> on peut exprimer un switch en javascript en enchainant des **opérateurs ternaires** *condition ? oui : non*\n\n### 3. edit set\n\n- utilisation des templates javascript\n```javascript\n{{ `blablab blabla ${ $json.xxxxxx.yyyy() } ... ${ ... } ` }}\n``` \n\n### 4. send mail\n\n- [ documentation pour utiliser le SMTP GMAIL avec 0Auth2](https://docs.n8n.io/integrations/builtin/credentials/send-email/gmail)\n> ce noeud exécute le workflow complet et non une exécution individuelle quand on clique sur le bouton \"step execution\" donc ANORMAL\n### 5. respond to the webhook\n\n- on peut répondre le flux entrant (tout ou le permier ou le dernier item) ou un objet JSON arbitraire ...\n",
         "height": 736,
         "width": 1376,
         "color": 3
@@ -288,7 +288,7 @@
     "executionOrder": "v1",
     "binaryMode": "separate"
   },
-  "versionId": "6809bda0-7349-453c-99ef-c363aa77d4d1",
+  "versionId": "42ad74d1-a535-4890-93e3-594d5bc7203e",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "12046d944e444fc96f92cc95f8324099ad51cfba58a892439d0a35f9d751b52a"
