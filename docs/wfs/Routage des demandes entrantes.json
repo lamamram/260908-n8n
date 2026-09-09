@@ -1,0 +1,299 @@
+{
+  "name": "Routage des demandes entrantes",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "demande-contact",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -240,
+        0
+      ],
+      "id": "bba2a8ee-241a-479d-80b1-098ac89f8b64",
+      "name": "Webhook",
+      "webhookId": "c3574e38-6a77-4d58-8610-0b381929945b"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={\"statut\":\"reçu\",\"ticket\": \"{{ $('éditer les éléments du mail').item.json.recu_le }}\"}",
+        "options": {
+          "responseCode": 200
+        }
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        864,
+        -96
+      ],
+      "id": "09159d31-02ed-4af1-b18b-1052019c0f23",
+      "name": "Respond to Webhook"
+    },
+    {
+      "parameters": {
+        "content": "## points importants\n\n### 1. webhook\n\n- ne pas oublier la façon dont le serveur va répondre aux requête\n   * \"immediately\" quand on développe le flux\n   * \"use a respond to webhook\" node à la fin du développement\n- ne pas oublier de basculer le webhook en production quand les tests sont bons\n\n### 2. switch\n\n> ne pas oublier que les REGLES sont évaluées dans l'ordre\n> chaque règle créer une sortie et aussi le \" Fallback en mode extra output \"\n> on peut exprimer un switch en javascript en enchainant des **opérateurs ternaires** *condition ? oui : non*\n\n### 3. edit set\n\n- utilisation des templates javascript\n```javascript\n{{ `blablab blabla ${ $json.xxxxxx.yyyy() } ... ${ ... } ` }}\n``` \n\n### 4. send mail\n\n[ documentation pour utiliser le SMTP GMAIL avec 0Auth2](https://docs.n8n.io/integrations/builtin/credentials/send-email/gmail)\n\n### 5. respond to the webhook\n\n- on peut répondre le flux entrant (tout ou le permier ou le dernier item) ou un objet JSON arbitraire ...\n",
+        "height": 736,
+        "width": 1376,
+        "color": 3
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -304,
+        -928
+      ],
+      "typeVersion": 1,
+      "id": "e4551519-24af-4109-a386-72ed68ce7698",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "f02ad3fe-b162-45bc-8e18-f40415918804",
+              "leftValue": "={{ $json.body.email }}",
+              "rightValue": "([a-zA-Z0-9_]+\\.)*[a-zA-Z0-9_]+@([a-zA-Z0-9_]+\\.)+[a-z]{2,}",
+              "operator": {
+                "type": "string",
+                "operation": "regex"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.filter",
+      "typeVersion": 2.3,
+      "position": [
+        -16,
+        0
+      ],
+      "id": "dec795fc-7df8-42af-ba1c-297387991451",
+      "name": "Écarter les demandes sans e-mail"
+    },
+    {
+      "parameters": {
+        "mode": "expression",
+        "numberOutputs": 3,
+        "output": "={{ $json.body.type == 'support' ? 0 : $json.body.type == 'commercial' ? 1 : 2 }}"
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [
+        192,
+        -16
+      ],
+      "id": "7413e62a-04e6-41d6-a7bc-19c934d1546b",
+      "name": "Aiguiller par type de demande"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "cf98d0b9-2bcc-4d03-959c-24706ced7f81",
+              "name": "subject",
+              "value": "={{ `Demande de type ${$json.body.type} de ${$json.body.nom} - pour l'équipe ${ $json.body.type === 'support' ? 'technique' : 'commercial' }` }}",
+              "type": "string"
+            },
+            {
+              "id": "3994d0ca-7710-4779-a0f6-118f30c117ef",
+              "name": "body.message",
+              "value": "={{ $json.body.message }}",
+              "type": "string"
+            },
+            {
+              "id": "d4cc7a7e-80e0-4a3f-a6e3-f689a6a615ba",
+              "name": "recu_le",
+              "value": "={{ $now.toISO() }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.5,
+      "position": [
+        416,
+        -96
+      ],
+      "id": "9fed908a-defc-42fa-9500-57500f78b82e",
+      "name": "éditer les éléments du mail"
+    },
+    {
+      "parameters": {
+        "fromEmail": "matthieu.lamamra@gmail.com",
+        "toEmail": "mlamamra@dawan.fr",
+        "subject": "={{ $json.subject }}",
+        "emailFormat": "text",
+        "text": "={{ $json.body.message }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2.1,
+      "position": [
+        640,
+        -96
+      ],
+      "id": "95c94bf6-dd21-4744-bc87-abe2ecf67eae",
+      "name": "envoyer un mail avec le SMTP de gmail",
+      "webhookId": "a2abccbc-9f7a-441a-8c88-3b48907995ef",
+      "credentials": {
+        "smtp": {
+          "id": "CeHMZ8gBMLqEopWE",
+          "name": "SMTP account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "{{ $json.body.type }}",
+                    "rightValue": "support",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "390b42d0-f0f6-4915-bce5-65de4b055eaa"
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "20849cc2-ea19-4d82-a2a3-adf15da89be6",
+                    "leftValue": "={{ $json.body.type }}",
+                    "rightValue": "commercial",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            }
+          ]
+        },
+        "options": {
+          "fallbackOutput": "extra"
+        }
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [
+        192,
+        224
+      ],
+      "id": "13545268-f066-48ec-858d-755db9889966",
+      "name": "Aiguiller par type de demande1",
+      "disabled": true
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Écarter les demandes sans e-mail",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Écarter les demandes sans e-mail": {
+      "main": [
+        [
+          {
+            "node": "Aiguiller par type de demande",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aiguiller par type de demande": {
+      "main": [
+        [
+          {
+            "node": "éditer les éléments du mail",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "éditer les éléments du mail": {
+      "main": [
+        [
+          {
+            "node": "envoyer un mail avec le SMTP de gmail",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "envoyer un mail avec le SMTP de gmail": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "6809bda0-7349-453c-99ef-c363aa77d4d1",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "12046d944e444fc96f92cc95f8324099ad51cfba58a892439d0a35f9d751b52a"
+  },
+  "nodeGroups": [],
+  "id": "1GEBSmgizzTlNbDl",
+  "tags": []
+}
