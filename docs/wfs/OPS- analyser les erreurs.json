@@ -3,29 +3,145 @@
   "nodes": [
     {
       "parameters": {
-        "content": "## consignes\n\n* lire les informations de la table errors de la bdd postgresql\n* créer le flux avec un item \n```jsonc\n[\n  {\n     // pourcentage d'erreurs\n      \"stats\": {\n          \"message .....\" : \"60\",\n          \"mesage .....\" : \"40\"\n  }\n]\n```\n* soit écrire dans un fichier csv\n* ou alors dans une data table",
-        "height": 416,
-        "width": 816,
+        "content": "## consignes\n\n* lire les informations de la table errors de la bdd postgresql\n* créer le flux avec un item \n```jsonc\n[\n  {\n     // pourcentage d'erreurs\n      \"stats\": {\n          \"message .....\" : \"60\",\n          \"mesage .....\" : \"40\"\n  }\n]\n```\n* soit écrire dans un fichier csv\n\n> travailler avec le disque local ( ou NFS )\n> par défaut avec Docker les fichiers doivent être insérés dans ~/.n8n-files \n> ou avec la variable N8N_RESTRICT_FILE_ACCESS_TO=/home/node/data;/home/node/.n8n-files\n\n* les noeuds liés\n  - Read/Write Files fro Disk\n  - Extract From File (ici from CSV)\n  - Convert To ...\n  - Write File to Disk (override !!!!)\n\n* ou alors dans une data table",
+        "height": 672,
+        "width": 1072,
         "color": 5
       },
       "type": "n8n-nodes-base.stickyNote",
       "position": [
         -656,
-        -240
+        -464
       ],
       "typeVersion": 1,
       "id": "144d9855-355a-4ebe-ab5d-d52d853085a8",
       "name": "Sticky Note"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -640,
+        224
+      ],
+      "id": "274a8662-ba5e-4dc6-91a6-927651ebb975",
+      "name": "When clicking ‘Execute workflow’"
+    },
+    {
+      "parameters": {
+        "fileSelector": "/home/node/data/users.csv",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.readWriteFile",
+      "typeVersion": 1.1,
+      "position": [
+        -352,
+        224
+      ],
+      "id": "c865a9e0-2167-49c8-a02e-abdd8ee53641",
+      "name": "Read/Write Files from Disk"
+    },
+    {
+      "parameters": {
+        "options": {
+          "delimiter": ";",
+          "encoding": "utf-8"
+        }
+      },
+      "type": "n8n-nodes-base.extractFromFile",
+      "typeVersion": 1.1,
+      "position": [
+        -96,
+        224
+      ],
+      "id": "070f3d19-79e8-4bff-a098-5377dbb2d208",
+      "name": "Extract from File"
+    },
+    {
+      "parameters": {
+        "options": {
+          "delimiter": ";"
+        }
+      },
+      "type": "n8n-nodes-base.convertToFile",
+      "typeVersion": 1.1,
+      "position": [
+        128,
+        224
+      ],
+      "id": "573e24bf-5c6a-4ed7-9a14-d244605e160a",
+      "name": "Convert to File"
+    },
+    {
+      "parameters": {
+        "operation": "write",
+        "fileName": "/home/node/data/users2.csv",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.readWriteFile",
+      "typeVersion": 1.1,
+      "position": [
+        352,
+        224
+      ],
+      "id": "5483c1e1-3642-48ca-a438-02a3f5c1fa14",
+      "name": "Read/Write Files from Disk1"
     }
   ],
   "pinData": {},
-  "connections": {},
+  "connections": {
+    "When clicking ‘Execute workflow’": {
+      "main": [
+        [
+          {
+            "node": "Read/Write Files from Disk",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read/Write Files from Disk": {
+      "main": [
+        [
+          {
+            "node": "Extract from File",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract from File": {
+      "main": [
+        [
+          {
+            "node": "Convert to File",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Convert to File": {
+      "main": [
+        [
+          {
+            "node": "Read/Write Files from Disk1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
   "active": false,
   "settings": {
     "executionOrder": "v1",
     "binaryMode": "separate"
   },
-  "versionId": "7f44c480-93d7-4a53-8c8c-41c3cc2b70cb",
+  "versionId": "7c5190fd-d795-43b5-8f48-38b619af4081",
   "meta": {
     "instanceId": "12046d944e444fc96f92cc95f8324099ad51cfba58a892439d0a35f9d751b52a"
   },
