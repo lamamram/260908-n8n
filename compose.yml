@@ -9,6 +9,7 @@ services:
       - TZ=Europe/Paris
     volumes:
       - n8n_data:/home/node/.n8n
+      - ./data:/home/node/data
   database:
     # la version 18+ de PostgreSQL demande une autre configuration pour le mot de passe, donc on reste sur la version 17
     image: 'docker.io/postgres:17'

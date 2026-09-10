@@ -1,0 +1,35 @@
+{
+  "name": "OPS- analyser les erreurs",
+  "nodes": [
+    {
+      "parameters": {
+        "content": "## consignes\n\n* lire les informations de la table errors de la bdd postgresql\n* créer le flux avec un item \n```jsonc\n[\n  {\n     // pourcentage d'erreurs\n      \"stats\": {\n          \"message .....\" : \"60\",\n          \"mesage .....\" : \"40\"\n  }\n]\n```\n* soit écrire dans un fichier csv\n* ou alors dans une data table",
+        "height": 416,
+        "width": 816,
+        "color": 5
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -656,
+        -240
+      ],
+      "typeVersion": 1,
+      "id": "144d9855-355a-4ebe-ab5d-d52d853085a8",
+      "name": "Sticky Note"
+    }
+  ],
+  "pinData": {},
+  "connections": {},
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "7f44c480-93d7-4a53-8c8c-41c3cc2b70cb",
+  "meta": {
+    "instanceId": "12046d944e444fc96f92cc95f8324099ad51cfba58a892439d0a35f9d751b52a"
+  },
+  "nodeGroups": [],
+  "id": "fet0bJvNRWLZ3a3O",
+  "tags": []
+}
