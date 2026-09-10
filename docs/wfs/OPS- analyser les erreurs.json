@@ -22,8 +22,8 @@
       "type": "n8n-nodes-base.manualTrigger",
       "typeVersion": 1,
       "position": [
-        -640,
-        224
+        -608,
+        320
       ],
       "id": "274a8662-ba5e-4dc6-91a6-927651ebb975",
       "name": "When clicking ‘Execute workflow’"
@@ -36,11 +36,12 @@
       "type": "n8n-nodes-base.readWriteFile",
       "typeVersion": 1.1,
       "position": [
-        -352,
-        224
+        752,
+        -32
       ],
       "id": "c865a9e0-2167-49c8-a02e-abdd8ee53641",
-      "name": "Read/Write Files from Disk"
+      "name": "Read/Write Files from Disk",
+      "disabled": true
     },
     {
       "parameters": {
@@ -52,11 +53,12 @@
       "type": "n8n-nodes-base.extractFromFile",
       "typeVersion": 1.1,
       "position": [
-        -96,
-        224
+        1008,
+        -32
       ],
       "id": "070f3d19-79e8-4bff-a098-5377dbb2d208",
-      "name": "Extract from File"
+      "name": "Extract from File",
+      "disabled": true
     },
     {
       "parameters": {
@@ -67,26 +69,121 @@
       "type": "n8n-nodes-base.convertToFile",
       "typeVersion": 1.1,
       "position": [
-        128,
-        224
+        608,
+        320
       ],
       "id": "573e24bf-5c6a-4ed7-9a14-d244605e160a",
       "name": "Convert to File"
     },
     {
       "parameters": {
+        "sortFieldsUi": {
+          "sortField": [
+            {
+              "fieldName": "percent",
+              "order": "descending"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.sort",
+      "typeVersion": 1,
+      "position": [
+        368,
+        320
+      ],
+      "id": "10675d55-58f3-4544-a4c8-096bf0e6f88e",
+      "name": "Sort"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Run Once All Items permet d'utiliser $input.all(), $input.first(), last() ...\n// Run Once for Each Item permet d'utiliser\n// $input.item => on est dans une boucle for\nlet counts = {};\nconst stats = $input.first().json.stats;\nfor (const item of stats) {\n  if (item in counts) {\n    counts[item] += 1; \n  }\n  else {\n    counts[item] = 1;\n  }\n}\nconst nb_messages = stats.length;\n// debug: console.log(counts)\nconst output = [];\nfor (const [key, value] of Object.entries(counts)) {\n  output.push({\"message\": key, \"percent\": Math.round(value / nb_messages * 100) });\n}\n// REM: c'est à nous de structurer la sortie comme souhaitée par n8n !!!\nreturn output.map(o => ({\"json\": o}));"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        80,
+        320
+      ],
+      "id": "d49e9884-5052-498b-901c-3f898baf7e0b",
+      "name": "calculer les pourcentages de type d'erreurs"
+    },
+    {
+      "parameters": {
+        "fieldsToAggregate": {
+          "fieldToAggregate": [
+            {
+              "fieldToAggregate": "message",
+              "renameField": true,
+              "outputFieldName": "stats"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.aggregate",
+      "typeVersion": 1,
+      "position": [
+        -128,
+        320
+      ],
+      "id": "a2361bd5-08b9-4f33-8a28-f848cd3a70e4",
+      "name": "regrouper les messages"
+    },
+    {
+      "parameters": {
+        "operation": "select",
+        "schema": {
+          "__rl": true,
+          "mode": "list",
+          "value": "public"
+        },
+        "table": {
+          "__rl": true,
+          "value": "errors",
+          "mode": "list",
+          "cachedResultName": "errors"
+        },
+        "returnAll": true,
+        "where": {
+          "values": []
+        },
+        "options": {
+          "outputColumns": [
+            "message"
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.7,
+      "position": [
+        -384,
+        320
+      ],
+      "id": "a640bc6a-99fb-4c2c-a778-a1f040ada9f8",
+      "name": "extraire les erreurs",
+      "credentials": {
+        "postgres": {
+          "id": "9I4bJN25cR0tDXQF",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
         "operation": "write",
-        "fileName": "/home/node/data/users2.csv",
+        "fileName": "/home/node/data/errors_report.csv",
         "options": {}
       },
       "type": "n8n-nodes-base.readWriteFile",
       "typeVersion": 1.1,
       "position": [
-        352,
-        224
+        832,
+        320
       ],
       "id": "5483c1e1-3642-48ca-a438-02a3f5c1fa14",
-      "name": "Read/Write Files from Disk1"
+      "name": "écrire/écraser errors_report.csv"
     }
   ],
   "pinData": {},
@@ -95,7 +192,7 @@
       "main": [
         [
           {
-            "node": "Read/Write Files from Disk",
+            "node": "extraire les erreurs",
             "type": "main",
             "index": 0
           }
@@ -115,6 +212,22 @@
     },
     "Extract from File": {
       "main": [
+        []
+      ]
+    },
+    "Convert to File": {
+      "main": [
+        [
+          {
+            "node": "écrire/écraser errors_report.csv",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Sort": {
+      "main": [
         [
           {
             "node": "Convert to File",
@@ -124,11 +237,33 @@
         ]
       ]
     },
-    "Convert to File": {
+    "calculer les pourcentages de type d'erreurs": {
       "main": [
         [
           {
-            "node": "Read/Write Files from Disk1",
+            "node": "Sort",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "regrouper les messages": {
+      "main": [
+        [
+          {
+            "node": "calculer les pourcentages de type d'erreurs",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "extraire les erreurs": {
+      "main": [
+        [
+          {
+            "node": "regrouper les messages",
             "type": "main",
             "index": 0
           }
@@ -141,8 +276,9 @@
     "executionOrder": "v1",
     "binaryMode": "separate"
   },
-  "versionId": "7c5190fd-d795-43b5-8f48-38b619af4081",
+  "versionId": "b528ca6f-c1a7-47d0-a5cf-5c849cb58805",
   "meta": {
+    "templateCredsSetupCompleted": true,
     "instanceId": "12046d944e444fc96f92cc95f8324099ad51cfba58a892439d0a35f9d751b52a"
   },
   "nodeGroups": [],
