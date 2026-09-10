@@ -1,0 +1,86 @@
+{
+  "name": "SYS - Alertes erreurs",
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.errorTrigger",
+      "typeVersion": 1,
+      "position": [
+        -160,
+        0
+      ],
+      "id": "35e8fc5c-0655-485d-af69-d7d7fc44a2e0",
+      "name": "Error Trigger"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "96b5197c-9188-4792-92c4-15b9b5dba964",
+              "name": "alerte",
+              "value": "={{ `[${$json.workflow.name}] échec sur « ${$json.execution.lastNodeExecuted} » : ${$json.execution.error?.message ?? $json.trigger?.error?.message}` }}\n",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.5,
+      "position": [
+        64,
+        0
+      ],
+      "id": "9031ead8-6d0a-4576-ad0a-83118e950cc5",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "content": "## test\n\n* la publication est toujours obligatoire\n* on peut tester un workflow utilisant ce workflow d'erreur sans le publier\n* exécuter le test du workflow en erreur => pas de workflow d'erreur\n* cliquer sur **\"retry\"** dans les exécutions => le workflow d'erreur se déclenche\n",
+        "height": 176,
+        "width": 592,
+        "color": 5
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -176,
+        -240
+      ],
+      "typeVersion": 1,
+      "id": "42d417ab-cf7d-4194-9c28-509ce81c524b",
+      "name": "Sticky Note"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Error Trigger": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        []
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "5b54bb03-0b63-45c1-862a-af13e983fecf",
+  "meta": {
+    "instanceId": "12046d944e444fc96f92cc95f8324099ad51cfba58a892439d0a35f9d751b52a"
+  },
+  "nodeGroups": [],
+  "id": "x1Be7vNGiiQ8OjbE",
+  "tags": []
+}

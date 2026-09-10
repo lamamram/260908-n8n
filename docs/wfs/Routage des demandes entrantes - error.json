@@ -1,0 +1,441 @@
+{
+  "name": "Routage des demandes entrantes - error",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "demande-contact-error",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -496,
+        0
+      ],
+      "id": "e77d163c-28cb-47f2-b7c0-043e808e3829",
+      "name": "Webhook",
+      "webhookId": "0fbc2b4a-7572-468e-ae5d-ca429c14484b"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={\"statut\":\"reçu\",\"ticket\": \"{{ $('éditer les éléments du mail').item.json.recu_le }}\"}",
+        "options": {
+          "responseCode": 200
+        }
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        1104,
+        -16
+      ],
+      "id": "9d3e15ce-7efc-4316-83f7-755f3e9876ef",
+      "name": "Respond to Webhook"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "f02ad3fe-b162-45bc-8e18-f40415918804",
+              "leftValue": "={{ $json.body.email }}",
+              "rightValue": "([a-zA-Z0-9_]+\\.)*[a-zA-Z0-9_]+@([a-zA-Z0-9_]+\\.)+[a-z]{2,}",
+              "operator": {
+                "type": "string",
+                "operation": "regex"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.filter",
+      "typeVersion": 2.3,
+      "position": [
+        -16,
+        0
+      ],
+      "id": "9651efea-7322-485b-a086-a34951905721",
+      "name": "Écarter les demandes sans e-mail"
+    },
+    {
+      "parameters": {
+        "mode": "expression",
+        "numberOutputs": 3,
+        "output": "={{ $json.body.type == 'support' ? 0 : $json.body.type == 'commercial' ? 1 : 2 }}"
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [
+        192,
+        -16
+      ],
+      "id": "e1871f8d-45fe-4d3a-b29f-fdbecc02a471",
+      "name": "Aiguiller par type de demande"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "cf98d0b9-2bcc-4d03-959c-24706ced7f81",
+              "name": "subject",
+              "value": "={{ `Demande de type ${$json.body.type} de ${$json.body.nom} - pour l'équipe ${ $json.body.type === 'support' ? 'technique' : 'commercial' }` }}",
+              "type": "string"
+            },
+            {
+              "id": "3994d0ca-7710-4779-a0f6-118f30c117ef",
+              "name": "body.message",
+              "value": "={{ $json.body.message }}",
+              "type": "string"
+            },
+            {
+              "id": "d4cc7a7e-80e0-4a3f-a6e3-f689a6a615ba",
+              "name": "recu_le",
+              "value": "={{ $now.toISO() }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.5,
+      "position": [
+        640,
+        0
+      ],
+      "id": "d55f9206-8c6b-4d7e-a060-c9859be32305",
+      "name": "éditer les éléments du mail"
+    },
+    {
+      "parameters": {
+        "numberInputs": 3
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        448,
+        -16
+      ],
+      "id": "9ada9d1a-b14c-422f-b163-a8e4cfbd8783",
+      "name": "Merge"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://httpbin.org/status/503",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.5,
+      "position": [
+        864,
+        0
+      ],
+      "id": "04125f47-f94e-4ec8-b293-ecf9b36e5c4a",
+      "name": "HTTP Request",
+      "retryOnFail": true,
+      "waitBetweenTries": 200,
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "69b1d2d8-6b63-48c6-89e1-6bac3fd29f10",
+              "name": "message",
+              "value": "={{ $json.body.message }}",
+              "type": "string"
+            },
+            {
+              "id": "6768f825-5fd9-4e46-acd6-24783df5f2d0",
+              "name": "subject",
+              "value": "={{ $json.subject }}",
+              "type": "string"
+            },
+            {
+              "id": "28dcc041-81da-46dc-bd36-c784fb584a07",
+              "name": "recu_le",
+              "value": "={{ $json.recu_le }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.5,
+      "position": [
+        1088,
+        144
+      ],
+      "id": "a4445a25-0459-4aee-b842-86905b865aec",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "a11a518d-1931-4542-ada6-79e0f74f9560",
+              "leftValue": "={{ $json.body.nom }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            },
+            {
+              "id": "60878bcb-3329-4a38-a208-c552af65ac81",
+              "leftValue": "={{ $json.body.message }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -272,
+        0
+      ],
+      "id": "7e6e81c5-e195-4691-a95a-a5bf06829dbe",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={\"statut\":\"infos manquantes\"}",
+        "options": {
+          "responseCode": 200
+        }
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        -16,
+        224
+      ],
+      "id": "cf256c87-8598-463a-b96d-27bd124f93c3",
+      "name": "Respond to Webhook1"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={\"statut\":\"reçu\",\"ticket\": \"{{ $('éditer les éléments du mail').item.json.recu_le }}\"}",
+        "options": {
+          "responseCode": 200
+        }
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        1312,
+        144
+      ],
+      "id": "d5a9e3f0-a3e0-476a-8752-9a7a2c52be9a",
+      "name": "Respond to Webhook2"
+    },
+    {
+      "parameters": {
+        "errorMessage": "Demande reçue sans nom ni message exploitable."
+      },
+      "type": "n8n-nodes-base.stopAndError",
+      "typeVersion": 1,
+      "position": [
+        208,
+        224
+      ],
+      "id": "efe4c7f1-9d4c-4cce-bfa8-2845e4dd338f",
+      "name": "Stop and Error"
+    },
+    {
+      "parameters": {
+        "content": "## points importants\n\n### 1. webhook\n* toutes les branches d'un workflow qui utilise un webhook doit comprendre une réponse au webhook\n\n### 2. exécuter l'URL de production du webhook\n* cette URL ne sera utilisée quand le workflow sera publié, par un scénario réél (curl,  ...)\n* une exécution du workflow dans la GUI ne déclenche que l'url de TEST",
+        "width": 688,
+        "color": 3
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -304,
+        -288
+      ],
+      "typeVersion": 1,
+      "id": "7a0bd3f1-96e3-4a02-ba50-b1328dd4c40a",
+      "name": "Sticky Note"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Écarter les demandes sans e-mail": {
+      "main": [
+        [
+          {
+            "node": "Aiguiller par type de demande",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aiguiller par type de demande": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 1
+          }
+        ],
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 2
+          }
+        ]
+      ]
+    },
+    "éditer les éléments du mail": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge": {
+      "main": [
+        [
+          {
+            "node": "éditer les éléments du mail",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Écarter les demandes sans e-mail",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Respond to Webhook1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Respond to Webhook1": {
+      "main": [
+        [
+          {
+            "node": "Stop and Error",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "timeSavedMode": "fixed",
+    "errorWorkflow": "x1Be7vNGiiQ8OjbE",
+    "callerPolicy": "workflowsFromSameOwner",
+    "availableInMCP": false
+  },
+  "versionId": "786bc080-f8b3-4388-a1c6-57072e50efae",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "12046d944e444fc96f92cc95f8324099ad51cfba58a892439d0a35f9d751b52a"
+  },
+  "nodeGroups": [],
+  "id": "SxFJPHHrDP3rTwmO",
+  "tags": []
+}
