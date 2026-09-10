@@ -37,102 +37,6 @@
     },
     {
       "parameters": {
-        "conditions": {
-          "options": {
-            "caseSensitive": true,
-            "leftValue": "",
-            "typeValidation": "strict",
-            "version": 3
-          },
-          "conditions": [
-            {
-              "id": "f02ad3fe-b162-45bc-8e18-f40415918804",
-              "leftValue": "={{ $json.body.email }}",
-              "rightValue": "([a-zA-Z0-9_]+\\.)*[a-zA-Z0-9_]+@([a-zA-Z0-9_]+\\.)+[a-z]{2,}",
-              "operator": {
-                "type": "string",
-                "operation": "regex"
-              }
-            }
-          ],
-          "combinator": "and"
-        },
-        "options": {}
-      },
-      "type": "n8n-nodes-base.filter",
-      "typeVersion": 2.3,
-      "position": [
-        -16,
-        0
-      ],
-      "id": "9651efea-7322-485b-a086-a34951905721",
-      "name": "Écarter les demandes sans e-mail"
-    },
-    {
-      "parameters": {
-        "mode": "expression",
-        "numberOutputs": 3,
-        "output": "={{ $json.body.type == 'support' ? 0 : $json.body.type == 'commercial' ? 1 : 2 }}"
-      },
-      "type": "n8n-nodes-base.switch",
-      "typeVersion": 3.4,
-      "position": [
-        192,
-        -16
-      ],
-      "id": "e1871f8d-45fe-4d3a-b29f-fdbecc02a471",
-      "name": "Aiguiller par type de demande"
-    },
-    {
-      "parameters": {
-        "assignments": {
-          "assignments": [
-            {
-              "id": "cf98d0b9-2bcc-4d03-959c-24706ced7f81",
-              "name": "subject",
-              "value": "={{ `Demande de type ${$json.body.type} de ${$json.body.nom} - pour l'équipe ${ $json.body.type === 'support' ? 'technique' : 'commercial' }` }}",
-              "type": "string"
-            },
-            {
-              "id": "3994d0ca-7710-4779-a0f6-118f30c117ef",
-              "name": "body.message",
-              "value": "={{ $json.body.message }}",
-              "type": "string"
-            },
-            {
-              "id": "d4cc7a7e-80e0-4a3f-a6e3-f689a6a615ba",
-              "name": "recu_le",
-              "value": "={{ $now.toISO() }}",
-              "type": "string"
-            }
-          ]
-        },
-        "options": {}
-      },
-      "type": "n8n-nodes-base.set",
-      "typeVersion": 3.5,
-      "position": [
-        640,
-        0
-      ],
-      "id": "d55f9206-8c6b-4d7e-a060-c9859be32305",
-      "name": "éditer les éléments du mail"
-    },
-    {
-      "parameters": {
-        "numberInputs": 3
-      },
-      "type": "n8n-nodes-base.merge",
-      "typeVersion": 3.2,
-      "position": [
-        448,
-        -16
-      ],
-      "id": "9ada9d1a-b14c-422f-b163-a8e4cfbd8783",
-      "name": "Merge"
-    },
-    {
-      "parameters": {
         "method": "POST",
         "url": "https://httpbin.org/status/503",
         "options": {}
@@ -248,7 +152,7 @@
     {
       "parameters": {
         "respondWith": "json",
-        "responseBody": "={\"statut\":\"reçu\",\"ticket\": \"{{ $('éditer les éléments du mail').item.json.recu_le }}\"}",
+        "responseBody": "={\"statut\":\"reçu\",\"ticket\": \"{{ $('Call \\'partial - préparer les demande pour envoi mail\\'').item.json.recu_le }}\"}",
         "options": {
           "responseCode": 200
         }
@@ -289,6 +193,34 @@
       "typeVersion": 1,
       "id": "7a0bd3f1-96e3-4a02-ba50-b1328dd4c40a",
       "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "jvJVdqDmA7bBMcCc",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/jvJVdqDmA7bBMcCc",
+          "cachedResultName": "partial - préparer les demande pour envoi mail"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.3,
+      "position": [
+        288,
+        0
+      ],
+      "id": "5cf128f3-d20f-42ae-b1c9-2b6525e442ae",
+      "name": "Call 'partial - préparer les demande pour envoi mail'"
     }
   ],
   "pinData": {},
@@ -298,64 +230,6 @@
         [
           {
             "node": "If",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Écarter les demandes sans e-mail": {
-      "main": [
-        [
-          {
-            "node": "Aiguiller par type de demande",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Aiguiller par type de demande": {
-      "main": [
-        [
-          {
-            "node": "Merge",
-            "type": "main",
-            "index": 0
-          }
-        ],
-        [
-          {
-            "node": "Merge",
-            "type": "main",
-            "index": 1
-          }
-        ],
-        [
-          {
-            "node": "Merge",
-            "type": "main",
-            "index": 2
-          }
-        ]
-      ]
-    },
-    "éditer les éléments du mail": {
-      "main": [
-        [
-          {
-            "node": "HTTP Request",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Merge": {
-      "main": [
-        [
-          {
-            "node": "éditer les éléments du mail",
             "type": "main",
             "index": 0
           }
@@ -384,7 +258,7 @@
       "main": [
         [
           {
-            "node": "Écarter les demandes sans e-mail",
+            "node": "Call 'partial - préparer les demande pour envoi mail'",
             "type": "main",
             "index": 0
           }
@@ -419,6 +293,17 @@
           }
         ]
       ]
+    },
+    "Call 'partial - préparer les demande pour envoi mail'": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     }
   },
   "active": false,
@@ -430,7 +315,7 @@
     "callerPolicy": "workflowsFromSameOwner",
     "availableInMCP": false
   },
-  "versionId": "786bc080-f8b3-4388-a1c6-57072e50efae",
+  "versionId": "e9cb26c1-02d6-4b27-865e-9841bf816ef9",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "12046d944e444fc96f92cc95f8324099ad51cfba58a892439d0a35f9d751b52a"

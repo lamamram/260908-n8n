@@ -1,0 +1,288 @@
+{
+  "name": "partial - préparer les demande pour envoi mail",
+  "nodes": [
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "f02ad3fe-b162-45bc-8e18-f40415918804",
+              "leftValue": "={{ $json.body.email }}",
+              "rightValue": "([a-zA-Z0-9_]+\\.)*[a-zA-Z0-9_]+@([a-zA-Z0-9_]+\\.)+[a-z]{2,}",
+              "operator": {
+                "type": "string",
+                "operation": "regex"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.filter",
+      "typeVersion": 2.3,
+      "position": [
+        -16,
+        0
+      ],
+      "id": "dec795fc-7df8-42af-ba1c-297387991451",
+      "name": "Écarter les demandes sans e-mail"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "cf98d0b9-2bcc-4d03-959c-24706ced7f81",
+              "name": "subject",
+              "value": "={{ `Demande de type ${$json.body.type} de ${$json.body.nom} - pour l'équipe ${ $json.body.type === 'support' ? 'technique' : 'commercial' }` }}",
+              "type": "string"
+            },
+            {
+              "id": "3994d0ca-7710-4779-a0f6-118f30c117ef",
+              "name": "body.message",
+              "value": "={{ $json.body.message }}",
+              "type": "string"
+            },
+            {
+              "id": "d4cc7a7e-80e0-4a3f-a6e3-f689a6a615ba",
+              "name": "recu_le",
+              "value": "={{ $now.toISO() }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.5,
+      "position": [
+        640,
+        0
+      ],
+      "id": "9fed908a-defc-42fa-9500-57500f78b82e",
+      "name": "éditer les éléments du mail"
+    },
+    {
+      "parameters": {
+        "numberInputs": 3
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        448,
+        -16
+      ],
+      "id": "8287c81b-dabc-4e0a-9131-0fa64506acb3",
+      "name": "Merge"
+    },
+    {
+      "parameters": {
+        "mode": "expression",
+        "numberOutputs": 3,
+        "output": "={{ $json.body.type == 'support' ? 0 : $json.body.type == 'commercial' ? 1 : 2 }}"
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [
+        192,
+        -16
+      ],
+      "id": "7413e62a-04e6-41d6-a7bc-19c934d1546b",
+      "name": "Aiguiller par type de demande (version json)"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "8a04f7cd-8d97-4b82-882f-05ab6006ebb6",
+              "name": "recu_le",
+              "value": "={{ $('éditer les éléments du mail').item.json.recu_le }}",
+              "type": "string"
+            },
+            {
+              "id": "5ade4123-e583-45f8-ad34-ae4577d5565a",
+              "name": "subject",
+              "value": "={{ $json.subject }}",
+              "type": "string"
+            },
+            {
+              "id": "a45628fa-95f0-449d-baf3-3f0b5fb3695f",
+              "name": "body_message",
+              "value": "={{ $json.body.message }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        848,
+        0
+      ],
+      "id": "464fa482-6142-492e-939a-8d18698270b5",
+      "name": "Return"
+    },
+    {
+      "parameters": {
+        "inputSource": "passthrough"
+      },
+      "id": "a2681a98-0a58-4ad6-b9ad-553880772de3",
+      "typeVersion": 1.1,
+      "name": "Start",
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "position": [
+        -224,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "content": "## points importants\n### 1. settings du workflow **...** => edit description and tags\n* tagger les sous workflow pour les distinguer\n\n### 2. switch\n\n> ne pas oublier que les REGLES sont évaluées dans l'ordre\n> chaque règle créer une sortie et aussi le \" Fallback en mode extra output \"\n> on peut exprimer un switch en javascript en enchainant des **opérateurs ternaires** *condition ? oui : non*\n\n### 2. edit set\n\n- utilisation des templates javascript\n```javascript\n{{ `blablab blabla ${ $json.xxxxxx.yyyy() } ... ${ ... } ` }}\n``` ",
+        "height": 368,
+        "width": 704,
+        "color": 6
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        16,
+        -528
+      ],
+      "typeVersion": 1,
+      "id": "b97c2c97-2f19-4647-a233-1f6ab6ca6a5b",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "content": "## déclencher sub-workflow\n\n- faire attention aux champs nécéssaires à l'exécution du sous workflow\n  * ajouter **accept all data** (simple)\n  * détailler les champs attendus (formulaire | Json)",
+        "height": 320,
+        "width": 480,
+        "color": 3
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -512,
+        -176
+      ],
+      "typeVersion": 1,
+      "id": "99e159c4-9ba8-4196-8a8a-18d7cb9a6058",
+      "name": "Sticky Note1"
+    },
+    {
+      "parameters": {
+        "content": "## sortir proprement du sub-workflow\n\n- ce return est implémenté par la procédure de n8n sur le workflow parent (selection + define subworkflow)\n- il rassemble les champs utilisés par le workflow parent en aval",
+        "height": 320,
+        "width": 480,
+        "color": 3
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        816,
+        -160
+      ],
+      "typeVersion": 1,
+      "id": "0eca62df-8b7f-4ef4-adb8-ed62c5f97bec",
+      "name": "Sticky Note2"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Écarter les demandes sans e-mail": {
+      "main": [
+        [
+          {
+            "node": "Aiguiller par type de demande (version json)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge": {
+      "main": [
+        [
+          {
+            "node": "éditer les éléments du mail",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aiguiller par type de demande (version json)": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 1
+          }
+        ],
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 2
+          }
+        ]
+      ]
+    },
+    "Start": {
+      "main": [
+        [
+          {
+            "node": "Écarter les demandes sans e-mail",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "éditer les éléments du mail": {
+      "main": [
+        [
+          {
+            "node": "Return",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "3ca7b6c8-a379-4b1a-aa68-4f006ef1f2e1",
+  "meta": {
+    "instanceId": "12046d944e444fc96f92cc95f8324099ad51cfba58a892439d0a35f9d751b52a"
+  },
+  "nodeGroups": [],
+  "id": "jvJVdqDmA7bBMcCc",
+  "tags": [
+    {
+      "name": "sub-workflow",
+      "id": "70O9rgNwQjmsNZz1",
+      "updatedAt": "2026-09-10T12:01:34.402Z",
+      "createdAt": "2026-09-10T12:01:34.402Z"
+    }
+  ]
+}
