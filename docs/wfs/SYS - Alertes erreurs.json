@@ -6,7 +6,7 @@
       "type": "n8n-nodes-base.errorTrigger",
       "typeVersion": 1,
       "position": [
-        -160,
+        -272,
         0
       ],
       "id": "35e8fc5c-0655-485d-af69-d7d7fc44a2e0",
@@ -14,12 +14,40 @@
     },
     {
       "parameters": {
+        "content": "## test\n\n* la publication est toujours obligatoire\n* on peut tester un workflow utilisant ce workflow d'erreur sans le publier\n* exécuter le test du workflow en erreur => pas de workflow d'erreur\n* cliquer sur **\"retry\"** dans les exécutions => le workflow d'erreur se déclenche\n* ce workflow ne s'exécute que si le workflow amont est en ERREUR\n",
+        "height": 176,
+        "width": 592,
+        "color": 5
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -288,
+        -464
+      ],
+      "typeVersion": 1,
+      "id": "42d417ab-cf7d-4194-9c28-509ce81c524b",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
         "assignments": {
           "assignments": [
             {
-              "id": "96b5197c-9188-4792-92c4-15b9b5dba964",
-              "name": "alerte",
-              "value": "={{ `[${$json.workflow.name}] échec sur « ${$json.execution.lastNodeExecuted} » : ${$json.execution.error?.message ?? $json.trigger?.error?.message}` }}\n",
+              "id": "47166963-3371-4265-8925-ad77de2afae9",
+              "name": "workflow",
+              "value": "={{ $('Error Trigger').item.json.workflow.name }}",
+              "type": "string"
+            },
+            {
+              "id": "a386d48f-db3d-4d07-b3d7-860d9733f1a4",
+              "name": "node",
+              "value": "={{ $('Error Trigger').item.json.execution.lastNodeExecuted }}",
+              "type": "string"
+            },
+            {
+              "id": "14e98eb9-a6e3-40ad-88b4-cd05017db20f",
+              "name": "message",
+              "value": "={{ $('Error Trigger').item.json.execution.error?.message ?? $('Error Trigger').item.json.trigger?.error?.message }}",
               "type": "string"
             }
           ]
@@ -29,27 +57,189 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.5,
       "position": [
-        64,
+        272,
         0
       ],
       "id": "9031ead8-6d0a-4576-ad0a-83118e950cc5",
-      "name": "Edit Fields"
+      "name": "mapper les champs d'erreurs"
     },
     {
       "parameters": {
-        "content": "## test\n\n* la publication est toujours obligatoire\n* on peut tester un workflow utilisant ce workflow d'erreur sans le publier\n* exécuter le test du workflow en erreur => pas de workflow d'erreur\n* cliquer sur **\"retry\"** dans les exécutions => le workflow d'erreur se déclenche\n",
-        "height": 176,
-        "width": 592,
-        "color": 5
+        "schema": {
+          "__rl": true,
+          "mode": "list",
+          "value": "public"
+        },
+        "table": {
+          "__rl": true,
+          "value": "errors",
+          "mode": "list",
+          "cachedResultName": "errors"
+        },
+        "columns": {
+          "mappingMode": "autoMapInputData",
+          "value": {
+            "workflow": "={{ $json.workflow }}",
+            "node": "={{ $json.node }}",
+            "message": "={{ $json.message }}"
+          },
+          "matchingColumns": [
+            "id"
+          ],
+          "schema": [
+            {
+              "id": "id",
+              "displayName": "id",
+              "required": false,
+              "defaultMatch": true,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "workflow",
+              "displayName": "workflow",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "node",
+              "displayName": "node",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "message",
+              "displayName": "message",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "created_at",
+              "displayName": "created_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "dateTime",
+              "canBeUsedToMatch": true,
+              "removed": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.7,
+      "position": [
+        656,
+        0
+      ],
+      "id": "330d91a9-f39e-4e94-8d19-77e3df36fe3d",
+      "name": "insérer dans la db dev",
+      "credentials": {
+        "postgres": {
+          "id": "9I4bJN25cR0tDXQF",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $('charger l\\'environnement').item.json.value }}",
+                    "rightValue": "dev",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "4e7649cc-39a1-4fb3-b5f1-4b389ce3bd37"
+                  }
+                ],
+                "combinator": "and"
+              }
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [
+        464,
+        0
+      ],
+      "id": "f522732d-9cf4-4fa6-ab26-9faaab859a0d",
+      "name": "sélectionner l'environnement"
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "dataTableId": {
+          "__rl": true,
+          "value": "pjBd6XRq198fIfY0",
+          "mode": "list",
+          "cachedResultName": "globals",
+          "cachedResultUrl": "/projects/ykDmKHf7CbXqKhk3/datatables/pjBd6XRq198fIfY0"
+        },
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "key",
+              "keyValue": "environnement"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        0,
+        0
+      ],
+      "id": "5aa50794-d762-4b56-a830-214cd0c6c7b4",
+      "name": "charger l'environnement"
+    },
+    {
+      "parameters": {
+        "content": "## data tables\n* tables SQLite interne à n8n\n* création manuelle ou via CSV\n* injection dans un workflow\n    - operation:  get Row(s)",
+        "height": 416,
+        "width": 320,
+        "color": 4
       },
       "type": "n8n-nodes-base.stickyNote",
       "position": [
-        -176,
-        -240
+        -96,
+        -192
       ],
       "typeVersion": 1,
-      "id": "42d417ab-cf7d-4194-9c28-509ce81c524b",
-      "name": "Sticky Note"
+      "id": "40a0a131-bae6-4b0e-b686-cca4ccfb4084",
+      "name": "Sticky Note1"
     }
   ],
   "pinData": {},
@@ -58,26 +248,55 @@
       "main": [
         [
           {
-            "node": "Edit Fields",
+            "node": "charger l'environnement",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Edit Fields": {
+    "mapper les champs d'erreurs": {
       "main": [
-        []
+        [
+          {
+            "node": "sélectionner l'environnement",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "sélectionner l'environnement": {
+      "main": [
+        [
+          {
+            "node": "insérer dans la db dev",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "charger l'environnement": {
+      "main": [
+        [
+          {
+            "node": "mapper les champs d'erreurs",
+            "type": "main",
+            "index": 0
+          }
+        ]
       ]
     }
   },
-  "active": false,
+  "active": true,
   "settings": {
     "executionOrder": "v1",
     "binaryMode": "separate"
   },
-  "versionId": "5b54bb03-0b63-45c1-862a-af13e983fecf",
+  "versionId": "96be7df3-849e-4599-8012-1bd8f17caa4c",
   "meta": {
+    "templateCredsSetupCompleted": true,
     "instanceId": "12046d944e444fc96f92cc95f8324099ad51cfba58a892439d0a35f9d751b52a"
   },
   "nodeGroups": [],
