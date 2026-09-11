@@ -7,7 +7,10 @@ services:
     environment:
       - GENERIC_TIMEZONE=Europe/Paris
       - TZ=Europe/Paris
+      # déterminer les dossiers locaux pour n8n, .n8n-files par défaut, intéressant pour NFS
       - N8N_RESTRICT_FILE_ACCESS_TO=/home/node/data;/home/node/.n8n-files
+      # débrider tous les noeuds de l'édition gratuite
+      - NODES_EXCLUDE=[]
     volumes:
       - n8n_data:/home/node/.n8n
       - ./data:/home/node/data
