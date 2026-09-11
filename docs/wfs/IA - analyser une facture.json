@@ -1,0 +1,330 @@
+{
+  "name": "IA - analyser une facture",
+  "nodes": [
+    {
+      "parameters": {
+        "content": "## consignes\n\n### 1. exrtaire un pdf depuis le local\n\n",
+        "width": 288
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -448,
+        -176
+      ],
+      "typeVersion": 1,
+      "id": "1ae66c60-5fd0-4dca-87cb-9ace11448ef3",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -432,
+        96
+      ],
+      "id": "541d7109-763f-4e26-b242-8cae034977ca",
+      "name": "When clicking ‘Execute workflow’"
+    },
+    {
+      "parameters": {
+        "fileSelector": "/home/node/data/*.pdf",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.readWriteFile",
+      "typeVersion": 1.1,
+      "position": [
+        -208,
+        96
+      ],
+      "id": "95fa2129-0136-4080-85aa-e89946ead681",
+      "name": "Read/Write Files from Disk"
+    },
+    {
+      "parameters": {
+        "operation": "pdf",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.extractFromFile",
+      "typeVersion": 1.1,
+      "position": [
+        16,
+        96
+      ],
+      "id": "eca24091-d4e6-47cd-bf15-3a94e71e16cb",
+      "name": "Extract from File"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "793ffb59-e006-4010-ac54-b27a1a770f84",
+              "name": "text",
+              "value": "={{ $json.text.split(\"\\n\") }}",
+              "type": "array"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.5,
+      "position": [
+        -432,
+        336
+      ],
+      "id": "58f7f827-459f-457f-9a75-af8e75d2f977",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "fieldToSplitOut": "text",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitOut",
+      "typeVersion": 1,
+      "position": [
+        -224,
+        336
+      ],
+      "id": "4fc930a6-949e-402d-a1b1-7f7ab0e4e491",
+      "name": "Split Out"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "58fce549-8e67-4443-9076-ae74b51353e2",
+              "leftValue": "={{ $json.text }}",
+              "rightValue": ".*[Ll]amamra.*",
+              "operator": {
+                "type": "string",
+                "operation": "notRegex"
+              }
+            },
+            {
+              "id": "c29a060a-0a2d-4438-a939-19dd0c909d22",
+              "leftValue": "={{ $json.text }}",
+              "rightValue": ".*[0-9]+ +([Rr]ue|[Aa]llée|[Aa]venue|[Aa]v|[Bb]oulevard|[Bb]d) +.*",
+              "operator": {
+                "type": "string",
+                "operation": "notRegex"
+              }
+            },
+            {
+              "id": "d3393efe-f317-4938-ab5b-e9971b0bbb19",
+              "leftValue": "={{ $json.text }}",
+              "rightValue": ".*([13456789][0-9]{4}|2[0-9AB][0-9]{3}) +.*",
+              "operator": {
+                "type": "string",
+                "operation": "notRegex"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.filter",
+      "typeVersion": 2.3,
+      "position": [
+        0,
+        336
+      ],
+      "id": "2c00f159-a8be-4f1c-88e2-6e1f1d936848",
+      "name": "anonymiser"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=peux tu m'expliquer quel est le type de ce texte :\n--------------------------\n{{ $json.text.join(\"\\n\") }}\n----------------------------",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        448,
+        336
+      ],
+      "id": "fc0488ad-4a1b-4ec3-a93f-cccff67e257a",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "fieldsToAggregate": {
+          "fieldToAggregate": [
+            {
+              "fieldToAggregate": "text"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.aggregate",
+      "typeVersion": 1,
+      "position": [
+        224,
+        336
+      ],
+      "id": "947c4bc9-ef20-4fdd-9a7b-2e28579d7411",
+      "name": "Aggregate"
+    },
+    {
+      "parameters": {
+        "model": "qwen/qwen3.8-27b",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenRouter",
+      "typeVersion": 1,
+      "position": [
+        384,
+        528
+      ],
+      "id": "e394f883-cdfe-41f6-bc95-cb0a822fd3f8",
+      "name": "OpenRouter Chat Model",
+      "credentials": {
+        "openRouterApi": {
+          "id": "QCKBpc7IsU3GLw1C",
+          "name": "OpenRouter account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "analyse-document"
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.4,
+      "position": [
+        544,
+        544
+      ],
+      "id": "b0577723-4143-4f38-a30d-7d9bab4d87ac",
+      "name": "Simple Memory"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When clicking ‘Execute workflow’": {
+      "main": [
+        [
+          {
+            "node": "Read/Write Files from Disk",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read/Write Files from Disk": {
+      "main": [
+        [
+          {
+            "node": "Extract from File",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract from File": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "Split Out",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Split Out": {
+      "main": [
+        [
+          {
+            "node": "anonymiser",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "anonymiser": {
+      "main": [
+        [
+          {
+            "node": "Aggregate",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aggregate": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenRouter Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Simple Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "602b3384-2946-4df8-a7cb-c37468d40bf5",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "12046d944e444fc96f92cc95f8324099ad51cfba58a892439d0a35f9d751b52a"
+  },
+  "nodeGroups": [],
+  "id": "dRPt4nqyxfTICpRN",
+  "tags": []
+}
