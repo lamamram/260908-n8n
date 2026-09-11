@@ -3,12 +3,13 @@
   "nodes": [
     {
       "parameters": {
-        "content": "## consignes\n\n### 1. exrtaire un pdf depuis le local\n\n",
-        "width": 288
+        "content": "## consignes\n\n### 1. exrtaire un pdf depuis le local\n\n### 2. idem avec une image\n\n> en utilisant une image et un modèle externe ==> n8n ne peut pas flouter sans outil propriétaire avant prompt \n> dangereux en cas de données sensibles (d'entreprise)\n\n- IL FAUT soit un modèle local OU une base de donnée Vectorielle LOCALE pour transformer les documents en EMBEDDINGS ==> technique RAG (Retrieval  Augmented Generation)\n\n",
+        "height": 272,
+        "width": 576
       },
       "type": "n8n-nodes-base.stickyNote",
       "position": [
-        -448,
+        -624,
         -176
       ],
       "typeVersion": 1,
@@ -20,22 +21,22 @@
       "type": "n8n-nodes-base.manualTrigger",
       "typeVersion": 1,
       "position": [
-        -432,
-        96
+        -496,
+        176
       ],
       "id": "541d7109-763f-4e26-b242-8cae034977ca",
       "name": "When clicking ‘Execute workflow’"
     },
     {
       "parameters": {
-        "fileSelector": "/home/node/data/*.pdf",
+        "fileSelector": "/home/node/data/*.png",
         "options": {}
       },
       "type": "n8n-nodes-base.readWriteFile",
       "typeVersion": 1.1,
       "position": [
-        -208,
-        96
+        -272,
+        176
       ],
       "id": "95fa2129-0136-4080-85aa-e89946ead681",
       "name": "Read/Write Files from Disk"
@@ -48,8 +49,8 @@
       "type": "n8n-nodes-base.extractFromFile",
       "typeVersion": 1.1,
       "position": [
-        16,
-        96
+        224,
+        -80
       ],
       "id": "eca24091-d4e6-47cd-bf15-3a94e71e16cb",
       "name": "Extract from File"
@@ -71,8 +72,8 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.5,
       "position": [
-        -432,
-        336
+        384,
+        -80
       ],
       "id": "58f7f827-459f-457f-9a75-af8e75d2f977",
       "name": "Edit Fields"
@@ -85,8 +86,8 @@
       "type": "n8n-nodes-base.splitOut",
       "typeVersion": 1,
       "position": [
-        -224,
-        336
+        592,
+        -80
       ],
       "id": "4fc930a6-949e-402d-a1b1-7f7ab0e4e491",
       "name": "Split Out"
@@ -136,8 +137,8 @@
       "type": "n8n-nodes-base.filter",
       "typeVersion": 2.3,
       "position": [
-        0,
-        336
+        816,
+        -80
       ],
       "id": "2c00f159-a8be-4f1c-88e2-6e1f1d936848",
       "name": "anonymiser"
@@ -151,8 +152,8 @@
       "type": "@n8n/n8n-nodes-langchain.agent",
       "typeVersion": 3.1,
       "position": [
-        448,
-        336
+        1248,
+        -80
       ],
       "id": "fc0488ad-4a1b-4ec3-a93f-cccff67e257a",
       "name": "AI Agent"
@@ -171,8 +172,8 @@
       "type": "n8n-nodes-base.aggregate",
       "typeVersion": 1,
       "position": [
-        224,
-        336
+        1040,
+        -80
       ],
       "id": "947c4bc9-ef20-4fdd-9a7b-2e28579d7411",
       "name": "Aggregate"
@@ -185,8 +186,8 @@
       "type": "@n8n/n8n-nodes-langchain.lmChatOpenRouter",
       "typeVersion": 1,
       "position": [
-        384,
-        528
+        1184,
+        112
       ],
       "id": "e394f883-cdfe-41f6-bc95-cb0a822fd3f8",
       "name": "OpenRouter Chat Model",
@@ -205,11 +206,177 @@
       "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
       "typeVersion": 1.4,
       "position": [
-        544,
-        544
+        1328,
+        128
       ],
       "id": "b0577723-4143-4f38-a30d-7d9bab4d87ac",
       "name": "Simple Memory"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.fileExtension }}",
+                    "rightValue": "pdf",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "ee5f0432-8f5f-4d4d-87c5-dd1814841e3f"
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "e1435447-9dc5-487c-83f8-fb6780b52ba4",
+                    "leftValue": "={{ $json.fileExtension }}",
+                    "rightValue": "(png|jpe?g|webp)",
+                    "operator": {
+                      "type": "string",
+                      "operation": "regex"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [
+        -80,
+        176
+      ],
+      "id": "af33c915-abf6-4ac9-a75d-a819ef7faa2b",
+      "name": "Switch"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=peux tu extraire le texte du champs binaire data qui est une image png et m'expliquer quel est le type de ce texte, quelles informations sur la raison sociale dans ce document\n",
+        "options": {
+          "systemMessage": "You are a helpful assistant, that analyzes pictures featuring texts.",
+          "passthroughBinaryImages": true
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        368,
+        288
+      ],
+      "id": "8a7ce8dc-049c-4c20-a4fd-b7c18e267f30",
+      "name": "AI Agent1"
+    },
+    {
+      "parameters": {
+        "model": "qwen/qwen3.8-27b",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenRouter",
+      "typeVersion": 1,
+      "position": [
+        304,
+        480
+      ],
+      "id": "91f169bc-815d-49c4-918f-b42712a7cd46",
+      "name": "OpenRouter Chat Model1",
+      "credentials": {
+        "openRouterApi": {
+          "id": "QCKBpc7IsU3GLw1C",
+          "name": "OpenRouter account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "analyse-document"
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.4,
+      "position": [
+        464,
+        464
+      ],
+      "id": "eb156d2d-7b86-46f3-a40e-aaa67105e801",
+      "name": "Simple Memory1"
+    },
+    {
+      "parameters": {
+        "content": "\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n## Agent IA\n\n- clé provider ==> credentials\n- ajouter suffisamment de RAM (nb de Q & R dans le cas d'une utilisation itérative de l'agent)\n- un prompt système permet de ptéciser le domain d'activité lié au prompt\n - permet de lever des ambiguités dans les termes du prompt principal",
+        "height": 640,
+        "width": 592,
+        "color": 4
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        1152,
+        -160
+      ],
+      "typeVersion": 1,
+      "id": "803f5244-9334-4d12-8d64-6ba7eedf099a",
+      "name": "Sticky Note1"
+    },
+    {
+      "parameters": {
+        "url": "https://anoma.ly/",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequestTool",
+      "typeVersion": 4.5,
+      "position": [
+        624,
+        480
+      ],
+      "id": "9fed34df-8e86-4da1-ba55-93f19429e7d2",
+      "name": "HTTP Request"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "cd8dea84-8db6-4200-b961-31cb73b335c7",
+              "name": "output",
+              "value": "={{ $json.output.split(\"\\n\") }}",
+              "type": "array"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.5,
+      "position": [
+        736,
+        288
+      ],
+      "id": "60c39cf4-d610-4e19-835d-4f5cd4afba65",
+      "name": "Edit Fields1"
     }
   ],
   "pinData": {},
@@ -229,7 +396,7 @@
       "main": [
         [
           {
-            "node": "Extract from File",
+            "node": "Switch",
             "type": "main",
             "index": 0
           }
@@ -312,6 +479,68 @@
           }
         ]
       ]
+    },
+    "Switch": {
+      "main": [
+        [
+          {
+            "node": "Extract from File",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "AI Agent1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenRouter Chat Model1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent1",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Simple Memory1": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Agent1",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent1",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent1": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     }
   },
   "active": false,
@@ -319,7 +548,7 @@
     "executionOrder": "v1",
     "binaryMode": "separate"
   },
-  "versionId": "602b3384-2946-4df8-a7cb-c37468d40bf5",
+  "versionId": "a5eee2c6-d136-4d2e-ba03-5c33e13fcc73",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "12046d944e444fc96f92cc95f8324099ad51cfba58a892439d0a35f9d751b52a"
