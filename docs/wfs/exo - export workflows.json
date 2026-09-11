@@ -15,17 +15,277 @@
       "typeVersion": 1,
       "id": "8c8a9eb2-9d53-46d4-bc88-9d6168856e7a",
       "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "command": "n8n list:workflow"
+      },
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [
+        -128,
+        1120
+      ],
+      "id": "063dcf89-2236-43ac-992a-30e19691ec5b",
+      "name": "Execute Command"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "8611d1e8-129d-4cdf-bf00-369ec8e588a6",
+              "name": "option",
+              "value": "={{ $json.stdout.split(\"\\n\") }}",
+              "type": "array"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.5,
+      "position": [
+        224,
+        1120
+      ],
+      "id": "6050ad8f-2370-430a-893f-9971a53b064c",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "fieldToSplitOut": "option",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitOut",
+      "typeVersion": 1,
+      "position": [
+        528,
+        1120
+      ],
+      "id": "536e2352-74ca-421f-b55c-4dbf3a67f952",
+      "name": "Split Out"
+    },
+    {
+      "parameters": {
+        "formTitle": "exporter des workflows",
+        "formDescription": "ici on a un trigger donc pas de flux en  amont\n=> ce formulaire n'est pas dynamisable !!!!!!!!!",
+        "formFields": {
+          "values": [
+            {
+              "fieldLabel": "host",
+              "placeholder": "localhost",
+              "defaultValue": "localhost",
+              "requiredField": true
+            }
+          ]
+        },
+        "responseMode": "lastNode",
+        "options": {
+          "path": "export-workflows"
+        }
+      },
+      "type": "n8n-nodes-base.formTrigger",
+      "typeVersion": 2.6,
+      "position": [
+        -528,
+        1120
+      ],
+      "id": "98ce2e0b-a43b-42c1-864b-57aa6095c076",
+      "name": "On form submission",
+      "webhookId": "accfe601-5214-40cf-a644-7fc1d61de651"
+    },
+    {
+      "parameters": {
+        "defineForm": "json",
+        "jsonOutput": "=[\n  {\n    \"fieldLabel\": \"workflows\",\n    \"fieldType\": \"dropdown\",\n    \"fieldOptions\": {\n      \"values\": {{ $json.data }}\n    },\n    \"requiredField\": true\n  }\n]\n",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.form",
+      "typeVersion": 2.5,
+      "position": [
+        1072,
+        1120
+      ],
+      "id": "b9776b61-4f5e-48e1-b206-50bacdeff914",
+      "name": "Form",
+      "webhookId": "7a454628-5f85-4d90-99a9-5f52a766babb"
+    },
+    {
+      "parameters": {
+        "aggregate": "aggregateAllItemData",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.aggregate",
+      "typeVersion": 1,
+      "position": [
+        816,
+        1120
+      ],
+      "id": "aac17acb-e68e-46fe-88ad-c7b60abe8077",
+      "name": "Aggregate"
+    },
+    {
+      "parameters": {
+        "content": "## Trigger Form \n\n- parameter **Respond When** -> **Workflow Finishes**\n- option **Form Path** -> **Workflow Finishes**\n",
+        "height": 416,
+        "width": 320,
+        "color": 2
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -592,
+        864
+      ],
+      "typeVersion": 1,
+      "id": "433a142f-430d-4ca0-a7a7-7d98f1e24464",
+      "name": "Sticky Note1"
+    },
+    {
+      "parameters": {
+        "content": "## Command\n\n- la sortie est une chaine de caractère stdout",
+        "height": 416,
+        "width": 272
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -208,
+        864
+      ],
+      "typeVersion": 1,
+      "id": "94dfc912-b585-41b7-b9e6-ccc19244c5c7",
+      "name": "Sticky Note2"
+    },
+    {
+      "parameters": {
+        "content": "## point importan\n\n- `String.split(<delimiter>) ==> Array`\n\n- il faut changer **LE TYPE** en Array !!",
+        "height": 416,
+        "width": 288,
+        "color": 3
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        128,
+        864
+      ],
+      "typeVersion": 1,
+      "id": "564db9ea-adaf-4b0d-87f3-00b962511309",
+      "name": "Sticky Note3"
+    },
+    {
+      "parameters": {
+        "content": "## Split Out \n\n- transforme un flux de 1 Item contenant N valeurs (ICI des Strings )\n\n- en un flux de N items contenant 1 item (un OBJET)",
+        "height": 416,
+        "color": 4
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        464,
+        864
+      ],
+      "typeVersion": 1,
+      "id": "828cc9ed-1e68-4710-998b-1f84fde8c194",
+      "name": "Sticky Note4"
+    },
+    {
+      "parameters": {
+        "content": "## point important\n\n- avec le mode **put all items in single list**\n\n- on transforme un flux de N items contenant des objets\n\n- en un flux d'un item contenant une liste d'objets\n\n",
+        "height": 416,
+        "width": 272,
+        "color": 5
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        736,
+        864
+      ],
+      "typeVersion": 1,
+      "id": "06f95742-128f-4dae-b842-d9b9335a37c3",
+      "name": "Sticky Note5"
+    },
+    {
+      "parameters": {
+        "content": "## Next Page Form\n\n- utiliser le mode **JSON**\npour dynamiser un dropdown, checkboxes, radio ...\n\n- regarder ce composant vierge avec JSON qui nous donne toues les structures JSON attendues",
+        "height": 416,
+        "width": 288,
+        "color": 6
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        1040,
+        864
+      ],
+      "typeVersion": 1,
+      "id": "6222718b-f117-4320-a6e3-11f3f1096521",
+      "name": "Sticky Note6"
     }
   ],
   "pinData": {},
-  "connections": {},
+  "connections": {
+    "Execute Command": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "Split Out",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "On form submission": {
+      "main": [
+        [
+          {
+            "node": "Execute Command",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Split Out": {
+      "main": [
+        [
+          {
+            "node": "Aggregate",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aggregate": {
+      "main": [
+        [
+          {
+            "node": "Form",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
   "active": false,
   "settings": {
     "executionOrder": "v1",
     "binaryMode": "separate"
   },
-  "versionId": "9e91ecc3-7852-4c18-9f67-1dd3ea2fd9b2",
+  "versionId": "0788f991-68f3-42fc-b391-c380f78a812f",
   "meta": {
+    "templateCredsSetupCompleted": true,
     "instanceId": "12046d944e444fc96f92cc95f8324099ad51cfba58a892439d0a35f9d751b52a"
   },
   "nodeGroups": [],
