@@ -1,0 +1,34 @@
+{
+  "name": "exo - export workflows",
+  "nodes": [
+    {
+      "parameters": {
+        "content": "## consignes\n\n### 1. débrider n8n avec la variable NODES_EXCLUDE=[] dans `compose.yml`\n\n```bash\ndocker compose down\ndocker compose up -d\n```\n\n### 2. utliliser la CLI avec le noeud **execute command**\n\n- lister tous les workflow\n\n### 3. transformation de la sortie de la commande\n\n- il faut avoir en sortie une liste d'objects qui contiennent un champs \"workflow\": \"<id>|<name>\"\n\n```json\n[\n  {\n     \"workflow\": \"<id>|<name>\"\n  },\n  {\n     \"workflow\": \"<id>|<name>\"\n   }\n  ...\n]\n```\n\n> TIP: en javascript transformation d'une String en Array selon un délimiteur\n\n> TIP2: pour transformer un flux avec 1 item qui contient une liste de n de valeurs ==> un flux avec n items contenant un seul item\n> Split Out\n\n### 4. utiliser les formulaires n8n\n\n- **Trigger Form**\n- ... chercher les workflows avec la cli (point 3.)\n- **Next Page Form**\n\n### 5. injecter les workflows dans Next Page Form\n\n### 6. exporter le workflow souhaité\n\n### 7. ssh (en mode SCP) pour envoyer le workflow (en .json) vers une autre instance\n\n",
+        "height": 1072,
+        "width": 992
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -560,
+        -304
+      ],
+      "typeVersion": 1,
+      "id": "8c8a9eb2-9d53-46d4-bc88-9d6168856e7a",
+      "name": "Sticky Note"
+    }
+  ],
+  "pinData": {},
+  "connections": {},
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "9e91ecc3-7852-4c18-9f67-1dd3ea2fd9b2",
+  "meta": {
+    "instanceId": "12046d944e444fc96f92cc95f8324099ad51cfba58a892439d0a35f9d751b52a"
+  },
+  "nodeGroups": [],
+  "id": "YCD5weTHNz4mhYBa",
+  "tags": []
+}
