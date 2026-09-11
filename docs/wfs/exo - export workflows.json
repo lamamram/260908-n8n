@@ -218,6 +218,98 @@
       "typeVersion": 1,
       "id": "6222718b-f117-4320-a6e3-11f3f1096521",
       "name": "Sticky Note6"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "0daeb941-7d49-4bb8-81cc-b32ce3f0df51",
+              "name": "id",
+              "value": "={{ $json.workflows.split('|')[0] }}",
+              "type": "string"
+            },
+            {
+              "id": "a0042b6b-afa5-44c5-a148-9a6253b65081",
+              "name": "name",
+              "value": "={{ $json.workflows.split('|')[1] }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.5,
+      "position": [
+        -512,
+        1456
+      ],
+      "id": "060c166d-d9ea-4f23-8796-41826b9a39b8",
+      "name": "Edit Fields1"
+    },
+    {
+      "parameters": {
+        "resource": "file",
+        "path": "C:\\Users\\Admin stagiaire.DESKTOP-8967908",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.ssh",
+      "typeVersion": 1,
+      "position": [
+        224,
+        1456
+      ],
+      "id": "d7b6341e-da6a-433b-b8d3-a598822e0217",
+      "name": "Upload a file",
+      "credentials": {
+        "sshPassword": {
+          "id": "3ggzwzCnAVUnttey",
+          "name": "SSH Password account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "fileSelector": "=/home/node/data/{{ $('Edit Fields1').item.json.name }}.json",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.readWriteFile",
+      "typeVersion": 1.1,
+      "position": [
+        -64,
+        1456
+      ],
+      "id": "e709c6d5-8e0c-4db3-91e4-8b3797e8a578",
+      "name": "Read/Write Files from Disk"
+    },
+    {
+      "parameters": {
+        "command": "=n8n export:workflow --id={{ $json.id }} --output=data/{{ $json.name }}.json"
+      },
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [
+        -288,
+        1456
+      ],
+      "id": "2b0a6c74-9ee0-486a-8f51-94798632a713",
+      "name": "Execute Command1"
+    },
+    {
+      "parameters": {
+        "content": "## SSH (en mode SCP Upload)\n\n- pour uploader on a besoin d'un champ Binary d'où le noeud précédent",
+        "height": 336,
+        "color": 4
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        192,
+        1296
+      ],
+      "typeVersion": 1,
+      "id": "e9be9c52-77a0-4800-89d4-77261d392cea",
+      "name": "Sticky Note7"
     }
   ],
   "pinData": {},
@@ -276,14 +368,58 @@
           }
         ]
       ]
+    },
+    "Form": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields1": {
+      "main": [
+        [
+          {
+            "node": "Execute Command1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read/Write Files from Disk": {
+      "main": [
+        [
+          {
+            "node": "Upload a file",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Execute Command1": {
+      "main": [
+        [
+          {
+            "node": "Read/Write Files from Disk",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     }
   },
-  "active": false,
+  "active": true,
   "settings": {
     "executionOrder": "v1",
     "binaryMode": "separate"
   },
-  "versionId": "0788f991-68f3-42fc-b391-c380f78a812f",
+  "versionId": "e2501271-0070-476c-835a-43fc32b6645c",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "12046d944e444fc96f92cc95f8324099ad51cfba58a892439d0a35f9d751b52a"
